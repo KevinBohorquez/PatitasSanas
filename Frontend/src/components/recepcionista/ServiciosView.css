@@ -1,0 +1,346 @@
+/* ----- CONTENEDOR PRINCIPAL ----- */
+.servicios-view {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ---- CABECERA DE LA SECCIÓN SERVICIOS ---- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.section-header h2 {
+  font-family: "Lilita One", sans-serif;
+  color: #2aabcf;
+  font-size: 2.1rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow:
+    -1px -1px 0 #013644,
+     1px -1px 0 #013644,
+    -1px  1px 0 #013644,
+     1px  1px 0 #013644;
+}
+
+/* ---- SECCIÓN DE TABLA ---- */
+.servicios-table-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.table-header h3 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 750;
+  margin: 0;
+  background: #008CB1;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- FILTROS Y BÚSQUEDA ---- */
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-input {
+  padding: 10px 15px;
+  border: 2px solid #c1d7dd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 250px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #008CB1;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.search-input::placeholder {
+  color: #757f88;
+}
+
+.search-btn {
+  background: #47b3d1;
+  color: white;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.search-btn:hover {
+  background: #008CB1;
+  transform: scale(1.05);
+}
+
+.filter-container {
+  position: relative;
+}
+
+.filter-select {
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #c1d7dd;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.clear-filters-btn {
+  background: #c94944;
+  color: white;
+  border: 2px solid transparent;
+  border-color: #802421;
+  border-width: 2.5px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.clear-filters-btn:hover {
+  background: #b84336;
+  transform: translateY(-1px);
+}
+
+/* ----- INFORMACIÓN DE RESULTADOS ---- */
+.results-info {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background: #e8f4f8;
+  border-radius: 6px;
+  border-left: 4px solid #47b3d1;
+}
+
+.results-info span {
+  color: #2c3e50;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- ESTILO ESPECIAL PARA PRECIOS ---- */
+.precio-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.precio-badge {
+  background: linear-gradient(135deg, #78d38f, #5cbb72);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  border: 2px solid #29ad55;
+  min-width: 70px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.precio-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+/* ----- LOADING ---- */
+.loading-container {
+  text-align: center;
+  padding: 50px;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* ---- ÍCONOS DE BÚSQUEDA ---- */
+.search-icon {
+  width: 16px;
+  height: 16px;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover .search-icon {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* ---- ANIMACIONES ---- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.servicios-table-section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.results-info {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- ESTILOS ADICIONALES PARA MEJORAR UX ---- */
+.search-input:not(:placeholder-shown) {
+  background: white;
+  border-color: #3498db;
+}
+
+.filter-select:not([value="todos"]) {
+  background: white;
+  border-color: #3498db;
+}
+
+/* ---- RESPONSIVE DESIGN ---- */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .filters-container {
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .clear-filters-btn {
+    width: 100%;
+  }
+
+  .precio-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    min-width: 70px;
+  }
+}
+
+/* ---- MEJORAS ADICIONALES ---- */
+.servicios-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.servicios-view th {
+  background: #68c1da;
+  color: white;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.servicios-view td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  color: #2c3e50;
+  vertical-align: middle;
+}
+
+.servicios-view tbody tr:hover {
+  background: #cae6f1;
+  transition: background-color 0.2s ease;
+}
+
+.servicios-view tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---- ESTILOS PARA COLUMNAS ESPECÍFICAS ---- */
+.servicios-view td:first-child {
+  font-weight: 600;
+  color: #008CB1;
+  text-align: center;
+  width: 60px;
+}
+
+.servicios-view td:nth-child(2) {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.servicios-view td:nth-child(3) {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.servicios-view td:nth-child(4) {
+  text-align: center;
+  width: 120px;
+}
+
+/* ---- CENTRAR ENCABEZADOS ---- */
+.servicios-view th:first-child,
+.servicios-view th:nth-child(4) {
+  text-align: center;
+}

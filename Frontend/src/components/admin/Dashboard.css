@@ -1,0 +1,316 @@
+/* src/components/admin/Dashboard.css - Estilos para el Dashboard del Administrador */
+
+.dashboard-recepcionista {
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  min-height: 100vh;
+}
+
+/* Sección de Bienvenida */
+.welcome-section {
+  background: linear-gradient(135deg, #f0f4ff 0%, #6366f1 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.4s ease-out;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 80%);
+  animation: float 6s ease-in-out infinite;
+}
+
+.welcome-section:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.welcome-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  background: #e7f0ff;
+}
+
+.welcome-text {
+  color: white;
+  flex: 1;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-family: "Lilita One", sans-serif;
+  color: #6366f1;
+  text-shadow:
+    -1px -1px 0 #1e293b,
+     1px -1px 0 #1e293b,
+    -1px  1px 0 #1e293b,
+     1px  1px 0 #1e293b;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.user-name {
+  font-family: "Lilita One", sans-serif;
+  font-size: 2.2rem;
+  margin: 0.5rem 0;
+  color: #4f46e5;
+  text-shadow:
+    -1px -1px 0 #1e293b,
+     1px -1px 0 #1e293b,
+    -1px  1px 0 #1e293b,
+     1px  1px 0 #1e293b;
+}
+
+.role-description {
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin: 0;
+  opacity: 0.9;
+  color: #3b3b3b;
+}
+
+.welcome-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+}
+
+.pet-icon {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.pet-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card.stat-blue::before {
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+}
+
+.stat-card.stat-green::before {
+  background: linear-gradient(180deg, #10b981, #059669);
+}
+
+.stat-card.stat-purple::before {
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+.stat-card.stat-orange::before {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.stat-card.stat-cyan::before {
+  background: linear-gradient(180deg, #06b6d4, #0891b2);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.stat-content.two-columns {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.right-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 0.5rem 0;
+  font-family: "Inter", sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.stat-icon-container {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-icon {
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+  filter: saturate(0.8) brightness(1.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
+  filter: saturate(1) brightness(1.2);
+}
+
+/* Error Message */
+.error-message {
+  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  border: 1px solid #f87171;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.error-message p {
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Dashboard Footer */
+.dashboard-footer {
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dashboard-footer p {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-recepcionista {
+    padding: 1rem;
+  }
+  
+  .welcome-section {
+    padding: 1.5rem;
+  }
+  
+  .welcome-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .user-name {
+    font-size: 1.8rem;
+  }
+  
+  .role-description {
+    font-size: 1.2rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+}

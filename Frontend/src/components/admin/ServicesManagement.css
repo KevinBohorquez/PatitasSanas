@@ -1,0 +1,308 @@
+/* src/components/admin/ServicesManagement.css */
+
+/* CONTENEDOR PRINCIPAL */
+.services-management {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* CABECERA PRINCIPAL */
+.services-management .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.services-management .section-header h2 {
+  font-family: "Lilita One", sans-serif;
+  color: #2aabcf;
+  font-size: 2.1rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow:
+    -1px -1px 0 #013644,
+     1px -1px 0 #013644,
+    -1px  1px 0 #013644,
+     1px  1px 0 #013644;
+}
+
+.services-management .btn-add {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(65, 129, 172, 0.3);
+}
+
+.services-management .btn-add:hover {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(79, 180, 84, 0.4);
+  border-color: #347a37;
+}
+
+.services-management .btn-add:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* SECCIÓN DE LA TABLA */
+.services-management .services-table-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
+}
+
+.services-management .table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.services-management .table-header h3 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 750;
+  margin: 0;
+  background: #008CB1;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* FILTROS Y BÚSQUEDA */
+.services-management .filters-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.services-management .search-input {
+  padding: 10px 15px;
+  border: 2px solid #c1d7dd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 250px;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.services-management .search-input:focus {
+  outline: none;
+  border-color: #008CB1;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.services-management .filter-select {
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.services-management .filter-select:focus {
+  outline: none;
+  border-color: #c1d7dd;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* INFORMACIÓN DE RESULTADOS */
+.services-management .results-info {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background: #e8f4f8;
+  border-radius: 6px;
+  border-left: 4px solid #47b3d1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* LOADING */
+.services-management .loading-container {
+  text-align: center;
+  padding: 50px;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* ERROR */
+.services-management .error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.services-management .btn-retry {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.services-management .btn-retry:hover {
+  background: #0056b3;
+}
+
+/* PAGINACIÓN */
+.services-management .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.services-management .pagination-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.services-management .pagination-btn:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.services-management .pagination-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.services-management .pagination-info {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* FORMULARIO */
+.services-management .service-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.services-management .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.services-management .form-group label {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.services-management .form-group input,
+.services-management .form-group select {
+  padding: 12px 15px;
+  border: 2px solid #d3e8f5;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.services-management .form-group input:focus,
+.services-management .form-group select:focus {
+  outline: none;
+  border-color: #68c1da;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(104, 193, 218, 0.1);
+}
+
+.services-management .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 25px;
+  border-top: 2px solid #e9ecef;
+}
+
+.services-management .btn-submit {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.services-management .btn-submit:hover {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .services-management {
+    padding: 15px;
+  }
+
+  .services-management .section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .services-management .section-header h2 {
+    text-align: center;
+    font-size: 1.5rem;
+  }
+
+  .services-management .table-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .services-management .filters-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .services-management .search-input,
+  .services-management .filter-select {
+    width: 100%;
+  }
+}

@@ -1,0 +1,538 @@
+/* VetManagement.css - UNIFORME con UserManagement pero SOLO para VetManagement */
+
+/* ---- CONTENEDOR PRINCIPAL - Solo VetManagement ---- */
+.vet-management {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ---- CABECERA DE LA SECCIÓN - Igual que ClientesManagement ---- */
+.vet-management .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.vet-management .section-header h2 {
+  font-family: "Lilita One", sans-serif;
+  color: #2aabcf;
+  font-size: 2.1rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow:
+    -1px -1px 0 #013644,
+     1px -1px 0 #013644,
+    -1px  1px 0 #013644,
+     1px  1px 0 #013644;
+}
+
+/* ---- BOTÓN AÑADIR - Igual que ClientesManagement ---- */
+.vet-management .btn-add {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid transparent;
+  border-color: #32859c;
+  border-width: 2px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(65, 129, 172, 0.3);
+}
+
+.vet-management .btn-add:hover {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(79, 180, 84, 0.4);
+  border-color: #347a37;
+  border-width: 2px;
+}
+
+.vet-management .btn-add:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---- SECCIÓN DE TABLA - Igual que ClientesManagement ---- */
+.vet-management .vet-table-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
+}
+
+.vet-management .table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.vet-management .table-header h3 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 750;
+  margin: 0;
+  background: #008CB1;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- FILTROS Y BÚSQUEDA - Igual que ClientesManagement ---- */
+.vet-management .filters-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.vet-management .search-input {
+  padding: 10px 15px;
+  border: 2px solid #c1d7dd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 250px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.vet-management .search-input:focus {
+  outline: none;
+  border-color: #008CB1;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.vet-management .search-input::placeholder {
+  color: #757f88;
+}
+
+.vet-management .filter-select {
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.vet-management .filter-select:focus {
+  outline: none;
+  border-color: #c1d7dd;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.vet-management .clear-filters-btn {
+  background: #c94944;
+  color: white;
+  border: 2px solid transparent;
+  border-color: #802421;
+  border-width: 2.5px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.vet-management .clear-filters-btn:hover {
+  background: #b84336;
+  transform: translateY(-1px);
+}
+
+/* ---- INFORMACIÓN DE RESULTADOS - Igual que ClientesManagement ---- */
+.vet-management .results-info {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background: #e8f4f8;
+  border-radius: 6px;
+  border-left: 4px solid #47b3d1;
+}
+
+.vet-management .results-info span {
+  color: #2c3e50;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- LOADING - Igual que ClientesManagement ---- */
+.vet-management .loading-container {
+  text-align: center;
+  padding: 50px;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* ---- ERROR MESSAGE ---- */
+.vet-management .error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.vet-management .btn-retry {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.vet-management .btn-retry:hover {
+  background: #0056b3;
+}
+
+/* ---- PAGINACIÓN ---- */
+.vet-management .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.vet-management .pagination-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.vet-management .pagination-btn:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.vet-management .pagination-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.vet-management .pagination-info {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* ---- MODAL Y FORMULARIOS - Igual que ClientesManagement ---- */
+.vet-management .vet-view {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.vet-management .form-section {
+  margin-bottom: 30px;
+}
+
+.vet-management .form-section h3 {
+  color: #008CB1;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #72b9cc;
+}
+
+.vet-management .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.vet-management .info-grid div {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #008CB1;
+}
+
+.vet-management .info-grid strong {
+  color: #233344;
+  font-weight: 600;
+}
+
+/* ---- FORMULARIO - Igual que ClientesManagement ---- */
+.vet-management .vet-form {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.vet-management .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.vet-management .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.vet-management .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.vet-management .form-group label {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vet-management .form-group input,
+.vet-management .form-group select {
+  padding: 12px 15px;
+  border: 2px solid #d3e8f5;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.vet-management .form-group input:focus,
+.vet-management .form-group select:focus {
+  outline: none;
+  border-color: #68c1da;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(104, 193, 218, 0.1);
+}
+
+.vet-management .form-group input.error,
+.vet-management .form-group select.error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+}
+
+.vet-management .error-message {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  display: block;
+  font-weight: 500;
+}
+
+/* ---- FORM ACTIONS - Igual que ClientesManagement ---- */
+.vet-management .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 25px;
+  border-top: 2px solid #e9ecef;
+  margin-top: 30px;
+}
+
+.vet-management .btn-cancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.vet-management .btn-cancel:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.vet-management .btn-submit {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid transparent;
+  border-color: #32859c;
+  border-width: 2px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(51, 192, 202, 0.3);
+}
+
+.vet-management .btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+  border-color: #347a37;
+}
+
+.vet-management .btn-cancel:disabled,
+.vet-management .btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---- RESPONSIVE - Igual que ClientesManagement ---- */
+@media (max-width: 768px) {
+  .vet-management {
+    padding: 15px;
+  }
+  
+  .vet-management .section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .vet-management .section-header h2 {
+    text-align: center;
+    font-size: 1.5rem;
+  }
+  
+  .vet-management .table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .vet-management .filters-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .vet-management .search-input {
+    width: 100%;
+  }
+  
+  .vet-management .filter-select {
+    width: 100%;
+  }
+  
+  .vet-management .form-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .vet-management .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .vet-management .btn-cancel,
+  .vet-management .btn-submit {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .vet-management .info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vet-management .vet-table-section {
+    padding: 15px;
+  }
+  
+  .vet-management .section-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .vet-management .table-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .vet-management .search-input,
+  .vet-management .filter-select {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+  
+  .vet-management .btn-add {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ---- ANIMACIONES - Igual que ClientesManagement ---- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vet-management .vet-table-section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.vet-management .results-info {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- SCROLL PERSONALIZADO - Igual que ClientesManagement ---- */
+.vet-management .vet-view::-webkit-scrollbar,
+.vet-management .vet-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vet-management .vet-view::-webkit-scrollbar-track,
+.vet-management .vet-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.vet-management .vet-view::-webkit-scrollbar-thumb,
+.vet-management .vet-form::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.vet-management .vet-view::-webkit-scrollbar-thumb:hover,
+.vet-management .vet-form::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ---- ESTILOS ADICIONALES PARA MEJORAR UX ---- */
+.vet-management .search-input:not(:placeholder-shown) {
+  background: white;
+  border-color: #3498db;
+}
+
+.vet-management .filter-select:not([value=""]) {
+  background: white;
+  border-color: #3498db;
+}

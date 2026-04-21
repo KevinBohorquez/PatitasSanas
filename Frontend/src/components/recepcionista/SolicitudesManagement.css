@@ -1,0 +1,545 @@
+/* SolicitudesManagement.css */
+
+/* ---- CONTENEDOR PRINCIPAL ---- */
+.solicitudes-management {
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ---- HEADER DE SECCIÓN ---- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  border-bottom: 3px solid #56b5ca;
+}
+
+.section-header h2 {
+  color: #008CB1;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- BOTÓN AÑADIR ---- */
+.btn-add {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(51, 192, 202, 0.3);
+}
+
+.btn-add:hover:not(:disabled) {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+  border-color: #347a37;
+}
+
+.btn-add:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #999999;
+}
+
+/* ---- SECCIÓN DE TABLA ---- */
+.solicitudes-table-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e3f2fd;
+}
+
+/* ---- HEADER DE TABLA ---- */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.table-header h3 {
+  color: #008CB1;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ---- CONTENEDOR DE FILTROS ---- */
+.filters-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ---- CAMPO DE BÚSQUEDA ---- */
+.search-input {
+  padding: 10px 15px;
+  border: 2px solid #d3e8f5;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 250px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.search-input:not(:placeholder-shown) {
+  background: white;
+  border-color: #3498db;
+}
+
+/* ---- SELECT DE FILTRO ---- */
+.filter-select {
+  padding: 10px 15px;
+  border: 2px solid #d3e8f5;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #3498db;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-select:not([value="todos"]) {
+  background: white;
+  border-color: #3498db;
+}
+
+/* ---- BOTÓN LIMPIAR FILTROS ---- */
+.btn-clear {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-clear:hover {
+  background: linear-gradient(135deg, #c05551, #a3423f);
+  border-color: #833330;
+  transform: translateY(-1px);
+}
+
+/* ---- INFORMACIÓN DE RESULTADOS ---- */
+.results-info {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background: #e8f4f8;
+  border-radius: 6px;
+  border-left: 4px solid #47b3d1;
+}
+
+.results-info span {
+  color: #2c3e50;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- BADGES DE ESTADO ---- */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+}
+
+.status-pendiente {
+  background: #ffcfcd;
+  color: #92231f;
+  border: 1.2px solid #c44b4b;
+}
+
+.status-en-triaje {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1.2px solid #72a4ac;
+}
+
+.status-en-atencion {
+  background: #fff3cd;
+  color: #856404;
+  border: 1.2px solid #d6c385;
+}
+
+.status-completada {
+  background: #caf0d7;
+  color: #16752c;
+  border: 1.2px solid #86bb92;
+}
+
+/* ---- LOADING ---- */
+.loading-container {
+  text-align: center;
+  padding: 50px;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* ---- MODAL Y FORMULARIOS ---- */
+.solicitud-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ---- GRUPO DE FORMULARIO ---- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px 15px;
+  border: 2px solid #d3e8f5;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group input:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* ---- ACCIONES DEL FORMULARIO ---- */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #44a5c0;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c05551, #a3423f);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+  border-color: #833330;
+}
+
+.btn-cancel:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #999999;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  border: 2px solid #32859c;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(51, 192, 202, 0.3);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #56b35b, #4CAF50);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+  border-color: #347a37;
+}
+
+.btn-submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #999999;
+}
+
+/* ---- ESTILOS PARA LA TABLA ---- */
+.solicitudes-management table th {
+  background: #68c1da !important;
+  color: white !important;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.solicitudes-management table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  color: #2c3e50;
+}
+
+.solicitudes-management table tbody tr:hover {
+  background: #cae6f1;
+}
+
+/* ---- RESPONSIVE DESIGN ---- */
+@media (max-width: 768px) {
+  .solicitudes-management {
+    padding: 15px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .section-header h2 {
+    text-align: center;
+    font-size: 1.5rem;
+  }
+  
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .filters-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .solicitudes-table-section {
+    padding: 15px;
+  }
+  
+  .section-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .table-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .search-input,
+  .filter-select {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+  
+  .btn-add {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ---- ANIMACIONES ---- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.solicitudes-table-section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.results-info {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- ESTILOS ADICIONALES PARA MEJORAR UX ---- */
+.search-input:not(:placeholder-shown) {
+  background: white;
+  border-color: #3498db;
+}
+
+.filter-select:not([value="todos"]) {
+  background: white;
+  border-color: #3498db;
+}
+
+/* Efecto hover para las filas de la tabla */
+.solicitudes-management table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Estilos para campos requeridos */
+.form-group label::after {
+  content: "";
+}
+
+.form-group label:has(+ input[required])::after,
+.form-group label:has(+ select[required])::after {
+  content: " *";
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* Indicador visual para campos con errores */
+.form-group input:invalid:not(:placeholder-shown) {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+  border-color: #28a745;
+}
+
+.form-group select:invalid {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-group select:valid:not([value=""]) {
+  border-color: #28a745;
+}
+
+/* Estilos para el scroll personalizado */
+.solicitud-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.solicitud-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.solicitud-form::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.solicitud-form::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mensaje de error debajo de los inputs */
+.error-message {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  display: block;
+  font-weight: 500;
+}
+
+/* Input con error - borde rojo */
+.form-group input.error,
+.form-group select.error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+}
+
+/* Asegurar que el input mantenga el foco rojo cuando tiene error */
+.form-group input.error:focus,
+.form-group select.error:focus {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2) !important;
+}

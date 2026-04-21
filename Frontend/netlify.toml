@@ -1,0 +1,34 @@
+# netlify.toml - Configuración para Netlify con Vite
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Redirects para proxy de API (para producción en Netlify)
+[[redirects]]
+  from = "/api/*"
+  to = "https://veterinariaclinicabackend-production.up.railway.app/api/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify", Access-Control-Allow-Origin = "*"}
+
+# Headers de seguridad y CORS
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Manejo de SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

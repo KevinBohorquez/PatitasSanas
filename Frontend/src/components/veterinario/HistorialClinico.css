@@ -1,0 +1,136 @@
+/* Contenedor del formulario en el modal */
+.form-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+  gap: 20px; /* Espaciado entre los campos */
+  padding: 20px; /* Agregar padding para mayor separación */
+  background-color: #fff; /* Fondo blanco para el formulario */
+  border-radius: 10px; /* Bordes redondeados */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar el formulario */
+}
+
+/* Estilo de cada grupo de campo (campo de entrada con su etiqueta) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: bold; /* Añadir énfasis a las etiquetas */
+}
+
+/* Asegúrate de que los campos de entrada se ajusten bien */
+.form-group input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  color: #333;
+  transition: border-color 0.3s ease; /* Añadir transición suave */
+}
+
+/* Cambio de color cuando el campo de entrada tiene focus */
+.form-group input:focus {
+  border-color: #64b5f6; /* Color de borde cuando el campo está enfocado */
+  outline: none; /* Eliminar el borde por defecto */
+  background-color: #e3f2fd; /* Fondo ligeramente azul cuando está enfocado */
+}
+
+/* Ajustar para pantallas pequeñas (responsive) */
+@media (max-width: 768px) {
+  .form-container {
+    grid-template-columns: 1fr; /* En pantallas más pequeñas, los campos ocupan toda la fila */
+    padding: 15px; /* Reducir el padding en pantallas pequeñas */
+  }
+
+  .form-group input {
+    font-size: 0.9rem; /* Reducir el tamaño de la fuente en pantallas pequeñas */
+  }
+}
+
+/* Estilo del botón de cerrar */
+.btn-close {
+  background-color: #ff3b3b; /* Rojo de advertencia */
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Transición para el color de fondo */
+  margin-top: 20px; /* Separación de la tabla hacia el botón */
+}
+
+/* Efecto hover en el botón de cerrar */
+.btn-close:hover {
+  background-color: #d32f2f; /* Rojo más oscuro al pasar el mouse */
+}
+
+
+/* Estilos para la lista de consultas */
+.consulta-list {
+  margin-top: 20px;
+}
+
+.consulta-list table {
+  width: 100%;
+  border-collapse: collapse; /* Eliminar los espacios entre las celdas */
+  margin-top: 10px;
+  background-color: #fff; /* Fondo blanco para la tabla */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  border-radius: 8px; /* Bordes redondeados */
+}
+
+.consulta-list th,
+.consulta-list td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.consulta-list th {
+  background-color: #64b5f6; /* Fondo azul para los encabezados */
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase; /* Letras mayúsculas */
+}
+
+.consulta-list tr:nth-child(even) {
+  background-color: #f9f9f9; /* Fondo alterno para las filas pares */
+}
+
+.consulta-list tr:hover {
+  background-color: #f0f0f0; /* Efecto hover para filas */
+  cursor: pointer; /* Cambiar el cursor a mano al pasar sobre la fila */
+}
+
+.consulta-list td {
+  color: #333; /* Color de texto para las celdas */
+}
+
+.consulta-list button {
+  background-color: #2196f3; /* Botón azul */
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.consulta-list button:hover {
+  background-color: #1976d2; /* Efecto hover en el botón */
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .consulta-list table {
+    font-size: 0.9rem; /* Reducir tamaño de fuente en pantallas pequeñas */
+  }
+
+  .consulta-list th,
+  .consulta-list td {
+    padding: 8px; /* Reducir el padding de las celdas */
+  }
+}

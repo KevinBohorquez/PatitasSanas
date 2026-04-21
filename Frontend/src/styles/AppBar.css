@@ -1,0 +1,120 @@
+/* styles/AppBar.css */
+.app-bar {
+  background: #7fd1e7;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 100;
+}
+
+.app-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.app-bar-titles {
+  flex: 1;
+}
+
+
+.app-bar-titles h1 {
+  color: rgb(48, 48, 48);
+  font-size: 1.4rem;
+  margin: 0;
+  font-weight: bold;
+}
+
+.app-bar-titles h2 {
+  color: white;
+  font-size: 1.9rem;
+  font-weight: bold;
+  margin: 0;
+  margin-top: 0.25rem;
+  opacity: 0.8;
+  text-shadow:
+    -1px -1px 0 #000d11,
+     1px -1px 0 #000d11,
+    -1px  1px 0 #000d11,
+     1px  1px 0 #000d11;
+  text-transform: uppercase;
+}
+
+.app-bar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.cerrar-sesion-btn {
+  background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+  color: white;
+  padding: 0.7rem 1.4rem;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  border-color: #32859c;
+  border-width: 2.5px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  font-size: 1.0rem;
+  text-transform: uppercase;
+}
+
+.cerrar-sesion-btn:hover {
+  background: #c94944;
+  border: 2px solid transparent;
+  border-color: #802421;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.cerrar-sesion-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-bar {
+    padding: 1rem;
+  }
+  
+  .app-bar-titles h1 {
+    font-size: 1.2rem;
+  }
+  
+  .app-bar-titles h2 {
+    font-size: 0.9rem;
+  }
+  
+  .cerrar-sesion-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-bar {
+    padding: 0.75rem;
+  }
+  
+  .app-bar-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .app-bar-titles {
+    text-align: center;
+  }
+  
+  .app-bar-actions {
+    justify-content: center;
+  }
+}
