@@ -8,7 +8,7 @@ export default defineConfig({
     // Proxy para desarrollo local
     proxy: {
       '/api': {
-        target: 'https://veterinariaclinicabackend-production.up.railway.app',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path,
@@ -41,7 +41,7 @@ export default defineConfig({
   define: {
     __API_URL__: JSON.stringify(
       process.env.NODE_ENV === 'production' 
-        ? 'https://veterinariaclinicabackend-production.up.railway.app/api/v1'
+        ? 'http://localhost:8000/api/v1'
         : '/api/v1'
     )
   }

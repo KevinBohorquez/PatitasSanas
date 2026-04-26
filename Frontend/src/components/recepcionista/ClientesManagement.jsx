@@ -8,17 +8,17 @@ const ClientesManagement = () => {
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('add'); 
+  const [modalType, setModalType] = useState('add');
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [mascotas, setMascotas] = useState([]);
-  
+
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  
+
   // Estados para validaciones
   const [validationErrors, setValidationErrors] = useState({});
-  
+
   const [formData, setFormData] = useState({
     dni: '',
     nombre: '',
@@ -31,7 +31,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Cargar clientes
   useEffect(() => {
@@ -53,7 +53,7 @@ const ClientesManagement = () => {
       filtered = filtered.filter(cliente => {
         const nombreCompleto = `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno || ''}`.toLowerCase();
         const dni = cliente.dni?.toLowerCase() || '';
-        
+
         return nombreCompleto.includes(term) || dni.includes(term);
       });
     }
@@ -70,7 +70,7 @@ const ClientesManagement = () => {
   // Función para validar campos en tiempo real
   const validateField = (field, value) => {
     const errors = { ...validationErrors };
-    
+
     switch (field) {
       case 'dni':
         if (value && (!/^\d{8}$/.test(value))) {
@@ -79,7 +79,7 @@ const ClientesManagement = () => {
           delete errors.dni;
         }
         break;
-        
+
       case 'nombre':
         if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
           errors.nombre = 'El nombre solo puede contener letras y espacios';
@@ -87,7 +87,7 @@ const ClientesManagement = () => {
           delete errors.nombre;
         }
         break;
-        
+
       case 'apellido_paterno':
         if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
           errors.apellido_paterno = 'El apellido solo puede contener letras y espacios';
@@ -95,7 +95,7 @@ const ClientesManagement = () => {
           delete errors.apellido_paterno;
         }
         break;
-        
+
       case 'apellido_materno':
         if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
           errors.apellido_materno = 'El apellido solo puede contener letras y espacios';
@@ -103,15 +103,15 @@ const ClientesManagement = () => {
           delete errors.apellido_materno;
         }
         break;
-        
+
       case 'telefono':
-        if (value && (!/^\d{9}$/.test(value))) {
-          errors.telefono = 'El teléfono debe contener exactamente 9 números';
+        if (value && (!/^\d{9}$/.test(value) || !value.startsWith('9'))) {
+          errors.telefono = 'El teléfono debe tener 9 números y empezar con 9';
         } else {
           delete errors.telefono;
         }
         break;
-        
+
       case 'email':
         if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           errors.email = 'Ingrese un email válido';
@@ -119,11 +119,11 @@ const ClientesManagement = () => {
           delete errors.email;
         }
         break;
-        
+
       default:
         break;
     }
-    
+
     setValidationErrors(errors);
   };
 
@@ -131,7 +131,7 @@ const ClientesManagement = () => {
   const handleInputChange = (field, value) => {
     // Filtros específicos para ciertos campos
     let filteredValue = value;
-    
+
     if (field === 'dni' || field === 'telefono') {
       // Solo permitir números
       filteredValue = value.replace(/\D/g, '');
@@ -145,8 +145,8 @@ const ClientesManagement = () => {
       // Solo permitir letras, espacios y acentos
       filteredValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
     }
-    
-    setFormData({...formData, [field]: filteredValue});
+
+    setFormData({ ...formData, [field]: filteredValue });
     validateField(field, filteredValue);
   };
 
@@ -256,7 +256,7 @@ const ClientesManagement = () => {
             'Accept': 'application/json',
           },
         });
-        
+
         if (response.ok) {
           alert('Cliente eliminado exitosamente');
           fetchClientes(); // Recargar la lista
@@ -278,9 +278,9 @@ const ClientesManagement = () => {
     setLoading(true);
 
     // Validaciones básicas
-    if (!formData.dni || !formData.nombre || !formData.apellido_paterno || 
-        !formData.telefono || !formData.email || !formData.direccion) {
-      alert('Por favor, complete todos los campos requeridos');
+    if (!formData.dni || !formData.nombre || !formData.apellido_paterno || !formData.apellido_materno ||
+      !formData.telefono || !formData.email || !formData.direccion) {
+      alert('Por favor, complete todos los campos requeridos, incluyendo el Apellido Materno.');
       setLoading(false);
       return;
     }
@@ -306,7 +306,7 @@ const ClientesManagement = () => {
       };
 
       let response;
-      
+
       if (modalType === 'add') {
         response = await fetch(`${BASE_URL}/clientes`, {
           method: 'POST',
@@ -335,7 +335,13 @@ const ClientesManagement = () => {
         fetchClientes(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.detail || 'Error desconocido'}`);
+        let errorMessage = 'Error desconocido';
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(err => err.msg).join('\\n');
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+        alert(`Error al guardar: \\n${errorMessage}`);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -356,8 +362,8 @@ const ClientesManagement = () => {
     { key: 'nombre', header: 'NOMBRES' },
     { key: 'apellido_paterno', header: 'A. PATE' },
     { key: 'apellido_materno', header: 'A. MATERN' },
-    { 
-      key: 'estado', 
+    {
+      key: 'estado',
       header: 'ESTADO',
       render: (row) => (
         <span className={`status-badge ${row.estado === 'Activo' ? 'status-active' : 'status-inactive'}`}>
@@ -389,7 +395,7 @@ const ClientesManagement = () => {
       <div className="clients-table-section">
         <div className="table-header">
           <h3>Clientes registrados en la base de datos</h3>
-          
+
           {/* Filtros de búsqueda */}
           <div className="filters-container">
             <div className="search-container">
@@ -434,13 +440,13 @@ const ClientesManagement = () => {
           </span>
         </div>
 
-        <Table 
+        <Table
           columns={columns}
           data={filteredClientes}
           actions={actions}
           emptyMessage={
-            searchTerm || statusFilter !== 'todos' 
-              ? "No se encontraron clientes con los filtros aplicados" 
+            searchTerm || statusFilter !== 'todos'
+              ? "No se encontraron clientes con los filtros aplicados"
               : "No hay clientes registrados"
           }
         />
@@ -464,14 +470,14 @@ const ClientesManagement = () => {
                 <div><strong>Género:</strong> {selectedCliente?.genero === 'F' ? 'Femenino' : 'Masculino'}</div>
                 <div><strong>Estado:</strong> {selectedCliente?.estado}</div>
               </div>
-              
+
               <h3>DATOS DE CONTACTO</h3>
               <div className="info-grid">
                 <div><strong>Teléfono:</strong> {selectedCliente?.telefono || '-'}</div>
                 <div><strong>Email:</strong> {selectedCliente?.email || '-'}</div>
                 <div><strong>Dirección:</strong> {selectedCliente?.direccion || '-'}</div>
               </div>
-              
+
               <h3>MASCOTAS REGISTRADAS</h3>
               <div className="mascotas-table">
                 <table>
@@ -528,7 +534,7 @@ const ClientesManagement = () => {
                   <label>GÉNERO (*)</label>
                   <select
                     value={formData.genero}
-                    onChange={(e) => setFormData({...formData, genero: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
                     required
                   >
                     <option value="F">Femenino</option>
@@ -536,7 +542,7 @@ const ClientesManagement = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label>NOMBRES (*)</label>
@@ -565,7 +571,7 @@ const ClientesManagement = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label>APELLIDO MATERNO (*)</label>
@@ -584,7 +590,7 @@ const ClientesManagement = () => {
                   <label>ESTADO (*)</label>
                   <select
                     value={formData.estado}
-                    onChange={(e) => setFormData({...formData, estado: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
                     required
                   >
                     <option value="Activo">Activo</option>
@@ -625,13 +631,13 @@ const ClientesManagement = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="form-group full-width">
                 <label>DIRECCIÓN (*)</label>
                 <input
                   type="text"
                   value={formData.direccion}
-                  onChange={(e) => setFormData({...formData, direccion: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                   required
                 />
               </div>
@@ -683,7 +689,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Cargar clientes
   useEffect(() => {
@@ -1214,7 +1220,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Cargar clientes al montar el componente
   useEffect(() => {

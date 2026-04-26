@@ -40,7 +40,7 @@ const VetManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Función para determinar el tipo de veterinario según la especialidad
   const getTipoVeterinario = (idEspecialidad) => {
@@ -1206,7 +1206,7 @@ const VetManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Función para determinar el tipo de veterinario según la especialidad
   const getTipoVeterinario = (idEspecialidad) => {

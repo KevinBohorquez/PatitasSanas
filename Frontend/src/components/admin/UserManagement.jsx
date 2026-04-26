@@ -32,7 +32,7 @@ const UserManagement = () => {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   const generateUsername = (nombre) => {
     if (!nombre.trim()) return '';
@@ -901,7 +901,7 @@ const UserManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Función para generar username automático
   const generateUsername = (nombre) => {

@@ -17,7 +17,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       console.log('Cargando resultado para cita ID:', citaId);
       
       const response = await fetch(
-        `https://veterinariaclinicabackend-production.up.railway.app/api/v1/consultas/resultado_servicio/${citaId}`
+        `http://localhost:8000/api/v1/consultas/resultado_servicio/${citaId}`
       );
       
       if (!response.ok) {
@@ -114,7 +114,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       setError(null);
       
       const response = await fetch(
-        `https://veterinariaclinicabackend-production.up.railway.app/api/v1/consultas/resultado_servicio/${cita.id}`,
+        `http://localhost:8000/api/v1/consultas/resultado_servicio/${cita.id}`,
         {
           method: 'PUT',
           headers: {

@@ -24,7 +24,7 @@ const SolicitudesAtencion = () => {
       console.log('🔄 Actualizando disposición para usuario ID:', idUsuario);
       
       const response = await fetch(
-        `https://veterinariaclinicabackend-production.up.railway.app/api/v1/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
+        `http://localhost:8000/api/v1/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
         {
           method: 'PUT',
           headers: {
@@ -52,7 +52,7 @@ const SolicitudesAtencion = () => {
   // Función para obtener datos de mascota por ID
   const fetchMascota = async (mascotaId) => {
     try {
-      const response = await fetch(`https://veterinariaclinicabackend-production.up.railway.app/api/v1/mascotas/${mascotaId}`);
+      const response = await fetch(`http://localhost:8000/api/v1/mascotas/${mascotaId}`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -64,7 +64,7 @@ const SolicitudesAtencion = () => {
   // Función para obtener datos de cliente por ID
   const fetchCliente = async (clienteId) => {
     try {
-      const response = await fetch(`https://veterinariaclinicabackend-production.up.railway.app/api/v1/clientes/${clienteId}`);
+      const response = await fetch(`http://localhost:8000/api/v1/clientes/${clienteId}`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -83,7 +83,7 @@ const SolicitudesAtencion = () => {
         setLoading(true);
 
         const response = await fetch(
-          `https://veterinariaclinicabackend-production.up.railway.app/api/v1/solicitudes/veterinario/${user.id}`
+          `http://localhost:8000/api/v1/solicitudes/veterinario/${user.id}`
         );
 
         if (!response.ok) {

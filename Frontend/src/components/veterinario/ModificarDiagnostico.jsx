@@ -23,7 +23,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchDiagnosticoInfo = async () => {
       try {
-        const response = await fetch(`https://veterinariaclinicabackend-production.up.railway.app/api/v1/consultas/diagnostico/${diagnosticoId}/info`);
+        const response = await fetch(`http://localhost:8000/api/v1/consultas/diagnostico/${diagnosticoId}/info`);
         
         if (response.ok) {
           const data = await response.json();
@@ -100,7 +100,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       console.log('Enviando datos:', payload);
 
       const response = await fetch(
-        `https://veterinariaclinicabackend-production.up.railway.app/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
+        `http://localhost:8000/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
         {
           method: 'PUT',
           headers: {

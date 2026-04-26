@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Verificar si hay usuario
   useEffect(() => {
@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Verificar si hay usuario en localStorage al cargar
   useEffect(() => {

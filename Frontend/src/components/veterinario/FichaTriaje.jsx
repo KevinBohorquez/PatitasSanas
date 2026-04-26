@@ -32,7 +32,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       setLoading(true);
       // Usando el ID de la solicitud como triaje_id
       // Si tienes una relación diferente, ajusta según tu modelo de datos
-      const response = await fetch(`https://veterinariaclinicabackend-production.up.railway.app/api/v1/triaje/consulta/${solicitud.id}`);
+      const response = await fetch(`http://localhost:8000/api/v1/triaje/consulta/${solicitud.id}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -132,7 +132,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       if (triageData) {
         // Actualizar triaje existente
         console.log('Actualizando triaje existente...');
-        response = await fetch(`https://veterinariaclinicabackend-production.up.railway.app/api/v1/triaje/triaje/${triageData.id_triaje}`, {
+        response = await fetch(`http://localhost:8000/api/v1/triaje/triaje/${triageData.id_triaje}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       } else {
         // Crear nuevo triaje
         console.log('Creando nuevo triaje...');
-        response = await fetch('https://veterinariaclinicabackend-production.up.railway.app/api/v1/triaje/', {
+        response = await fetch('http://localhost:8000/api/v1/triaje/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

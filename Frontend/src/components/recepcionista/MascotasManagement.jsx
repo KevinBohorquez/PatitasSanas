@@ -35,7 +35,7 @@ const MascotasManagement = () => {
     tipo_animal: '' 
   });
 
-  const BASE_URL = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1';
+  const BASE_URL = 'http://localhost:8000/api/v1';
 
   // Cargar datos 
   useEffect(() => {

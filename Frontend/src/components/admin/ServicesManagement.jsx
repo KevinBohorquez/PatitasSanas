@@ -32,7 +32,7 @@ const ServicesManagement = () => {
       return '/api/v1/catalogos';
     }
     // En otros casos, usar la URL completa
-    return 'https://veterinariaclinicabackend-production.up.railway.app/api/v1/catalogos';
+    return 'http://localhost:8000/api/v1/catalogos';
   };
   
   const API_BASE = getApiBaseUrl();
@@ -70,11 +70,9 @@ const ServicesManagement = () => {
   const fetchServicios = async () => {
     setLoading(true);
     try {
-      // Forzar HTTPS en todas las peticiones
-      const secureUrl = SERVICIOS_URL.replace('http://', 'https://');
-      console.log('🔗 Conectando a servicios (HTTPS):', secureUrl);
+      console.log('🔗 Conectando a servicios:', SERVICIOS_URL);
       
-      const response = await fetch(secureUrl, {
+      const response = await fetch(SERVICIOS_URL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -398,10 +396,10 @@ const ServicesManagement = () => {
 
   if (error) {
     return (
-      <div style={styles.errorContainer}>
+      <div className="error-message">
         <h3>Error</h3>
         <p>{error}</p>
-        <button onClick={() => { fetchTiposServicio(); fetchServicios(); }}>
+        <button className="btn-retry" onClick={() => { fetchTiposServicio(); fetchServicios(); }}>
           Reintentar
         </button>
       </div>
@@ -413,18 +411,6 @@ const ServicesManagement = () => {
 
   return (
     <>
-    <style jsx>{`
-  .services-management table th {
-    background: #68c1da !important;
-    color: white !important;
-    padding: 12px 15px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-`}</style>
     <div className="services-management">
     {/* Cabecera principal */}
     <div className="section-header">
@@ -628,7 +614,7 @@ const ServicesManagement = () => {
       return '/api/v1/catalogos';
     }
     // En otros casos, usar la URL completa
-    return 'https://veterinariaclinicabackend-production.up.railway.app/api/v1/catalogos';
+    return 'http://localhost:8000/api/v1/catalogos';
   };
   
   const API_BASE = getApiBaseUrl();
@@ -713,7 +699,7 @@ const ServicesManagement = () => {
   // Función de respaldo para servicios con URL directa
   const fetchServiciosDirecto = async () => {
     try {
-      const directUrl = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1/catalogos/servicios';
+      const directUrl = 'http://localhost:8000/api/v1/catalogos/servicios';
       console.log('🔗 Intentando conexión directa a servicios:', directUrl);
       
       const response = await fetch(directUrl);
@@ -1373,7 +1359,7 @@ const ServicesManagement = () => {
   });
 
   // URLs de la API - SIN barras finales
-  const API_BASE = 'https://veterinariaclinicabackend-production.up.railway.app/api/v1/catalogos';
+  const API_BASE = 'http://localhost:8000/api/v1/catalogos';
   const SERVICIOS_URL = `${API_BASE}/servicios`;
   const TIPOS_SERVICIO_URL = `${API_BASE}/tipos-servicio`;
 
