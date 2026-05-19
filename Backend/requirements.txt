@@ -30,3 +30,6 @@ httpx==0.25.2
 
 # Monitoring
 structlog==23.2.0
+
+# Reports
+reportlab==4.1.0

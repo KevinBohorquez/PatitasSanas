@@ -24,6 +24,7 @@ from app.api.v1.endpoints.consultas import router as consultas_router
 from app.api.v1.endpoints.solicitudes import router as solicitudes_router
 from app.api.v1.endpoints.triaje import router as triaje_router
 from app.api.v1.endpoints.servicio_solicitado import router as servicio_solicitado_router
+from app.api.v1.endpoints.reportes import router as reportes_router
 
 app = FastAPI(
     title="🏥 Sistema Veterinaria API Completo",
@@ -57,6 +58,7 @@ app.include_router(consultas_router, prefix="/api/v1/consultas", tags=["🏥 con
 app.include_router(triaje_router, prefix="/api/v1/triaje", tags=["🏥 Triaje"])
 app.include_router(servicio_solicitado_router, prefix="/api/v1/servicio_solicitado", tags=["🏥 Servicio_solicitado"])
 app.include_router(solicitudes_router, prefix="/api/v1/solicitudes", tags=["🏥 Solicitudes"])
+app.include_router(reportes_router, prefix="/api/v1/reportes", tags=["📄 reportes"])
 
 # ===== ENDPOINTS PRINCIPALES =====
 
@@ -141,10 +143,19 @@ async def not_found_handler(request, exc):
     )
 
 if __name__ == "__main__":
+    import os
     import uvicorn
+
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
     debug = os.getenv("ENVIRONMENT", "development") == "development"
-    
+
     print(f"🚀 Iniciando servidor en http://{host}:{port}")
-    uvicorn.run("main:app", host=host, port=port, reload=debug, log_level="info")
+
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        reload=debug,
+        log_level="info"
+    )
