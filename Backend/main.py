@@ -142,11 +142,20 @@ async def not_found_handler(request, exc):
         }
     )
 
-if _name_ == "_main_":
+if __name__ == "__main__":
+    import os
     import uvicorn
+
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
     debug = os.getenv("ENVIRONMENT", "development") == "development"
-    
+
     print(f"🚀 Iniciando servidor en http://{host}:{port}")
-    uvicorn.run("main:app", host=host, port=port, reload=debug, log_level="info")
+
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        reload=debug,
+        log_level="info"
+    )

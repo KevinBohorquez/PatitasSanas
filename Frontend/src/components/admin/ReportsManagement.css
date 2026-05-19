@@ -44,6 +44,7 @@
 .report-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
 }
 
 .report-icon {
@@ -53,16 +54,53 @@
 }
 
 .report-card h3 {
-  color: #333;
+  color: #2aabcf;
   margin-bottom: 10px;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
 }
 
 .report-card p {
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin-bottom: 20px;
   line-height: 1.5;
+  flex-grow: 1;
+}
+
+/* Filtros de reportes */
+.report-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #444;
+}
+
+.report-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.report-input:focus {
+  border-color: #2aabcf;
 }
 
 .btn-download-pdf {

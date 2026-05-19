@@ -57,38 +57,42 @@ def generar_pdf_citas_diarias(citas_data, fecha_reporte):
     elements.append(Spacer(1, 10))
 
     # Tabla de Citas
-    data = [["Horario", "Mascota", "Cliente", "Veterinario", "Estado"]]
-    
-    for cita in citas_data:
-        data.append([
-            cita.get('horario', 'N/A'),
-            cita.get('mascota', 'N/A'),
-            cita.get('cliente', 'N/A'),
-            cita.get('veterinario', 'N/A'),
-            cita.get('estado', 'N/A')
+    if not citas_data:
+        elements.append(Spacer(1, 20))
+        elements.append(Paragraph("<b>No hay citas registradas para la fecha seleccionada.</b>", subtitle_style))
+    else:
+        data = [["Horario", "Mascota", "Cliente", "Veterinario", "Estado"]]
+        
+        for cita in citas_data:
+            data.append([
+                cita.get('horario', 'N/A'),
+                cita.get('mascota', 'N/A'),
+                cita.get('cliente', 'N/A'),
+                cita.get('veterinario', 'N/A'),
+                cita.get('estado', 'N/A')
+            ])
+            
+        # Estilos de la tabla
+        table_style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), HexColor("#2aabcf")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), HexColor("#FFFFFF")),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), HexColor("#f8f9fa")),
+            ('TEXTCOLOR', (0, 1), (-1, -1), HexColor("#333333")),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 1, HexColor("#dddddd")),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ])
         
-    # Estilos de la tabla
-    table_style = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor("#2aabcf")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), HexColor("#FFFFFF")),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), HexColor("#f8f9fa")),
-        ('TEXTCOLOR', (0, 1), (-1, -1), HexColor("#333333")),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ('GRID', (0, 0), (-1, -1), 1, HexColor("#dddddd")),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ])
-    
-    # Crear la tabla y aplicar estilos
-    t = Table(data, colWidths=[3*cm, 3.5*cm, 4*cm, 4*cm, 2.5*cm])
-    t.setStyle(table_style)
-    
-    elements.append(t)
+        # Crear la tabla y aplicar estilos
+        t = Table(data, colWidths=[3*cm, 3.5*cm, 4*cm, 4*cm, 2.5*cm])
+        t.setStyle(table_style)
+        
+        elements.append(t)
     
     # Construir PDF
     doc.build(elements)
