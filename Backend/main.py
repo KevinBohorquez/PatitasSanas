@@ -27,6 +27,8 @@ from app.api.v1.endpoints.triaje import router as triaje_router
 from app.api.v1.endpoints.servicio_solicitado import router as servicio_solicitado_router
 from app.api.v1.endpoints.reportes import router as reportes_router
 
+from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
+
 app = FastAPI(
     title="🏥 Sistema Veterinaria API Completo",
     description="API integral para gestión de veterinaria con autenticación y todos los módulos",
@@ -60,6 +62,17 @@ app.include_router(triaje_router, prefix="/api/v1/triaje", tags=["🏥 Triaje"])
 app.include_router(servicio_solicitado_router, prefix="/api/v1/servicio_solicitado", tags=["🏥 Servicio_solicitado"])
 app.include_router(solicitudes_router, prefix="/api/v1/solicitudes", tags=["🏥 Solicitudes"])
 app.include_router(reportes_router, prefix="/api/v1/reportes", tags=["📄 reportes"])
+
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    stop_scheduler()
+
 
 # ===== ENDPOINTS PRINCIPALES =====
 

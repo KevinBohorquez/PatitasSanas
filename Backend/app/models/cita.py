@@ -19,6 +19,10 @@ class Cita(Base):
     ), default='Programada')
     requiere_ayuno = Column(Boolean)
     observaciones = Column(Text)
+
+    # Flags de notificaciones / alarmas
+    recordatorio_24h_enviado = Column(Boolean, default=False)
+    recordatorio_4h_enviado = Column(Boolean, default=False)
     
     # Constraints de validación
     __table_args__ = (
