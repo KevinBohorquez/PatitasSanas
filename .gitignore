@@ -5,3 +5,18 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Cobertura (artefactos generados — no versionar)
+Backend/coverage.xml
+Frontend/coverage/
+.coverage
+htmlcov/
+
+# Python
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+
+# Node
+Frontend/node_modules/
+Frontend/dist/
