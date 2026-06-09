@@ -65,13 +65,16 @@ DROP TABLE IF EXISTS `Cita`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Cita` (
-  `id_cita` int NOT NULL AUTO_INCREMENT,
-  `id_mascota` int DEFAULT NULL,
-  `id_servicio_solicitado` int DEFAULT NULL,
-  `fecha_hora_programada` datetime NOT NULL,
-  `estado_cita` enum('Programada','Cancelada','Atendida') DEFAULT 'Programada',
-  `requiere_ayuno` tinyint(1) DEFAULT NULL,
-  `observaciones` text,
+    `id_cita` int NOT NULL AUTO_INCREMENT,
+    `id_mascota` int DEFAULT NULL,
+    `id_servicio_solicitado` int DEFAULT NULL,
+    `fecha_hora_programada` datetime NOT NULL,
+    `estado_cita` enum('Programada','Cancelada','Atendida') DEFAULT 'Programada',
+    `requiere_ayuno` tinyint(1) DEFAULT NULL,
+    `observaciones` text,
+    `recordatorio_24h_enviado` tinyint(1) DEFAULT '0',
+    `recordatorio_4h_enviado` tinyint(1) DEFAULT '0',
+
   PRIMARY KEY (`id_cita`),
   KEY `id_mascota` (`id_mascota`),
   KEY `id_servicio_solicitado` (`id_servicio_solicitado`),
