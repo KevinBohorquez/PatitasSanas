@@ -202,7 +202,7 @@ const Dashboard = () => {
           <div className="welcome-text">
             <h2 className="welcome-title">BIENVENIDO/A 🤓 </h2>
             <h3 className="user-name">{getUserDisplayName()}</h3>
-            <p className="role-description">Recepcionista - Colitas Felices - Veterinaria 🧑🏻‍💻</p>
+            <p className="role-description">Recepcionista - Patitas Sanas - Veterinaria 🧑🏻‍💻</p>
           </div>
           <div className="welcome-image">
             <img 
