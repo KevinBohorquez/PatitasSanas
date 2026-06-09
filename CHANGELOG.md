@@ -2,6 +2,11 @@ Markdown
 # Changelog (Registro de Cambios)
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [v.1.2.0] - 2026-06-09
+### Añadido (Added)
+- Integracion en el proyecto de sistema de alarmas y notificaciones con el uso de la libreria SendGrid.
+- Cambio en el nombre del proyecto `Colitas Felices` a `Patitas Sanas`.
+
 ## [v1.1.0] - 2026-05-19
 ### Añadido (Added)
 - Botón y funcionalidad para exportar el reporte de Citas Diarias en formato PDF (`appointments_pdf.py`).
