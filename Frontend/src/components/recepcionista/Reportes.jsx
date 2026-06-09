@@ -397,7 +397,7 @@ const Reportes = () => {
           })}</p>
         </div>
         <div className="system-info">
-          <p>🏥 Sistema de Reportes - Veterinaria Colitas Felices</p>
+          <p>🏥 Sistema de Reportes - Veterinaria Patitas Sanas</p>
         </div>
       </div>
     </div>
