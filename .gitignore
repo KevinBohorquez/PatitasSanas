@@ -20,3 +20,6 @@ htmlcov/
 # Node
 Frontend/node_modules/
 Frontend/dist/
+
+registro-analisis.md
+sonarqube-analisis.md
