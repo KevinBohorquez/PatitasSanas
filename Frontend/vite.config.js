@@ -1,6 +1,7 @@
 // vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+// @ts-ignore — vitest extiende la config de vite
 
 export default defineConfig({
   plugins: [react()],
@@ -40,11 +41,29 @@ export default defineConfig({
   // Variables de entorno
   define: {
     __API_URL__: JSON.stringify(
-      process.env.NODE_ENV === 'production' 
+      process.env.NODE_ENV === 'production'
         ? 'http://localhost:8000/api/v1'
         : '/api/v1'
     )
-  }
+  },
+
+  // Configuración de Vitest (cobertura para SonarQube)
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['lcov', 'text'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        'src/main.jsx',
+        '**/*.config.*',
+        '**/*.d.ts',
+      ],
+    },
+  },
 })
 /*import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
