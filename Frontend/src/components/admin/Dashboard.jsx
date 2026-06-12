@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
+import ConsultasLineChart from './ConsultasLineChart';
+
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -255,6 +257,7 @@ const Dashboard = () => {
         ))}
       </div>
 
+      <ConsultasLineChart />
       <div className="dashboard-footer">
         <p>Última actualización: {new Date().toLocaleString('es-PE', {
           timeZone: 'America/Lima',
