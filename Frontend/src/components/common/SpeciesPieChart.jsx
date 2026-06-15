@@ -28,11 +28,13 @@ const SpeciesPieChart = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://localhost:8000/api/v1/mascotas/stats/por-especie');
+      const response = await fetch('/api/v1/dashboard/mascotas-por-especie');
       const data = await response.json();
+      const perros = data.find((item) => item.especie === 'Perro')?.total || 0;
+      const gatos = data.find((item) => item.especie === 'Gato')?.total || 0;
       setSpeciesData({
-        perros: data.perros || 0,
-        gatos: data.gatos || 0
+        perros,
+        gatos
       });
     };
     fetchData();

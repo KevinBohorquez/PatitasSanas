@@ -154,7 +154,7 @@ const ClientesManagement = () => {
   const fetchClientes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/clientes`, {
+      const response = await fetch(`${BASE_URL}/clientes/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -308,7 +308,7 @@ const ClientesManagement = () => {
       let response;
 
       if (modalType === 'add') {
-        response = await fetch(`${BASE_URL}/clientes`, {
+        response = await fetch(`${BASE_URL}/clientes/`, {
           method: 'POST',
           mode: 'cors',
           headers: {
