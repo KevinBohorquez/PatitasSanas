@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import '../../styles/AnalyticsDashboard.css';
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = '/api/v1';
 
 const PIE_COLORS_GENERO = ['#4f86c6', '#e67e22'];
 const PIE_COLORS_SEXO   = ['#27ae60', '#e74c3c'];

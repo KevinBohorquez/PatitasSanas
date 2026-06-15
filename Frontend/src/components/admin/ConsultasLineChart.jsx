@@ -1,7 +1,7 @@
 // src/components/admin/ConsultasLineChart.jsx
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = '/api/v1';
 
 // ─── Datos de fallback para cuando la API no tiene registros aún ──────────────
 const MESES_LABELS = [

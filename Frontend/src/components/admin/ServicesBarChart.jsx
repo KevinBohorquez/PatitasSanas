@@ -17,7 +17,7 @@ const ServicesBarChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/dashboard/servicios-mas-solicitados?limit=5');
+        const response = await fetch('/api/v1/dashboard/servicios-mas-solicitados?limit=5');
         const data = await response.json();
 
         const labels = data.map(item => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido');
