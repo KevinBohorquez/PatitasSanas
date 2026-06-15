@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse  # <--- [IMPORTANTE] Agregar esto
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
@@ -30,6 +31,18 @@ from app.api.v1.endpoints.alarmas import router as alarmas_router
 
 from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
 
+
+def get_cors_origins():
+    origins = os.getenv("BACKEND_CORS_ORIGINS")
+    if origins:
+        return [origin.strip() for origin in origins.split(",") if origin.strip()]
+
+    return [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://colitasfelices.netlify.app",
+    ]
+
 app = FastAPI(
     title="🏥 Sistema Veterinaria API Completo",
     description="API integral para gestión de veterinaria con autenticación y todos los módulos",
@@ -38,12 +51,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*", 
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://colitasfelices.netlify.app/"
-    ],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,7 +109,7 @@ async def health_check(db: Session = Depends(get_db)):
     """Endpoint de salud del sistema"""
     try:
         # Verificar conexión a la base de datos
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "✅ Conectada"
     except Exception as e:
         db_status = f"❌ Error: {str(e)}"
