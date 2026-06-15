@@ -7,7 +7,7 @@ const Sidebar = ({ items = [], activeItem, onItemClick }) => {
       <div className="sidebar-header">
         <div className="logo">
           <span className="logo-text">Veterinaria</span>
-          <span className="logo-subtext">COLITAS FELICES</span>
+          <span className="logo-subtext">PATITAS SANAS</span>
           <img src="https://i.ibb.co/rG8YQzjQ/Logo-Veterinaria-Sin-Letras-Recorte.png" alt="Logo Veterinaria" className="logo-image" />
         </div>
       </div>
