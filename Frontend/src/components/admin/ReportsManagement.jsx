@@ -31,10 +31,14 @@ const ReportsManagement = () => {
   }, []);
 
   const downloadCitasPDF = async () => {
+    if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
+      alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      return;
+    }
+
     try {
       setLoadingCitas(true);
       
-      // Construir query string con las fechas
       let queryUrl = `${API_BASE_URL}/reportes/citas/pdf`;
       const queryParams = [];
       if (fechaInicio) queryParams.push(`fecha_inicio=${fechaInicio}`);
@@ -46,7 +50,20 @@ const ReportsManagement = () => {
       
       const response = await fetch(queryUrl);
       
-      if (!response.ok) throw new Error('Error al descargar el PDF');
+      if (!response.ok) {
+        let errorMessage = 'Error al descargar el PDF';
+        try {
+          const errorData = await response.json();
+          if (errorData?.detail) {
+            errorMessage = typeof errorData.detail === 'string'
+              ? errorData.detail
+              : 'Error al descargar el PDF';
+          }
+        } catch {
+          // Respuesta sin cuerpo JSON
+        }
+        throw new Error(errorMessage);
+      }
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -59,7 +76,7 @@ const ReportsManagement = () => {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error:', error);
-      alert('Hubo un error al generar el reporte de citas.');
+      alert(error.message || 'Hubo un error al generar el reporte de citas.');
     } finally {
       setLoadingCitas(false);
     }
