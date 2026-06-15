@@ -95,6 +95,15 @@ async def descargar_reporte_citas_pdf(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+from app.crud.dashboard_crud import dashboard
+
+@router.get("/consultas-por-mes")
+def get_consultas_por_mes(
+    año: int = None,
+    db: Session = Depends(get_db)
+):
+    return dashboard.get_consultas_por_mes(db, año=año)
 
 @router.get("/historial/{mascota_id}/pdf", response_class=FileResponse)
 async def descargar_historial_clinico_pdf(mascota_id: int, db: Session = Depends(get_db)):

@@ -9,6 +9,7 @@ import VetManagement from '../components/admin/VetManagement';
 import ReceptionistManagement from '../components/admin/ReceptionistManagement';
 import ServicesManagement from '../components/admin/ServicesManagement';
 import ReportsManagement from '../components/admin/ReportsManagement';
+import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
 import '../styles/Dashboard.css';
 
 const AdminDashboard = () => {
@@ -31,7 +32,8 @@ const AdminDashboard = () => {
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
     { id: 'recepcionistas', label: 'Recepcionistas', icon: '👩‍💼' },
     { id: 'servicios', label: 'Servicios', icon: '🏥' },
-    { id: 'reportes', label: 'Reportes', icon: '📄' }
+    { id: 'reportes', label: 'Reportes', icon: '📄' },
+    { id: 'analytics', label: 'Analíticas', icon: '📊' }
   ];
 
   const renderContent = () => {
@@ -46,6 +48,8 @@ const AdminDashboard = () => {
         return <ServicesManagement />;
       case 'reportes':
         return <ReportsManagement />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
       default:
         return <Dashboard />;
     }

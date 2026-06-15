@@ -257,6 +257,28 @@ class CRUDDashboard:
             ]
         }
 
+    def get_tasa_asistencia(self, db: Session) -> Dict[str, Any]:
+        """Obtener tasa de asistencia agrupando citas por estado_cita"""
+        resultado = db.query(
+            Cita.estado_cita,
+            func.count(Cita.id_cita).label('total')
+        ).group_by(Cita.estado_cita).all()
+
+        conteos = {r.estado_cita: r.total for r in resultado}
+
+        programadas = conteos.get('Programada', 0)
+        canceladas = conteos.get('Cancelada', 0)
+        atendidas = conteos.get('Atendida', 0)
+        total_resueltas = atendidas + canceladas
+        tasa = round((atendidas / total_resueltas * 100), 2) if total_resueltas > 0 else 0.0
+
+        return {
+            "Programada": programadas,
+            "Cancelada": canceladas,
+            "Atendida": atendidas,
+            "tasa_asistencia": tasa
+        }
+
     def get_reporte_semanal(self, db: Session, *, fecha_inicio: date = None) -> Dict[str, Any]:
         """Obtener reporte semanal"""
         if not fecha_inicio:
