@@ -13,17 +13,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('❌ Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('🔗 Sending Request to the Target:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('📡 Received Response from the Target:', proxyRes.statusCode, req.url);
-          });
-        },
       }
     }
   },
@@ -38,15 +27,6 @@ export default defineConfig({
       }
     }
   },
-  // Variables de entorno
-  define: {
-    __API_URL__: JSON.stringify(
-      process.env.NODE_ENV === 'production'
-        ? 'http://localhost:8000/api/v1'
-        : '/api/v1'
-    )
-  },
-
   // Configuración de Vitest (cobertura para SonarQube)
   test: {
     environment: 'jsdom',

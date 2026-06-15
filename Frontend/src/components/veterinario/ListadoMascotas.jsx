@@ -22,7 +22,7 @@ const ListadoMascotas = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://localhost:8000/api/v1/mascotas/?page=1&per_page=20'
+        '/api/v1/mascotas/?page=1&per_page=20'
       );
       if (!response.ok) {
         throw new Error('Error al cargar las mascotas');
@@ -33,19 +33,19 @@ const ListadoMascotas = () => {
       const mappedMascotas = await Promise.all(data.mascotas.map(async (mascota) => {
         // Obtenemos la información de especie y raza de cada mascota
         const mascotaInfoResponse = await fetch(
-          `http://localhost:8000/api/v1/mascotas/info/${mascota.id_mascota}`
+          `/api/v1/mascotas/info/${mascota.id_mascota}`
         );
         const mascotaInfo = await mascotaInfoResponse.json();
 
         // Obtenemos la próxima cita de la mascota
         const proximaCitaResponse = await fetch(
-          `http://localhost:8000/api/v1/mascotas/proxima-cita/${mascota.id_mascota}`
+          `/api/v1/mascotas/proxima-cita/${mascota.id_mascota}`
         );
         const proximaCitaData = await proximaCitaResponse.json();
 
         // Obtenemos la última atención de la mascota
         const ultimaAtencionResponse = await fetch(
-          `http://localhost:8000/api/v1/mascotas/ultima-atencion/${mascota.id_mascota}`
+          `/api/v1/mascotas/ultima-atencion/${mascota.id_mascota}`
         );
         const ultimaAtencionData = await ultimaAtencionResponse.json();
 

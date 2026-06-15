@@ -36,7 +36,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/v1/triaje/consulta/${solicitud.id}`);
+      const response = await fetch(`/api/v1/triaje/consulta/${solicitud.id}`);
       
       if (response.ok) {
         const triageResult = await response.json();
@@ -58,7 +58,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   // Cargar datos de consulta
   const fetchConsultaData = async (idTriaje) => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/consultas/');
+      const response = await fetch('/api/v1/consultas/');
       
       if (response.ok) {
         const data = await response.json();
@@ -96,7 +96,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   // Cargar los diagnósticos de la consulta
   const fetchDiagnosticos = async (idTriaje) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/consultas/diagnosticos/${idTriaje}`);
+      const response = await fetch(`/api/v1/consultas/diagnosticos/${idTriaje}`);
       
       if (response.ok) {
         const diagnosticosData = await response.json();
@@ -123,7 +123,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   const actualizarDisposicion = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/api/v1/veterinarios/veterinario/usuario/${user.id}/disposicionLibre`,
+          `/api/v1/veterinarios/veterinario/usuario/${user.id}/disposicionLibre`,
           {
             method: 'PUT',
             headers: {
@@ -180,7 +180,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
         if (consultaData) {
           // Si existe, ACTUALIZAR
-          const url = `http://localhost:8000/api/v1/consultas/${consultaData.id_consulta}`;
+          const url = `/api/v1/consultas/${consultaData.id_consulta}`;
           response = await fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -228,7 +228,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       console.log('Añadiendo diagnóstico para consulta:', consultaData.id_consulta);
       
       const response = await fetch(
-        `http://localhost:8000/api/v1/consultas/diagnostico/${consultaData.id_consulta}`,
+        `/api/v1/consultas/diagnostico/${consultaData.id_consulta}`,
         {
           method: 'POST',
           headers: {
