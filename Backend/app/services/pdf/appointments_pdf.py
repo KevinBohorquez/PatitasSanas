@@ -6,11 +6,11 @@ from reportlab.lib.colors import HexColor
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-def generar_pdf_citas_diarias(citas_data, fecha_reporte):
+def generar_pdf_citas_diarias(citas_data, periodo_reporte):
     """
     Genera un archivo PDF con el reporte de citas diarias.
     citas_data: Lista de diccionarios con las claves 'horario', 'mascota', 'cliente', 'veterinario', 'estado'.
-    fecha_reporte: Objeto datetime o string con la fecha del reporte.
+    periodo_reporte: Rango de fechas o descripción del período consultado.
     Retorna la ruta del archivo generado.
     """
     import tempfile
@@ -50,16 +50,20 @@ def generar_pdf_citas_diarias(citas_data, fecha_reporte):
         alignment=1 # Center
     )
 
-    # Título y Fecha
+    # Título y período
     elements.append(Paragraph("<b>Reporte de Citas Diarias - Patitas Sanas</b>", title_style))
-    fecha_str = fecha_reporte if isinstance(fecha_reporte, str) else fecha_reporte.strftime("%d/%m/%Y")
-    elements.append(Paragraph(f"Fecha del reporte: {fecha_str}", subtitle_style))
+    periodo_str = periodo_reporte if isinstance(periodo_reporte, str) else periodo_reporte.strftime("%d/%m/%Y")
+    elements.append(Paragraph(f"Período consultado: {periodo_str}", subtitle_style))
+    elements.append(Paragraph(
+        f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        subtitle_style
+    ))
     elements.append(Spacer(1, 10))
 
     # Tabla de Citas
     if not citas_data:
         elements.append(Spacer(1, 20))
-        elements.append(Paragraph("<b>No hay citas registradas para la fecha seleccionada.</b>", subtitle_style))
+        elements.append(Paragraph("<b>No hay citas registradas para el período seleccionado.</b>", subtitle_style))
     else:
         data = [["Horario", "Mascota", "Cliente", "Veterinario", "Estado"]]
         

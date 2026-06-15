@@ -18,7 +18,7 @@ const CitasProgramadas = () => {
 
       // ✅ Aquí llamas a tu endpoint nuevo
       const response = await fetch(
-        `http://localhost:8000/api/v1/veterinarios/resultados-citas/${user.id}`
+        `/api/v1/veterinarios/resultados-citas/${user.id}`
       );
       if (!response.ok) {
         throw new Error('Error al cargar citas');
@@ -33,19 +33,19 @@ const CitasProgramadas = () => {
 
           // Fetch mascota
           const mascotaRes = await fetch(
-            `http://localhost:8000/api/v1/consultas/citaMascota/${cita.id_cita}`
+            `/api/v1/consultas/citaMascota/${cita.id_cita}`
           );
           const mascotaData = await mascotaRes.json();
 
           // Fetch servicio
           const servicioRes = await fetch(
-            `http://localhost:8000/api/v1/consultas/citaServicio/${cita.id_cita}`
+            `/api/v1/consultas/citaServicio/${cita.id_cita}`
           );
           const servicioData = await servicioRes.json();
 
           // Fetch veterinario
           const veterinarioRes = await fetch(
-            `http://localhost:8000/api/v1/consultas/citaVeterinario/${cita.id_cita}`
+            `/api/v1/consultas/citaVeterinario/${cita.id_cita}`
           );
           const veterinarioData = await veterinarioRes.json();
 

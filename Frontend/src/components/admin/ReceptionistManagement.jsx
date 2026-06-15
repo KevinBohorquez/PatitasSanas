@@ -36,7 +36,7 @@ const ReceptionistManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Función para generar username automático
   const generateUsername = (nombre) => {
@@ -1023,7 +1023,7 @@ const ReceptionistManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Función para generar username automático
   const generateUsername = (nombre) => {

@@ -32,7 +32,7 @@ const ServicesManagement = () => {
       return '/api/v1/catalogos';
     }
     // En otros casos, usar la URL completa
-    return 'http://localhost:8000/api/v1/catalogos';
+    return '/api/v1/catalogos';
   };
   
   const API_BASE = getApiBaseUrl();
@@ -49,7 +49,7 @@ const ServicesManagement = () => {
   const fetchTiposServicio = async () => {
     try {
       console.log('🔗 Intentando conectar a:', TIPOS_SERVICIO_URL);
-      const response = await fetch(TIPOS_SERVICIO_URL);
+      const response = await fetch(`${TIPOS_SERVICIO_URL}/`);
       console.log('📡 Respuesta recibida:', response.status, response.statusText);
       
       if (!response.ok) {
@@ -72,7 +72,7 @@ const ServicesManagement = () => {
     try {
       console.log('🔗 Conectando a servicios:', SERVICIOS_URL);
       
-      const response = await fetch(SERVICIOS_URL, {
+      const response = await fetch(`${SERVICIOS_URL}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ const ServicesManagement = () => {
   // Crear nuevo servicio
   const createServicio = async (servicioData) => {
     try {
-      const response = await fetch(SERVICIOS_URL, {
+      const response = await fetch(`${SERVICIOS_URL}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -614,7 +614,7 @@ const ServicesManagement = () => {
       return '/api/v1/catalogos';
     }
     // En otros casos, usar la URL completa
-    return 'http://localhost:8000/api/v1/catalogos';
+    return '/api/v1/catalogos';
   };
   
   const API_BASE = getApiBaseUrl();
@@ -699,7 +699,7 @@ const ServicesManagement = () => {
   // Función de respaldo para servicios con URL directa
   const fetchServiciosDirecto = async () => {
     try {
-      const directUrl = 'http://localhost:8000/api/v1/catalogos/servicios';
+      const directUrl = '/api/v1/catalogos/servicios';
       console.log('🔗 Intentando conexión directa a servicios:', directUrl);
       
       const response = await fetch(directUrl);
@@ -1359,7 +1359,7 @@ const ServicesManagement = () => {
   });
 
   // URLs de la API - SIN barras finales
-  const API_BASE = 'http://localhost:8000/api/v1/catalogos';
+  const API_BASE = '/api/v1/catalogos';
   const SERVICIOS_URL = `${API_BASE}/servicios`;
   const TIPOS_SERVICIO_URL = `${API_BASE}/tipos-servicio`;
 

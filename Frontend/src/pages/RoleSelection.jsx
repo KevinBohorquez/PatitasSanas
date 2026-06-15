@@ -14,7 +14,7 @@ const RoleSelection = () => {
     <div className="role-selection-container">
       <div className="role-selection-card">
         <div className="role-header">
-          <h1>COLITAS FELICES</h1>
+          <h1>PATITAS SANAS</h1>
           <h2>Sistema veterinario</h2>
           <img 
             src="https://i.ibb.co/rG8YQzjQ/Logo-Veterinaria-Sin-Letras-Recorte.png" 

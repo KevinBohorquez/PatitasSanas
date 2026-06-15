@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
+import ConsultasLineChart from './ConsultasLineChart';
+
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,7 +18,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   // URL base de la API
-  const API_BASE_URL = 'http://localhost:8000/api/v1';
+  const API_BASE_URL = '/api/v1';
 
   // Fetch de datos del dashboard
   const fetchDashboardData = async () => {
@@ -255,6 +257,7 @@ const Dashboard = () => {
         ))}
       </div>
 
+      <ConsultasLineChart />
       <div className="dashboard-footer">
         <p>Última actualización: {new Date().toLocaleString('es-PE', {
           timeZone: 'America/Lima',

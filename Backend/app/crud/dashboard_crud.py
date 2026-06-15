@@ -11,6 +11,7 @@ from app.models.cita import Cita
 from app.models.servicio import Servicio
 from app.models.solicitud_atencion import SolicitudAtencion
 from app.models.triaje import Triaje
+from app.models.usuario import Usuario
 
 class CRUDDashboard:
     
@@ -23,9 +24,12 @@ class CRUDDashboard:
             "clientes_activos": db.query(Cliente).filter(Cliente.estado == "Activo").count(),
             "total_mascotas": db.query(Mascota).count(),
             "total_veterinarios": db.query(Veterinario).count(),
-            "veterinarios_disponibles": db.query(Veterinario).filter(
+            "veterinarios_disponibles": db.query(Veterinario).join(
+                Usuario,
+                Veterinario.id_usuario == Usuario.id_usuario
+            ).filter(
                 and_(
-                    Veterinario.estado == "Activo",
+                    Usuario.estado == "Activo",
                     Veterinario.disposicion == "Libre"
                 )
             ).count(),
@@ -120,11 +124,12 @@ class CRUDDashboard:
             Veterinario.apellido_paterno,
             func.count(Consulta.id_consulta).label('total_consultas'),
             func.count(Triaje.id_triaje).label('total_triajes')
-        ).outerjoin(Consulta, Veterinario.id_veterinario == Consulta.id_veterinario)\
+        ).join(Usuario, Veterinario.id_usuario == Usuario.id_usuario)\
+         .outerjoin(Consulta, Veterinario.id_veterinario == Consulta.id_veterinario)\
          .outerjoin(Triaje, Veterinario.id_veterinario == Triaje.id_veterinario)\
          .filter(
             and_(
-                Veterinario.estado == "Activo",
+                Usuario.estado == "Activo",
                 or_(
                     Consulta.fecha_consulta.between(fecha_inicio, fecha_fin),
                     Consulta.fecha_consulta.is_(None)
@@ -255,6 +260,28 @@ class CRUDDashboard:
                 }
                 for cita in citas
             ]
+        }
+
+    def get_tasa_asistencia(self, db: Session) -> Dict[str, Any]:
+        """Obtener tasa de asistencia agrupando citas por estado_cita"""
+        resultado = db.query(
+            Cita.estado_cita,
+            func.count(Cita.id_cita).label('total')
+        ).group_by(Cita.estado_cita).all()
+
+        conteos = {r.estado_cita: r.total for r in resultado}
+
+        programadas = conteos.get('Programada', 0)
+        canceladas = conteos.get('Cancelada', 0)
+        atendidas = conteos.get('Atendida', 0)
+        total_resueltas = atendidas + canceladas
+        tasa = round((atendidas / total_resueltas * 100), 2) if total_resueltas > 0 else 0.0
+
+        return {
+            "Programada": programadas,
+            "Cancelada": canceladas,
+            "Atendida": atendidas,
+            "tasa_asistencia": tasa
         }
 
     def get_reporte_semanal(self, db: Session, *, fecha_inicio: date = None) -> Dict[str, Any]:

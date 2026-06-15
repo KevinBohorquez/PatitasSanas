@@ -17,7 +17,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       console.log('Cargando resultado para cita ID:', citaId);
       
       const response = await fetch(
-        `http://localhost:8000/api/v1/consultas/resultado_servicio/${citaId}`
+        `/api/v1/consultas/resultado_servicio/${citaId}`
       );
       
       if (!response.ok) {
@@ -114,7 +114,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       setError(null);
       
       const response = await fetch(
-        `http://localhost:8000/api/v1/consultas/resultado_servicio/${cita.id}`,
+        `/api/v1/consultas/resultado_servicio/${cita.id}`,
         {
           method: 'PUT',
           headers: {

@@ -12,7 +12,7 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/v1/consultas/historial/${mascotaId}`
+        `/api/v1/consultas/historial/${mascotaId}`
       );
       if (!response.ok) {
         throw new Error('Error al cargar el historial clínico');
@@ -35,7 +35,7 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/v1/consultas/historialConsultas/${mascotaId}?limit=50`
+        `/api/v1/consultas/historialConsultas/${mascotaId}?limit=50`
       );
       if (!response.ok) {
         throw new Error('Error al cargar las consultas');

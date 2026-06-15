@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date, time
 import os
 
 from app.config.database import get_db
@@ -14,14 +14,23 @@ router = APIRouter()
 
 @router.get("/citas/pdf", response_class=FileResponse)
 async def descargar_reporte_citas_pdf(
-    fecha_inicio: Optional[datetime] = Query(None),
-    fecha_fin: Optional[datetime] = Query(None),
+    fecha_inicio: Optional[date] = Query(None),
+    fecha_fin: Optional[date] = Query(None),
     db: Session = Depends(get_db)
 ):
     """
     Genera y descarga el reporte PDF de las citas médicas.
     """
     try:
+        if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
+            raise HTTPException(
+                status_code=400,
+                detail="La fecha de inicio no puede ser posterior a la fecha de fin."
+            )
+
+        inicio_dt = datetime.combine(fecha_inicio, time.min) if fecha_inicio else None
+        fin_dt = datetime.combine(fecha_fin, time(23, 59, 59)) if fecha_fin else None
+
         query = db.query(Cita, Mascota, Cliente, Veterinario, Usuario).select_from(Cita) \
             .outerjoin(Mascota, Cita.id_mascota == Mascota.id_mascota) \
             .outerjoin(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota) \
@@ -31,23 +40,26 @@ async def descargar_reporte_citas_pdf(
             .outerjoin(Veterinario, Consulta.id_veterinario == Veterinario.id_veterinario) \
             .outerjoin(Usuario, Veterinario.id_usuario == Usuario.id_usuario)
 
-        if fecha_inicio:
-            query = query.filter(Cita.fecha_hora_programada >= fecha_inicio)
-        if fecha_fin:
-            query = query.filter(Cita.fecha_hora_programada <= fecha_fin)
+        if inicio_dt:
+            query = query.filter(Cita.fecha_hora_programada >= inicio_dt)
+        if fin_dt:
+            query = query.filter(Cita.fecha_hora_programada <= fin_dt)
 
         resultados = query.order_by(Cita.fecha_hora_programada.asc()).all()
 
         citas_data = []
+        citas_vistas = set()
         for r in resultados:
             cita, mascota, cliente, veterinario, usuario = r
+
+            if cita.id_cita in citas_vistas:
+                continue
+            citas_vistas.add(cita.id_cita)
             
-            # Formatear cliente
             nombre_cliente = "N/A"
             if cliente:
                 nombre_cliente = f"{cliente.nombre} {cliente.apellido_paterno}"
                 
-            # Formatear veterinario
             nombre_vet = "N/A"
             if veterinario:
                 nombre_vet = f"{veterinario.nombre} {veterinario.apellido_paterno}"
@@ -61,9 +73,17 @@ async def descargar_reporte_citas_pdf(
                 "veterinario": str(nombre_vet),
                 "estado": str(cita.estado_cita or "Programada")
             })
-        
-        # Generar archivo
-        file_path = generar_pdf_citas_diarias(citas_data, datetime.now())
+
+        if fecha_inicio and fecha_fin:
+            periodo = f"{fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}"
+        elif fecha_inicio:
+            periodo = f"Desde {fecha_inicio.strftime('%d/%m/%Y')}"
+        elif fecha_fin:
+            periodo = f"Hasta {fecha_fin.strftime('%d/%m/%Y')}"
+        else:
+            periodo = "Todas las citas"
+
+        file_path = generar_pdf_citas_diarias(citas_data, periodo)
         
         if not os.path.exists(file_path):
             raise HTTPException(status_code=500, detail="Error al generar el archivo PDF")
@@ -75,6 +95,15 @@ async def descargar_reporte_citas_pdf(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+from app.crud.dashboard_crud import dashboard
+
+@router.get("/consultas-por-mes")
+def get_consultas_por_mes(
+    año: int = None,
+    db: Session = Depends(get_db)
+):
+    return dashboard.get_consultas_por_mes(db, año=año)
 
 @router.get("/historial/{mascota_id}/pdf", response_class=FileResponse)
 async def descargar_historial_clinico_pdf(mascota_id: int, db: Session = Depends(get_db)):

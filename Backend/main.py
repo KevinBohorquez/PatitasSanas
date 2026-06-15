@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse  # <--- [IMPORTANTE] Agregar esto
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
@@ -27,8 +28,22 @@ from app.api.v1.endpoints.triaje import router as triaje_router
 from app.api.v1.endpoints.servicio_solicitado import router as servicio_solicitado_router
 from app.api.v1.endpoints.reportes import router as reportes_router
 from app.api.v1.endpoints.alarmas import router as alarmas_router
+from app.api.v1.endpoints.dashboard import router as dashboard_router
 
 from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
+
+
+def get_cors_origins():
+    origins = os.getenv("BACKEND_CORS_ORIGINS")
+    if origins:
+        return [origin.strip() for origin in origins.split(",") if origin.strip()]
+
+    return [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://colitasfelices.netlify.app",
+        "https://patitas-sanas-sigma.vercel.app",
+    ]
 
 app = FastAPI(
     title="🏥 Sistema Veterinaria API Completo",
@@ -38,12 +53,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*", 
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://colitasfelices.netlify.app/"
-    ],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,6 +74,7 @@ app.include_router(servicio_solicitado_router, prefix="/api/v1/servicio_solicita
 app.include_router(solicitudes_router, prefix="/api/v1/solicitudes", tags=["🏥 Solicitudes"])
 app.include_router(reportes_router, prefix="/api/v1/reportes", tags=["📄 reportes"])
 app.include_router(alarmas_router, prefix="/api/v1/alarmas", tags=["🔔 alarmas"])
+app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["📊 dashboard"])
 
 
 @app.on_event("startup")
@@ -101,7 +112,7 @@ async def health_check(db: Session = Depends(get_db)):
     """Endpoint de salud del sistema"""
     try:
         # Verificar conexión a la base de datos
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "✅ Conectada"
     except Exception as e:
         db_status = f"❌ Error: {str(e)}"
