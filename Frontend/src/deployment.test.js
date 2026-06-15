@@ -42,4 +42,10 @@ describe('deployment configuration', () => {
       destination: '/index.html',
     });
   });
+
+  it('uses the Railway backend for local Vite proxy requests', () => {
+    const viteConfig = fs.readFileSync(path.join(frontendRoot, 'vite.config.js'), 'utf8');
+
+    expect(viteConfig).toContain("target: 'https://patitassanas-production.up.railway.app'");
+  });
 });

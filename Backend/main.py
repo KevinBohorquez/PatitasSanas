@@ -41,6 +41,7 @@ def get_cors_origins():
         "http://localhost:5173",
         "http://localhost:3000",
         "https://colitasfelices.netlify.app",
+        "https://patitas-sanas.vercel.app",
     ]
 
 app = FastAPI(

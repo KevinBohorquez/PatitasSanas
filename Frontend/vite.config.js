@@ -9,7 +9,7 @@ export default defineConfig({
     // Proxy para desarrollo local
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://patitassanas-production.up.railway.app',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path,
