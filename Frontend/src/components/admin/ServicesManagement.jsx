@@ -49,7 +49,7 @@ const ServicesManagement = () => {
   const fetchTiposServicio = async () => {
     try {
       console.log('🔗 Intentando conectar a:', TIPOS_SERVICIO_URL);
-      const response = await fetch(TIPOS_SERVICIO_URL);
+      const response = await fetch(`${TIPOS_SERVICIO_URL}/`);
       console.log('📡 Respuesta recibida:', response.status, response.statusText);
       
       if (!response.ok) {
@@ -72,7 +72,7 @@ const ServicesManagement = () => {
     try {
       console.log('🔗 Conectando a servicios:', SERVICIOS_URL);
       
-      const response = await fetch(SERVICIOS_URL, {
+      const response = await fetch(`${SERVICIOS_URL}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ const ServicesManagement = () => {
   // Crear nuevo servicio
   const createServicio = async (servicioData) => {
     try {
-      const response = await fetch(SERVICIOS_URL, {
+      const response = await fetch(`${SERVICIOS_URL}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
