@@ -12,7 +12,7 @@ const ReportsManagement = () => {
   const [selectedMascotaId, setSelectedMascotaId] = useState('');
 
   // URL base de la API
-  const API_BASE_URL = 'http://localhost:8000/api/v1';
+  const API_BASE_URL = '/api/v1';
 
   // Obtener lista de mascotas
   useEffect(() => {

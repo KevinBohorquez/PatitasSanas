@@ -12,7 +12,7 @@ const ServiciosView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
 
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Cargar datos
   useEffect(() => {

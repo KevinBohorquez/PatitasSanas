@@ -31,7 +31,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Cargar clientes
   useEffect(() => {
@@ -689,7 +689,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Cargar clientes
   useEffect(() => {
@@ -1220,7 +1220,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = '/api/v1';
 
   // Cargar clientes al montar el componente
   useEffect(() => {

@@ -21,7 +21,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchVeterinarios = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/veterinarios/?page=1&per_page=20');
+        const response = await fetch('/api/v1/veterinarios/?page=1&per_page=20');
         
         if (response.ok) {
           const veterinariosData = await response.json();
@@ -37,7 +37,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
 
     const fetchServicios = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/catalogos/servicios/?activos_solo=true');
+        const response = await fetch('/api/v1/catalogos/servicios/?activos_solo=true');
         
         if (response.ok) {
           const serviciosData = await response.json();
@@ -107,7 +107,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
 
       // Usar el consultaId correctamente en la URL
       const response = await fetch(
-        `http://localhost:8000/api/v1/servicio_solicitado/consultas/${consultaId}/servicio-cita`,
+        `/api/v1/servicio_solicitado/consultas/${consultaId}/servicio-cita`,
         {
           method: 'POST',
           headers: {

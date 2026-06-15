@@ -16,7 +16,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   // URL base de la API
-  const API_BASE_URL = 'http://localhost:8000/api/v1';
+  const API_BASE_URL = '/api/v1';
 
   // Fetch de datos del dashboard
   const fetchDashboardData = async () => {
