@@ -2,6 +2,14 @@ Markdown
 # Changelog (Registro de Cambios)
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [v.1.3.0] - 2026-06-15
+### Añadido (Added)
+- Integracion de insights clave en el dashboard del administrados.
+- Integracion con SonarQube.
+- Resultados de calidad.
+- Fix de reportes.
+- Unit Test para procesos clave del backend y frontend.
+
 ## [v.1.2.0] - 2026-06-09
 ### Añadido (Added)
 - Integracion en el proyecto de sistema de alarmas y notificaciones con el uso de la libreria SendGrid.
