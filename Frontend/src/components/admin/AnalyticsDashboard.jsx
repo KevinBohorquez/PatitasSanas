@@ -4,21 +4,22 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import '../../styles/AnalyticsDashboard.css';
+import ServicesBarChart from './ServicesBarChart';
 
 const API_BASE = '/api/v1';
 
 const PIE_COLORS_GENERO = ['#4f86c6', '#e67e22'];
-const PIE_COLORS_SEXO   = ['#27ae60', '#e74c3c'];
-const BAR_COLORS        = ['#4f86c6', '#27ae60', '#e67e22', '#e74c3c', '#9b59b6'];
+const PIE_COLORS_SEXO = ['#27ae60', '#e74c3c'];
+const BAR_COLORS = ['#4f86c6', '#27ae60', '#e67e22', '#e74c3c', '#9b59b6'];
 
 // ── Gráfico: condición de consultas ───────────────────────────────────────────
 const ConsultasCondicionChart = ({ data }) => {
   const chartData = [
     { name: 'Excelente', value: data.excelente },
-    { name: 'Buena',     value: data.buena },
-    { name: 'Regular',   value: data.regular },
-    { name: 'Mala',      value: data.mala },
-    { name: 'Crítica',   value: data.critica },
+    { name: 'Buena', value: data.buena },
+    { name: 'Regular', value: data.regular },
+    { name: 'Mala', value: data.mala },
+    { name: 'Crítica', value: data.critica },
   ];
   return (
     <div className="analytics-card">
@@ -44,7 +45,7 @@ const ConsultasCondicionChart = ({ data }) => {
 const ClientesGeneroChart = ({ data }) => {
   const chartData = [
     { name: 'Masculino', value: data.estadisticas.M },
-    { name: 'Femenino',  value: data.estadisticas.F },
+    { name: 'Femenino', value: data.estadisticas.F },
   ];
   return (
     <div className="analytics-card">
@@ -75,7 +76,7 @@ const ClientesGeneroChart = ({ data }) => {
 // ── Gráfico: mascotas por sexo ────────────────────────────────────────────────
 const MascotasSexoChart = ({ data }) => {
   const chartData = [
-    { name: 'Machos',  value: data.estadisticas_por_sexo.machos },
+    { name: 'Machos', value: data.estadisticas_por_sexo.machos },
     { name: 'Hembras', value: data.estadisticas_por_sexo.hembras },
   ];
   return (
@@ -161,12 +162,12 @@ const RazasChart = ({ data }) => {
 // ── Componente contenedor principal ───────────────────────────────────────────
 const AnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
-  const [data, setData]       = useState({
-    consultas:     null,
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    consultas: null,
     clientesGenero: null,
-    mascotasSexo:  null,
-    razas:         null,
+    mascotasSexo: null,
+    razas: null,
   });
 
   const fetchData = async () => {
@@ -181,10 +182,10 @@ const AnalyticsDashboard = () => {
       ]);
 
       setData({
-        consultas:      consultasRes.ok  ? await consultasRes.json()  : null,
-        clientesGenero: clientesRes.ok   ? await clientesRes.json()   : null,
-        mascotasSexo:   mascotasRes.ok   ? await mascotasRes.json()   : null,
-        razas:          razasRes.ok      ? await razasRes.json()      : null,
+        consultas: consultasRes.ok ? await consultasRes.json() : null,
+        clientesGenero: clientesRes.ok ? await clientesRes.json() : null,
+        mascotasSexo: mascotasRes.ok ? await mascotasRes.json() : null,
+        razas: razasRes.ok ? await razasRes.json() : null,
       });
     } catch {
       setError('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
@@ -214,8 +215,8 @@ const AnalyticsDashboard = () => {
   }
 
   const totalConsultas = data.consultas?.periodo?.total_consultas ?? 0;
-  const totalClientes  = data.clientesGenero?.estadisticas?.total ?? 0;
-  const totalMascotas  = data.mascotasSexo?.total ?? 0;
+  const totalClientes = data.clientesGenero?.estadisticas?.total ?? 0;
+  const totalMascotas = data.mascotasSexo?.total ?? 0;
 
   return (
     <div className="analytics-dashboard">
@@ -268,6 +269,7 @@ const AnalyticsDashboard = () => {
         {data.razas && (
           <RazasChart data={data.razas} />
         )}
+        <ServicesBarChart />
       </div>
     </div>
   );
