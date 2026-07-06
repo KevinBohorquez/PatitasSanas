@@ -98,6 +98,15 @@ class CRUDTriaje(CRUDBase[Triaje, TriajeCreate, None]):
         return db.query(Triaje).filter(Triaje.clasificacion_urgencia == clasificacion) \
             .order_by(desc(Triaje.fecha_hora_triaje)).all()
 
+    def get_by_fecha_rango(self, db: Session, *, fecha_inicio: datetime, fecha_fin: datetime) -> List[Triaje]:
+        """Obtener triajes dentro de un rango de fechas (inclusivo en ambos extremos)"""
+        return db.query(Triaje).filter(
+            and_(
+                Triaje.fecha_hora_triaje >= fecha_inicio,
+                Triaje.fecha_hora_triaje <= fecha_fin
+            )
+        ).order_by(desc(Triaje.fecha_hora_triaje)).all()
+
     def get_criticos(self, db: Session) -> List[Triaje]:
         """Obtener casos críticos"""
         return db.query(Triaje).filter(Triaje.clasificacion_urgencia == "Critico") \

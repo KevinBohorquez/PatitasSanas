@@ -1,6 +1,7 @@
 # app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from typing import List, Optional
 from datetime import datetime, date
 
@@ -849,13 +850,29 @@ async def finalizar_consulta(
 async def get_historial_clinico_mascota(
     mascota_id: int,
     db: Session = Depends(get_db),
+    fecha_desde: Optional[date] = Query(None, description="Filtrar eventos desde esta fecha (inclusive)"),
+    fecha_hasta: Optional[date] = Query(None, description="Filtrar eventos hasta esta fecha (inclusive)"),
     limit: int = Query(50, ge=1, le=500, description="Cantidad máxima de eventos")
 ):
     """
-    Obtener historial clínico de una mascota
+    Obtener historial clínico de una mascota, ordenado por fecha de evento descendente,
+    incluyendo el veterinario responsable de cada evento.
+    Permite filtrar opcionalmente por rango de fechas (fecha_hasta es inclusiva).
+    Si la mascota no tiene eventos, retorna una lista vacía (HTTP 200).
     """
     try:
-        eventos = historial_clinico.get_by_mascota(db, mascota_id=mascota_id, limit=limit)
+        query = db.query(HistorialClinico, Veterinario) \
+            .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
+            .filter(HistorialClinico.id_mascota == mascota_id)
+
+        if fecha_desde:
+            query = query.filter(HistorialClinico.fecha_evento >= fecha_desde)
+        if fecha_hasta:
+            # Incluir todos los eventos del día 'fecha_hasta' (hasta las 23:59:59)
+            fecha_hasta_completa = datetime.combine(fecha_hasta, datetime.max.time())
+            query = query.filter(HistorialClinico.fecha_evento <= fecha_hasta_completa)
+
+        resultados = query.order_by(desc(HistorialClinico.fecha_evento)).limit(limit).all()
 
         return [
             {
@@ -865,9 +882,10 @@ async def get_historial_clinico_mascota(
                 "edad_meses": e.edad_meses,
                 "descripcion_evento": e.descripcion_evento,
                 "peso_momento": float(e.peso_momento) if e.peso_momento else None,
-                "observaciones": e.observaciones
+                "observaciones": e.observaciones,
+                "veterinario": f"{v.nombre} {v.apellido_paterno}" if v else None
             }
-            for e in eventos
+            for e, v in resultados
         ]
 
     except Exception as e:

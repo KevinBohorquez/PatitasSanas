@@ -102,6 +102,11 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
             <label>Observaciones:</label>
             <input type="text" value={historial.observaciones || '--'} disabled />
           </div>
+
+          <div className="form-group">
+            <label>Veterinario Responsable:</label>
+            <input type="text" value={historial.veterinario || '--'} disabled />
+          </div>
         </div>
       ) : (
         <p>No se encontraron datos para el historial clínico.</p>

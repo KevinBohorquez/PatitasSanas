@@ -97,7 +97,7 @@ async def get_triajes(
 
         # Filtrar por clasificación de urgencia
         elif clasificacion_urgencia:
-            triajes = triaje.get_by_clasificacion_urgencia(db, clasificacion=clasificacion_urgencia)
+            triajes = triaje.get_by_urgencia(db, clasificacion=clasificacion_urgencia)
             return triajes[:limit]
 
         # Filtrar por condición corporal
@@ -121,30 +121,46 @@ async def get_triajes(
             detail=f"Error al obtener triajes: {str(e)}"
         )
 
-@router.get("/{triaje_id}", response_model=TriajeResponse)
-async def get_triaje(
-    triaje_id: int,
-    db: Session = Depends(get_db)
+
+# ================================================================
+# Rutas específicas (deben ir ANTES de /{triaje_id})
+# ================================================================
+@router.get("/criticos/recientes", response_model=List[TriajeResponse])
+async def get_triajes_criticos_recientes(
+        horas: int = Query(24, ge=1, le=168, description="Ventana de horas hacia atrás (por defecto 24h)"),
+        db: Session = Depends(get_db)
 ):
     """
-    Obtener un triaje específico por ID
+    Obtener los casos críticos registrados en las últimas N horas.
+    Por defecto muestra las últimas 24 horas; los triajes más antiguos quedan excluidos.
     """
     try:
-        triaje_obj = triaje.get(db, id=triaje_id)
-        if not triaje_obj:
-            raise HTTPException(
-                status_code=404,
-                detail="Triaje no encontrado"
-            )
-        return triaje_obj
-
-    except HTTPException:
-        raise
+        return triaje.get_criticos_recientes(db, horas=horas)
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error al obtener triaje: {str(e)}"
+            detail=f"Error al obtener casos críticos recientes: {str(e)}"
         )
+
+
+@router.get("/estadisticas/signos-vitales")
+async def get_promedios_signos_vitales(
+        fecha_inicio: Optional[datetime] = Query(None, description="Fecha inicio del rango"),
+        fecha_fin: Optional[datetime] = Query(None, description="Fecha fin del rango"),
+        db: Session = Depends(get_db)
+):
+    """
+    Obtener los promedios de signos vitales de los triajes en un rango de fechas.
+    Si no hay datos en el rango, cada promedio retorna 0 (sin error por división entre cero).
+    """
+    try:
+        return triaje.get_promedios_signos_vitales(db, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener promedios de signos vitales: {str(e)}"
+        )
+
 
 @router.get("/{triaje_id}", response_model=TriajeResponse)
 async def get_triaje(

@@ -78,15 +78,16 @@ class TriajeResponse(BaseResponse):
     fecha_hora_triaje: datetime
     peso_mascota: float
     latido_por_minuto: int
-    talla: float
-    tiempo_capilar: str
-    color_mucosas: str
+    # Campos nullable en la BD (el triaje auto-creado por el trigger los deja en NULL)
+    talla: Optional[float] = None
+    tiempo_capilar: Optional[str] = None
+    color_mucosas: Optional[str] = None
     frecuencia_pulso: int
-    porce_deshidratacion: float
+    porce_deshidratacion: Optional[float] = None
     frecuencia_respiratoria_rpm: int
     temperatura: float
     clasificacion_urgencia: str
-    condicion_corporal: str
+    condicion_corporal: Optional[str] = None
 
 
 # app/schemas/triaje_schemas.py - Agregar a tu archivo existente
@@ -426,9 +427,10 @@ class ResultadoServicioResponse(BaseResponse):
     id_resultado: int
     id_cita: int
     id_veterinario: int
-    resultado: str
-    interpretacion: Optional[str]
-    archivo_adjunto: Optional[str]
+    # nullable en la BD: la fila se pre-crea vacía y el veterinario la llena al atender la cita
+    resultado: Optional[str] = None
+    interpretacion: Optional[str] = None
+    archivo_adjunto: Optional[str] = None
     fecha_realizacion: datetime
 
 
