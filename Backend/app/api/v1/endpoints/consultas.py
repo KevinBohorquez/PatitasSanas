@@ -850,19 +850,29 @@ async def finalizar_consulta(
 async def get_historial_clinico_mascota(
     mascota_id: int,
     db: Session = Depends(get_db),
+    fecha_desde: Optional[date] = Query(None, description="Filtrar eventos desde esta fecha (inclusive)"),
+    fecha_hasta: Optional[date] = Query(None, description="Filtrar eventos hasta esta fecha (inclusive)"),
     limit: int = Query(50, ge=1, le=500, description="Cantidad máxima de eventos")
 ):
     """
     Obtener historial clínico de una mascota, ordenado por fecha de evento descendente,
     incluyendo el veterinario responsable de cada evento.
+    Permite filtrar opcionalmente por rango de fechas (fecha_hasta es inclusiva).
     Si la mascota no tiene eventos, retorna una lista vacía (HTTP 200).
     """
     try:
-        resultados = db.query(HistorialClinico, Veterinario) \
+        query = db.query(HistorialClinico, Veterinario) \
             .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
-            .filter(HistorialClinico.id_mascota == mascota_id) \
-            .order_by(desc(HistorialClinico.fecha_evento)) \
-            .limit(limit).all()
+            .filter(HistorialClinico.id_mascota == mascota_id)
+
+        if fecha_desde:
+            query = query.filter(HistorialClinico.fecha_evento >= fecha_desde)
+        if fecha_hasta:
+            # Incluir todos los eventos del día 'fecha_hasta' (hasta las 23:59:59)
+            fecha_hasta_completa = datetime.combine(fecha_hasta, datetime.max.time())
+            query = query.filter(HistorialClinico.fecha_evento <= fecha_hasta_completa)
+
+        resultados = query.order_by(desc(HistorialClinico.fecha_evento)).limit(limit).all()
 
         return [
             {
