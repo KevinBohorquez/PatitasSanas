@@ -1,6 +1,7 @@
 # app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from typing import List, Optional
 from datetime import datetime, date
 
@@ -852,10 +853,16 @@ async def get_historial_clinico_mascota(
     limit: int = Query(50, ge=1, le=500, description="Cantidad máxima de eventos")
 ):
     """
-    Obtener historial clínico de una mascota
+    Obtener historial clínico de una mascota, ordenado por fecha de evento descendente,
+    incluyendo el veterinario responsable de cada evento.
+    Si la mascota no tiene eventos, retorna una lista vacía (HTTP 200).
     """
     try:
-        eventos = historial_clinico.get_by_mascota(db, mascota_id=mascota_id, limit=limit)
+        resultados = db.query(HistorialClinico, Veterinario) \
+            .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
+            .filter(HistorialClinico.id_mascota == mascota_id) \
+            .order_by(desc(HistorialClinico.fecha_evento)) \
+            .limit(limit).all()
 
         return [
             {
@@ -865,9 +872,10 @@ async def get_historial_clinico_mascota(
                 "edad_meses": e.edad_meses,
                 "descripcion_evento": e.descripcion_evento,
                 "peso_momento": float(e.peso_momento) if e.peso_momento else None,
-                "observaciones": e.observaciones
+                "observaciones": e.observaciones,
+                "veterinario": f"{v.nombre} {v.apellido_paterno}" if v else None
             }
-            for e in eventos
+            for e, v in resultados
         ]
 
     except Exception as e:
