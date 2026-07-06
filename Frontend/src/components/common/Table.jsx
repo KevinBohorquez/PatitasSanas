@@ -1,4 +1,5 @@
 import React from 'react';
+import EmptyState from './EmptyState/EmptyState';
 import '../../styles/Dashboard.css';
 
 const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponibles" }) => {
@@ -17,7 +18,7 @@ const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponible
           {data.length === 0 ? (
             <tr>
               <td colSpan={columns.length + (actions ? 1 : 0)} className="empty-message">
-                {emptyMessage}
+                <EmptyState title={emptyMessage} size={130} />
               </td>
             </tr>
           ) : (
