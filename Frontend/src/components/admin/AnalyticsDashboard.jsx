@@ -6,6 +6,7 @@ import {
 import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
 import SpeciesPieChart from '../common/SpeciesPieChart';
+import KPICards from '../common/KPICards';
 
 const API_BASE = '/api/v1';
 
@@ -171,15 +172,32 @@ const AnalyticsDashboard = () => {
     razas: null,
   });
 
+  // Estado para los KPIs extraídos de tus endpoints
+  const [kpiData, setKpiData] = useState({
+    totalCitas: 0,
+    tasaAsistencia: 0,
+    ingresosEstimados: 0,
+    citasPorEstado: { Pendiente: 0, Atendida: 0, Cancelada: 0 }
+  });
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [consultasRes, clientesRes, mascotasRes, razasRes] = await Promise.all([
+      const [
+        consultasRes,
+        clientesRes,
+        mascotasRes,
+        razasRes,
+        tasaAsistenciaRes,
+        statsGeneralesRes
+      ] = await Promise.all([
         fetch(`${API_BASE}/consultas/estadisticas/resumen`),
         fetch(`${API_BASE}/clientes/stats/genero`),
         fetch(`${API_BASE}/mascotas/stats/por-sexo`),
         fetch(`${API_BASE}/catalogos/razas/estadisticas/mascotas`),
+        fetch(`${API_BASE}/dashboard/tasa-asistencia`),
+        fetch(`${API_BASE}/dashboard/stats-generales`)
       ]);
 
       setData({
@@ -188,6 +206,18 @@ const AnalyticsDashboard = () => {
         mascotasSexo: mascotasRes.ok ? await mascotasRes.json() : null,
         razas: razasRes.ok ? await razasRes.json() : null,
       });
+
+      // Procesamos las respuestas de los KPIs
+      const tasaData = tasaAsistenciaRes.ok ? await tasaAsistenciaRes.json() : null;
+      const statsData = statsGeneralesRes.ok ? await statsGeneralesRes.json() : null;
+
+      setKpiData({
+        totalCitas: statsData?.total_citas ?? 0,
+        tasaAsistencia: tasaData?.tasa_asistencia ?? 0,
+        ingresosEstimados: statsData?.ingresos_estimados ?? 0,
+        citasPorEstado: statsData?.citas_por_estado ?? { Pendiente: 0, Atendida: 0, Cancelada: 0 }
+      });
+
     } catch {
       setError('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
     } finally {
@@ -219,6 +249,18 @@ const AnalyticsDashboard = () => {
   const totalClientes = data.clientesGenero?.estadisticas?.total ?? 0;
   const totalMascotas = data.mascotasSexo?.total ?? 0;
 
+  // Formateamos los datos para inyectarlos en el componente KPICards
+  const kpisToRender = [
+    { title: "Total Citas", value: kpiData.totalCitas, icon: "calendar" },
+    { title: "Tasa de Asistencia", value: `${typeof kpiData.tasaAsistencia === 'number' ? kpiData.tasaAsistencia.toFixed(1) : kpiData.tasaAsistencia}%`, icon: "check-circle" },
+    { title: "Ingresos Estimados", value: `S/ ${typeof kpiData.ingresosEstimados === 'number' ? kpiData.ingresosEstimados.toFixed(2) : kpiData.ingresosEstimados}`, icon: "dollar-sign" },
+    {
+      title: "Estado de Citas",
+      value: `Atendidas: ${kpiData.citasPorEstado.Atendida || kpiData.citasPorEstado.Atendido || 0}`,
+      icon: "activity"
+    }
+  ];
+
   return (
     <div className="analytics-dashboard">
       <div className="analytics-header">
@@ -226,6 +268,11 @@ const AnalyticsDashboard = () => {
         <button className="analytics-refresh" onClick={fetchData} title="Actualizar datos">
           🔄 Actualizar
         </button>
+      </div>
+
+      {/* Renderizado de los KPIs conectados al backend */}
+      <div style={{ marginBottom: '20px' }}>
+        <KPICards kpis={kpisToRender} />
       </div>
 
       {/* Tarjetas resumen */}
