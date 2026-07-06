@@ -137,6 +137,39 @@ async def get_cita(
             detail=f"Error al obtener cita: {str(e)}"
         )
 
+@router.patch("/cita/{cita_id}/atender", response_model=CitaResponse)
+async def atender_cita(
+    cita_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Marcar cita como atendida y registrar ingreso automaticamente (HU-13)
+    """
+    try:
+        cita_obj = cita.get(db, cita_id)
+        if not cita_obj:
+            raise HTTPException(
+                status_code=404,
+                detail="Cita no encontrada"
+            )
+        if cita_obj.estado_cita != "Programada":
+            raise HTTPException(
+                status_code=400,
+                detail=f"La cita esta en estado '{cita_obj.estado_cita}', solo se puede atender citas programadas"
+            )
+
+        cita_atendida = cita.marcar_atendida(db, cita_id=cita_id)
+        return cita_atendida
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al atender cita: {str(e)}"
+        )
+
+
 @router.delete("/cita/{cita_id}")
 async def delete_cita(
         cita_id: int,
@@ -995,6 +1028,10 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
     resultado_servicio.interpretacion = resultado_servicio_update.interpretacion
     resultado_servicio.archivo_adjunto = resultado_servicio_update.archivo_adjunto
     resultado_servicio.fecha_realizacion = resultado_servicio_update.fecha_realizacion
+
+    # Marcar cita como atendida y registrar ingreso automaticamente (HU-13)
+    from app.crud.consulta_crud import cita as cita_crud
+    cita_crud.marcar_atendida(db, cita_id=cita_id)
 
     db.commit()
     db.refresh(resultado_servicio)

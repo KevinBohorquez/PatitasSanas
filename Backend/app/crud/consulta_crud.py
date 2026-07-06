@@ -12,7 +12,9 @@ from app.models.tratamiento import Tratamiento
 from app.models.historial_clinico import HistorialClinico
 from app.models.cita import Cita
 from app.models.servicio_solicitado import ServicioSolicitado
+from app.models.servicio import Servicio
 from app.models.resultado_servicio import ResultadoServicio
+from app.models.movimiento_financiero import MovimientoFinanciero
 from app.schemas.consulta_schema import (
     SolicitudAtencionCreate, TriajeCreate, ConsultaCreate,
     DiagnosticoCreate, TratamientoCreate, HistorialClinicoCreate,
@@ -421,10 +423,34 @@ class CRUDCita(CRUDBase[Cita, CitaCreate, CitaUpdate]):
         return cita
 
     def marcar_atendida(self, db: Session, *, cita_id: int) -> Optional[Cita]:
-        """Marcar cita como atendida"""
+        """Marcar cita como atendida y registrar ingreso automaticamente"""
         cita = self.get(db, cita_id)
         if cita and cita.estado_cita == "Programada":
             cita.estado_cita = "Atendida"
+
+            # Obtener el precio del servicio asociado
+            monto = 0
+            concepto = f"Ingreso por cita #{cita_id}"
+            if cita.id_servicio_solicitado:
+                ss = db.query(ServicioSolicitado).filter(
+                    ServicioSolicitado.id_servicio_solicitado == cita.id_servicio_solicitado
+                ).first()
+                if ss and ss.id_servicio:
+                    servicio = db.query(Servicio).filter(Servicio.id_servicio == ss.id_servicio).first()
+                    if servicio:
+                        monto = float(servicio.precio)
+                        concepto = f"Ingreso por {servicio.nombre_servicio} - Cita #{cita_id}"
+
+            # Registrar movimiento financiero (ingreso automático)
+            movimiento = MovimientoFinanciero(
+                tipo='Ingreso',
+                categoria='Servicio',
+                monto=monto,
+                concepto=concepto,
+                fecha_movimiento=datetime.now(),
+                id_cita=cita_id
+            )
+            db.add(movimiento)
             db.commit()
             db.refresh(cita)
         return cita
