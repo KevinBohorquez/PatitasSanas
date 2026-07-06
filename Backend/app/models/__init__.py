@@ -30,6 +30,9 @@ from app.models.diagnostico import Diagnostico
 from app.models.tratamiento import Tratamiento
 from app.models.historial_clinico import HistorialClinico
 
+# Modelos financieros
+from app.models.movimiento_financiero import MovimientoFinanciero
+
 # Modelos de relación
 from app.models.cliente_mascota import ClienteMascota
 
@@ -62,5 +65,7 @@ __all__ = [
     "Tratamiento",
     "HistorialClinico",
     # Relaciones
-    "ClienteMascota"
+    "ClienteMascota",
+    # Financieros
+    "MovimientoFinanciero"
 ]

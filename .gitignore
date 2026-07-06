@@ -24,3 +24,6 @@ Frontend/dist/
 *.md
 
 .scannerwork/
+
+# Windows artifacts
+nul

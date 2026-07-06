@@ -90,7 +90,7 @@ CREATE TABLE `Cita` (
 
 LOCK TABLES `Cita` WRITE;
 /*!40000 ALTER TABLE `Cita` DISABLE KEYS */;
-INSERT INTO `Cita` VALUES (1,9,2,'2025-06-07 14:00:00','Atendida',0,'Desparasitación aplicada'),(2,3,4,'2025-05-26 09:00:00','Atendida',1,'Análisis hemograma'),(3,4,5,'2025-05-29 10:00:00','Atendida',1,'Perfil bioquímico'),(4,5,7,'2025-05-31 08:00:00','Atendida',0,'Radiografía pata trasera'),(5,8,3,'2025-06-09 16:00:00','Programada',0,'Primera vacuna séxtuple'),(6,7,6,'2025-06-10 09:00:00','Programada',1,'Perfil renal geriátrico'),(7,10,8,'2025-06-09 10:00:00','Programada',0,'Control herida quirúrgica'),(8,1,NULL,'2025-06-12 11:00:00','Programada',0,'Control preventivo anual'),(9,6,NULL,'2025-06-15 14:00:00','Programada',1,'Chequeo completo'),(10,3,3,'2025-07-10 10:00:00','Programada',1,'Vacuna Séxtuple oh'),(11,1,9,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad'),(13,1,11,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad'),(14,1,12,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad'),(15,1,13,'2025-08-01 09:21:00','Programada',0,NULL),(16,4,14,'2025-07-17 09:21:00','Programada',1,NULL),(17,8,15,'2025-07-18 09:27:00','Programada',0,NULL),(18,14,14,'2025-07-10 07:14:00','Programada',1,'Esta muy flaco');
+INSERT INTO `Cita` VALUES (1,9,2,'2025-06-07 14:00:00','Atendida',0,'Desparasitación aplicada',0,0),(2,3,4,'2025-05-26 09:00:00','Atendida',1,'Análisis hemograma',0,0),(3,4,5,'2025-05-29 10:00:00','Atendida',1,'Perfil bioquímico',0,0),(4,5,7,'2025-05-31 08:00:00','Atendida',0,'Radiografía pata trasera',0,0),(5,8,3,'2025-06-09 16:00:00','Programada',0,'Primera vacuna séxtuple',0,0),(6,7,6,'2025-06-10 09:00:00','Programada',1,'Perfil renal geriátrico',0,0),(7,10,8,'2025-06-09 10:00:00','Programada',0,'Control herida quirúrgica',0,0),(8,1,NULL,'2025-06-12 11:00:00','Programada',0,'Control preventivo anual',0,0),(9,6,NULL,'2025-06-15 14:00:00','Programada',1,'Chequeo completo',0,0),(10,3,3,'2025-07-10 10:00:00','Programada',1,'Vacuna Séxtuple oh',0,0),(11,1,9,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad',0,0),(13,1,11,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad',0,0),(14,1,12,'2025-07-08 08:07:40','Programada',1,'Posible enfermedad',0,0),(15,1,13,'2025-08-01 09:21:00','Programada',0,NULL,0,0),(16,4,14,'2025-07-17 09:21:00','Programada',1,NULL,0,0),(17,8,15,'2025-07-18 09:27:00','Programada',0,NULL,0,0),(18,14,14,'2025-07-10 07:14:00','Programada',1,'Esta muy flaco',0,0);
 /*!40000 ALTER TABLE `Cita` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -956,6 +956,29 @@ LOCK TABLES `usuarios` WRITE;
 INSERT INTO `usuarios` VALUES (1,'admin_carlos','Admin123!','Administrador','2025-06-09 03:31:22','Activo'),(2,'admin_ana','Admin456!','Administrador','2025-06-09 03:31:22','Activo'),(3,'vet_rodriguez','VetRod789!','Veterinario','2025-06-09 03:31:22','Activo'),(4,'vet_garcia','VetGar321!','Veterinario','2025-06-09 03:31:22','Activo'),(5,'vet_lopez','VetLop654!','Veterinario','2025-06-09 03:31:22','Activo'),(6,'vet_martinez','VetMar987!','Veterinario','2025-06-09 03:31:22','Activo'),(7,'vet_vasquez','VetVas456!','Veterinario','2025-06-09 03:31:22','Activo'),(8,'vet_silva','VetSil123!','Veterinario','2025-06-09 03:31:22','Activo'),(9,'recep_maria','RecMar123!','Recepcionista','2025-06-09 03:31:22','Activo'),(10,'recep_ana','RecAna456!','Recepcionista','2025-06-09 03:31:22','Activo'),(11,'recep_carlos','RecCar789!','Recepcionista','2025-06-09 03:31:22','Activo'),(12,'recep_lucia','RecLuc321!','Recepcionista','2025-06-09 03:31:22','Activo'),(15,'vet_r','contrasenaaaa','Veterinario','2025-07-07 04:19:01','Inactivo'),(19,'admin_davidcini','jklmn','Administrador','2025-07-07 04:59:29','Inactivo'),(20,'recep_susy','susy123','Recepcionista','2025-07-07 05:18:08','Inactivo'),(21,'admin_juan','abcdefafdwadadw','Administrador','2025-07-07 05:29:01','Activo'),(22,'vet_juan','juan123','Veterinario','2025-07-07 21:16:10','Activo'),(23,'vet_pepe','pepe123','Veterinario','2025-07-08 00:50:35','Activo'),(25,'admin_jose','jose123','Administrador','2025-07-08 06:47:15','Inactivo'),(26,'recep_luisa','luisa123','Recepcionista','2025-07-08 08:25:13','Inactivo'),(27,'recep_roberto','roberto123','Recepcionista','2025-07-08 09:43:19','Inactivo');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `Movimiento_financiero`
+--
+
+DROP TABLE IF EXISTS `Movimiento_financiero`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Movimiento_financiero` (
+  `id_movimiento`   int NOT NULL AUTO_INCREMENT,
+  `tipo`            enum('Ingreso','Egreso') NOT NULL,
+  `categoria`       enum('Servicio','Operativo','Nomina') NOT NULL,
+  `monto`           decimal(10,2) NOT NULL,
+  `concepto`        varchar(150) NOT NULL,
+  `fecha_movimiento` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id_cita`         int DEFAULT NULL,
+  `id_administrador` int DEFAULT NULL,
+  PRIMARY KEY (`id_movimiento`),
+  CONSTRAINT `MF_ibfk_1` FOREIGN KEY (`id_cita`) REFERENCES `Cita` (`id_cita`),
+  CONSTRAINT `MF_ibfk_2` FOREIGN KEY (`id_administrador`) REFERENCES `Administrador` (`id_administrador`),
+  CONSTRAINT `MF_chk_1` CHECK (`monto` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping events for database 'railway'
