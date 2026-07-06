@@ -121,6 +121,28 @@ async def get_triajes(
             detail=f"Error al obtener triajes: {str(e)}"
         )
 
+
+# ================================================================
+# Rutas específicas (deben ir ANTES de /{triaje_id})
+# ================================================================
+@router.get("/criticos/recientes", response_model=List[TriajeResponse])
+async def get_triajes_criticos_recientes(
+        horas: int = Query(24, ge=1, le=168, description="Ventana de horas hacia atrás (por defecto 24h)"),
+        db: Session = Depends(get_db)
+):
+    """
+    Obtener los casos críticos registrados en las últimas N horas.
+    Por defecto muestra las últimas 24 horas; los triajes más antiguos quedan excluidos.
+    """
+    try:
+        return triaje.get_criticos_recientes(db, horas=horas)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener casos críticos recientes: {str(e)}"
+        )
+
+
 @router.get("/{triaje_id}", response_model=TriajeResponse)
 async def get_triaje(
     triaje_id: int,
