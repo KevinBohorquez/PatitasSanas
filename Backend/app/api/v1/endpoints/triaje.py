@@ -143,6 +143,25 @@ async def get_triajes_criticos_recientes(
         )
 
 
+@router.get("/estadisticas/signos-vitales")
+async def get_promedios_signos_vitales(
+        fecha_inicio: Optional[datetime] = Query(None, description="Fecha inicio del rango"),
+        fecha_fin: Optional[datetime] = Query(None, description="Fecha fin del rango"),
+        db: Session = Depends(get_db)
+):
+    """
+    Obtener los promedios de signos vitales de los triajes en un rango de fechas.
+    Si no hay datos en el rango, cada promedio retorna 0 (sin error por división entre cero).
+    """
+    try:
+        return triaje.get_promedios_signos_vitales(db, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener promedios de signos vitales: {str(e)}"
+        )
+
+
 @router.get("/{triaje_id}", response_model=TriajeResponse)
 async def get_triaje(
     triaje_id: int,
