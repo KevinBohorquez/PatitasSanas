@@ -19,9 +19,10 @@ const ServicesBarChart = () => {
       try {
         const response = await fetch('/api/v1/dashboard/servicios-mas-solicitados?limit=5');
         const data = await response.json();
+        console.log("DATOS REALES DEL GRÁFICO:", data);
 
         const labels = data.map(item => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido');
-        const values = data.map(item => item.cantidad || item.total || item.conteo || 0);
+        const values = data.map(item => item.total_solicitudes || item.cantidad || item.total || item.conteo || 0);
 
         setChartData({ labels, data: values });
       } catch (error) {
@@ -62,7 +63,7 @@ const ServicesBarChart = () => {
         beginAtZero: true,
         ticks: {
           stepSize: 1,
-          precision: 0 
+          precision: 0
         },
         grid: {
           color: '#e0e0e0',
@@ -77,6 +78,9 @@ const ServicesBarChart = () => {
     }
   };
 
+  // Verificacion de que existen registro de serivicos
+  const hasNoData = chartData.data.length == 0;
+
   return (
     <div className="stat-card">
       <div style={{ marginBottom: '16px' }}>
@@ -87,9 +91,27 @@ const ServicesBarChart = () => {
           Demanda por tipo de servicio
         </span>
       </div>
-      
+
       <div style={{ position: 'relative', height: 280 }}>
-        <Bar data={data} options={options} />
+        {hasNoData ? (
+          /*Mensaje en caso no existan datos*/
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            color: '#888780',
+            fontSize: '16px',
+            fontWeight: '500',
+            textAlign: 'center'
+          }}>
+            No existen citas atendidas en el sistema
+          </div>
+        ) :
+          (
+            <Bar data={data} options={options} />
+          )
+        }
       </div>
     </div>
   );
