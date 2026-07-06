@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './FlujoCaja.css';
+import Loader from '../common/Loader/Loader';
 
 const API_BASE_URL = '/api/v1/movimientos-financieros';
 
@@ -200,7 +201,7 @@ const FlujoCaja = () => {
       </div>
 
       {loading ? (
-        <p className="loading-text">Cargando movimientos...</p>
+        <Loader message="Cargando movimientos" />
       ) : (
         <div className="tabla-container">
           <table className="tabla-movimientos">

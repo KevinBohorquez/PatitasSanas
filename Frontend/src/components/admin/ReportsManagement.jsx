@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ReportsManagement.css';
+import { toast } from '../../utils/toast';
 
 const ReportsManagement = () => {
   const [loadingCitas, setLoadingCitas] = useState(false);
@@ -32,7 +33,7 @@ const ReportsManagement = () => {
 
   const downloadCitasPDF = async () => {
     if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
-      alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      toast.warning('La fecha de inicio no puede ser posterior a la fecha de fin.');
       return;
     }
 
@@ -76,7 +77,7 @@ const ReportsManagement = () => {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error:', error);
-      alert(error.message || 'Hubo un error al generar el reporte de citas.');
+      toast.error(error.message || 'Hubo un error al generar el reporte de citas.');
     } finally {
       setLoadingCitas(false);
     }
@@ -84,7 +85,7 @@ const ReportsManagement = () => {
 
   const downloadHistorialPDF = async () => {
     if (!selectedMascotaId) {
-      alert('Por favor selecciona una mascota primero.');
+      toast.warning('Por favor selecciona una mascota primero.');
       return;
     }
     
@@ -105,7 +106,7 @@ const ReportsManagement = () => {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error:', error);
-      alert('Hubo un error al generar el historial clínico.');
+      toast.error('Hubo un error al generar el historial clínico.');
     } finally {
       setLoadingHistorial(false);
     }

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../context/ToastContext';
+import Loader from '../common/Loader/Loader';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const toast = useToast();
 
   // Cargar resultado de servicio si existe
   const fetchResultadoServicio = async (citaId) => {
@@ -144,7 +147,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       const data = await response.json();
       console.log('✅ Resultado actualizado exitosamente:', data);
       
-      alert('Cita atendida exitosamente');
+      toast.success('Cita atendida exitosamente', { title: 'Cita guardada' });
       onComplete();
       
     } catch (err) {
@@ -160,7 +163,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   }
 
   if (loading && !error) {
-    return <div className="loading-message">Cargando información del resultado...</div>;
+    return <Loader message="Cargando información del resultado" />;
   }
 
   return (
