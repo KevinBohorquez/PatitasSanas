@@ -4,6 +4,7 @@ import Modal from '../common/Modal';
 import AtenderCita from './AtenderCita';
 import { useAuth } from "../../context/AuthContext";
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const CitasProgramadas = () => {
   const { user } = useAuth();
@@ -123,7 +124,7 @@ const CitasProgramadas = () => {
   ];
 
   if (loading) {
-    return <p>Cargando citas...</p>;
+    return <Loader message="Cargando citas" />;
   }
 
   if (error) {

@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ServicesManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ServicesManagement = () => {
   const [servicios, setServicios] = useState([]);
@@ -464,9 +465,7 @@ const ServicesManagement = () => {
       </div>
 
       {loading && (
-        <div className="loading-container">
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
       {error && (
@@ -1220,9 +1219,7 @@ const ServicesManagement = () => {
 
 
       {loading && (
-        <div style={styles.loadingIndicator}>
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
     
@@ -1905,9 +1902,7 @@ const ServicesManagement = () => {
 
     
       {loading && (
-        <div style={styles.loadingIndicator}>
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
     

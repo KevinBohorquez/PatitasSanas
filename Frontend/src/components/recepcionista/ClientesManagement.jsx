@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ClientesManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
@@ -381,7 +382,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (
@@ -938,7 +939,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (
@@ -1469,7 +1470,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (

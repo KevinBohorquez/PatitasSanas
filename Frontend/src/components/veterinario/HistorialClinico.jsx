@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './HistorialClinico.css';
+import Loader from '../common/Loader/Loader';
 
 const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
   const [historial, setHistorial] = useState(null); // Guardar el historial clínico
@@ -67,7 +68,7 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
     <div className="form-section">
       <h2>Historial Clínico de la Mascota</h2>
 
-      {loading && <p>Cargando historial clínico y consultas...</p>}
+      {loading && <Loader message="Cargando historial clínico y consultas" />}
       {error && <p>Error: {error}</p>}
 
       {/* Mostrar historial clínico si existe */}

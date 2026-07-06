@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import './VeterinariosView.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const VeterinariosView = () => {
   const [veterinarios, setVeterinarios] = useState([]);
@@ -195,7 +196,7 @@ const VeterinariosView = () => {
   if (loading && veterinarios.length === 0) {
     return (
       <div className="loading-container">
-        <p>Cargando veterinarios...</p>
+        <Loader message="Cargando veterinarios" />
       </div>
     );
   }

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
+import Loader from '../common/Loader/Loader';
 import FichaTriaje from './FichaTriaje';
 import FichaConsulta from './FichaConsulta';
 import { useAuth } from '../../context/AuthContext';
@@ -274,9 +275,7 @@ const SolicitudesAtencion = () => {
         <div className="section-header">
           <h2>Solicitudes de Atención</h2>
         </div>
-        <div className="loading-message">
-          <p>Cargando solicitudes...</p>
-        </div>
+        <Loader message="Cargando solicitudes" />
       </div>
     );
   }

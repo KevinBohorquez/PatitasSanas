@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './CitasManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const CitasManagement = () => {
   const [citas, setCitas] = useState([]);
@@ -511,7 +512,7 @@ const CitasManagement = () => {
         </div>
 
         {loading ? (
-          <div className="loading">Cargando citas...</div>
+          <Loader message="Cargando citas" />
         ) : (
           <>
             <div className="results-info">

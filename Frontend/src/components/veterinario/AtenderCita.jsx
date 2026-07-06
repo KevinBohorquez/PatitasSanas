@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
+import Loader from '../common/Loader/Loader';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -162,7 +163,7 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   }
 
   if (loading && !error) {
-    return <div className="loading-message">Cargando información del resultado...</div>;
+    return <Loader message="Cargando información del resultado" />;
   }
 
   return (

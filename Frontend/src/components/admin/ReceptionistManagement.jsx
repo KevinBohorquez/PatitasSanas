@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ReceptionistManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ReceptionistManagement = () => {
   const [recepcionistas, setRecepcionistas] = useState([]);
@@ -652,7 +653,7 @@ const handleView = (receptionist) => {
       
       <div className="receptionist-management">
         <div className="loading-container">
-          <p>Cargando recepcionistas...</p>
+          <Loader message="Cargando recepcionistas" />
         </div>
       </div>
     );
@@ -1638,7 +1639,7 @@ const ReceptionistManagement = () => {
     return (
       <div className="receptionist-management">
         <div className="loading-container">
-          <p>Cargando recepcionistas...</p>
+          <Loader message="Cargando recepcionistas" />
         </div>
       </div>
     );

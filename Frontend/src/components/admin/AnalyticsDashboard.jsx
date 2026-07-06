@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import '../../styles/AnalyticsDashboard.css';
+import Loader from '../common/Loader/Loader';
 
 const API_BASE = '/api/v1';
 
@@ -199,7 +200,7 @@ const AnalyticsDashboard = () => {
     return (
       <div className="analytics-state">
         <div className="analytics-spinner" />
-        <p>Cargando analíticas…</p>
+        <Loader message="Cargando analíticas" />
       </div>
     );
   }

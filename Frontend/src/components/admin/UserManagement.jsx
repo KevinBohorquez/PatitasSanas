@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './UserManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -554,7 +555,7 @@ const UserManagement = () => {
     return (
       <div className="users-management">
         <div className="loading-container">
-          <p>Cargando administradores...</p>
+          <Loader message="Cargando administradores" />
         </div>
       </div>
     );
@@ -1349,7 +1350,7 @@ const UserManagement = () => {
     return (
       <div className="user-management">
         <div className="loading-container">
-          <p>Cargando administradores...</p>
+          <Loader message="Cargando administradores" />
         </div>
       </div>
     );

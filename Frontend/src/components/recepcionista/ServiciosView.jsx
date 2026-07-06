@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import './ServiciosView.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ServiciosView = () => {
   const [servicios, setServicios] = useState([]);
@@ -155,7 +156,7 @@ const ServiciosView = () => {
   if (loading && servicios.length === 0) {
     return (
       <div className="loading-container">
-        <p>Cargando servicios...</p>
+        <Loader message="Cargando servicios" />
       </div>
     );
   }

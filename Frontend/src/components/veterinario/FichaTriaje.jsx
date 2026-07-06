@@ -1,6 +1,7 @@
 // components/veterinario/FichaTriaje.jsx
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 
 const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
@@ -173,7 +174,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
     return (
       <div className="ficha-triaje">
         <div className="loading-message">
-          <p>Cargando datos del triaje...</p>
+          <Loader message="Cargando datos del triaje" />
         </div>
       </div>
     );

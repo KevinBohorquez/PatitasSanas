@@ -5,6 +5,7 @@ import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 
 const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
@@ -277,7 +278,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
     return (
       <div className="ficha-consulta">
         <div className="loading-message">
-          <p>Cargando datos de la consulta...</p>
+          <Loader message="Cargando datos de la consulta" />
         </div>
       </div>
     );

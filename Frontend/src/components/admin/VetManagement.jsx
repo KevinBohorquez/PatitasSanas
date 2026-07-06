@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './VetManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const VetManagement = () => {
   const [veterinarios, setVeterinarios] = useState([]);
@@ -763,7 +764,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );
@@ -1996,7 +1997,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );

@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './SolicitudesManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const SolicitudesManagement = () => {
   const { user } = useAuth();
@@ -544,9 +545,7 @@ const SolicitudesManagement = () => {
         )}
 
         {loading ? (
-          <div className="loading-container">
-            Cargando solicitudes...
-          </div>
+          <Loader message="Cargando solicitudes" />
         ) : (
           <Table 
             columns={columns}

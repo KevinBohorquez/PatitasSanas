@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './MascotasManagement.css';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const MascotasManagement = () => {
   const [mascotas, setMascotas] = useState([]);
@@ -575,7 +576,7 @@ const MascotasManagement = () => {
   if (loading && mascotas.length === 0) {
     return (
       <div className="loading-container">
-        <p>Cargando mascotas...</p>
+        <Loader message="Cargando mascotas" />
       </div>
     );
   }

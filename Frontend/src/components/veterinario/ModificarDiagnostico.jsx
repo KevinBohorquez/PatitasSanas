@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -139,7 +140,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   };
 
   if (loading) {
-    return <p>Cargando datos del diagnóstico...</p>;
+    return <Loader message="Cargando datos del diagnóstico" />;
   }
 
   if (error) {

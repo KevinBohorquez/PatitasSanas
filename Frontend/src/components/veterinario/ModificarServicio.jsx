@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -137,7 +138,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   };
 
   if (loading) {
-    return <p>Cargando datos del servicio...</p>;
+    return <Loader message="Cargando datos del servicio" />;
   }
 
   if (error) {
