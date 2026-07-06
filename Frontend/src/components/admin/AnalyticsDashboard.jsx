@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -7,6 +7,9 @@ import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
 import SpeciesPieChart from '../common/SpeciesPieChart';
 import KPICards from '../common/KPICards';
+
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const API_BASE = '/api/v1';
 
@@ -172,13 +175,14 @@ const AnalyticsDashboard = () => {
     razas: null,
   });
 
-  // Estado para los KPIs extraídos de tus endpoints
   const [kpiData, setKpiData] = useState({
     totalCitas: 0,
     tasaAsistencia: 0,
     ingresosEstimados: 0,
     citasPorEstado: { Pendiente: 0, Atendida: 0, Cancelada: 0 }
   });
+
+  const printRef = useRef();
 
   const fetchData = async () => {
     setLoading(true);
@@ -207,7 +211,6 @@ const AnalyticsDashboard = () => {
         razas: razasRes.ok ? await razasRes.json() : null,
       });
 
-      // Procesamos las respuestas de los KPIs
       const tasaData = tasaAsistenciaRes.ok ? await tasaAsistenciaRes.json() : null;
       const statsData = statsGeneralesRes.ok ? await statsGeneralesRes.json() : null;
 
@@ -226,6 +229,31 @@ const AnalyticsDashboard = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const exportarPDF = async () => {
+    const element = printRef.current;
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Dashboard_PatitasSanas_${new Date().toLocaleDateString()}.pdf`);
+
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -249,7 +277,6 @@ const AnalyticsDashboard = () => {
   const totalClientes = data.clientesGenero?.estadisticas?.total ?? 0;
   const totalMascotas = data.mascotasSexo?.total ?? 0;
 
-  // Formateamos los datos para inyectarlos en el componente KPICards
   const kpisToRender = [
     { title: "Total Citas", value: kpiData.totalCitas, icon: "calendar" },
     { title: "Tasa de Asistencia", value: `${typeof kpiData.tasaAsistencia === 'number' ? kpiData.tasaAsistencia.toFixed(1) : kpiData.tasaAsistencia}%`, icon: "check-circle" },
@@ -263,62 +290,77 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="analytics-dashboard">
-      <div className="analytics-header">
-        <h2 className="analytics-title">Analíticas y Estadísticas</h2>
-        <button className="analytics-refresh" onClick={fetchData} title="Actualizar datos">
-          🔄 Actualizar
-        </button>
-      </div>
-
-      {/* Renderizado de los KPIs conectados al backend */}
-      <div style={{ marginBottom: '20px' }}>
-        <KPICards kpis={kpisToRender} />
-      </div>
-
-      {/* Tarjetas resumen */}
-      <div className="analytics-summary">
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">🏥</span>
-          <div>
-            <p className="analytics-summary-label">Total Consultas</p>
-            <p className="analytics-summary-value">{totalConsultas}</p>
-          </div>
-        </div>
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">👥</span>
-          <div>
-            <p className="analytics-summary-label">Total Clientes</p>
-            <p className="analytics-summary-value">{totalClientes}</p>
-          </div>
-        </div>
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">🐾</span>
-          <div>
-            <p className="analytics-summary-label">Total Mascotas</p>
-            <p className="analytics-summary-value">{totalMascotas}</p>
-          </div>
+      <div className="analytics-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 className="analytics-title" style={{ margin: 0 }}>Analíticas y Estadísticas</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="analytics-refresh"
+            onClick={exportarPDF}
+            title="Descargar reporte en PDF"
+            style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            📄 Exportar PDF
+          </button>
+          <button
+            className="analytics-refresh"
+            onClick={fetchData}
+            title="Actualizar datos"
+            style={{ backgroundColor: '#4f86c6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            🔄 Actualizar
+          </button>
         </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="analytics-grid">
-        {data.consultas && (
-          <ConsultasCondicionChart data={data.consultas.estadisticas_condicion} />
-        )}
-        {data.clientesGenero && (
-          <ClientesGeneroChart data={data.clientesGenero} />
-        )}
-        {data.mascotasSexo && (
-          <MascotasSexoChart data={data.mascotasSexo} />
-        )}
-        {data.consultas?.diagnosticos_frecuentes?.length > 0 && (
-          <DiagnosticosChart data={data.consultas.diagnosticos_frecuentes} />
-        )}
-        {data.razas && (
-          <RazasChart data={data.razas} />
-        )}
-        <ServicesBarChart />
-        <SpeciesPieChart />
+      <div ref={printRef} style={{ padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+
+        <div style={{ marginBottom: '20px' }}>
+          <KPICards kpis={kpisToRender} />
+        </div>
+
+        <div className="analytics-summary">
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">🏥</span>
+            <div>
+              <p className="analytics-summary-label">Total Consultas</p>
+              <p className="analytics-summary-value">{totalConsultas}</p>
+            </div>
+          </div>
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">👥</span>
+            <div>
+              <p className="analytics-summary-label">Total Clientes</p>
+              <p className="analytics-summary-value">{totalClientes}</p>
+            </div>
+          </div>
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">🐾</span>
+            <div>
+              <p className="analytics-summary-label">Total Mascotas</p>
+              <p className="analytics-summary-value">{totalMascotas}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="analytics-grid">
+          {data.consultas && (
+            <ConsultasCondicionChart data={data.consultas.estadisticas_condicion} />
+          )}
+          {data.clientesGenero && (
+            <ClientesGeneroChart data={data.clientesGenero} />
+          )}
+          {data.mascotasSexo && (
+            <MascotasSexoChart data={data.mascotasSexo} />
+          )}
+          {data.consultas?.diagnosticos_frecuentes?.length > 0 && (
+            <DiagnosticosChart data={data.consultas.diagnosticos_frecuentes} />
+          )}
+          {data.razas && (
+            <RazasChart data={data.razas} />
+          )}
+          <ServicesBarChart />
+          <SpeciesPieChart />
+        </div>
       </div>
     </div>
   );

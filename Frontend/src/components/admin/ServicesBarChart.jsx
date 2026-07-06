@@ -19,7 +19,6 @@ const ServicesBarChart = () => {
       try {
         const response = await fetch('/api/v1/dashboard/servicios-mas-solicitados?limit=5');
         const data = await response.json();
-        console.log("DATOS REALES DEL GRÁFICO:", data);
 
         const labels = data.map(item => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido');
         const values = data.map(item => item.total_solicitudes || item.cantidad || item.total || item.conteo || 0);
