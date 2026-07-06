@@ -97,7 +97,7 @@ async def get_triajes(
 
         # Filtrar por clasificación de urgencia
         elif clasificacion_urgencia:
-            triajes = triaje.get_by_clasificacion_urgencia(db, clasificacion=clasificacion_urgencia)
+            triajes = triaje.get_by_urgencia(db, clasificacion=clasificacion_urgencia)
             return triajes[:limit]
 
         # Filtrar por condición corporal
@@ -119,31 +119,6 @@ async def get_triajes(
         raise HTTPException(
             status_code=500,
             detail=f"Error al obtener triajes: {str(e)}"
-        )
-
-@router.get("/{triaje_id}", response_model=TriajeResponse)
-async def get_triaje(
-    triaje_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Obtener un triaje específico por ID
-    """
-    try:
-        triaje_obj = triaje.get(db, id=triaje_id)
-        if not triaje_obj:
-            raise HTTPException(
-                status_code=404,
-                detail="Triaje no encontrado"
-            )
-        return triaje_obj
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error al obtener triaje: {str(e)}"
         )
 
 @router.get("/{triaje_id}", response_model=TriajeResponse)
