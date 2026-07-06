@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
+import SpeciesPieChart from '../common/SpeciesPieChart';
 
 const API_BASE = '/api/v1';
 
@@ -270,6 +271,7 @@ const AnalyticsDashboard = () => {
           <RazasChart data={data.razas} />
         )}
         <ServicesBarChart />
+        <SpeciesPieChart />
       </div>
     </div>
   );
