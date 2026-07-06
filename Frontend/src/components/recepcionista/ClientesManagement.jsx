@@ -4,6 +4,7 @@ import Modal from '../common/Modal';
 import './ClientesManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
@@ -248,7 +249,7 @@ const ClientesManagement = () => {
 
   //Eliminar cliente Modificando solo su estado
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
@@ -818,7 +819,7 @@ const ClientesManagement = () => {
   };
   //Eliminar cliente Modificando solo su estado
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
@@ -1349,7 +1350,7 @@ const ClientesManagement = () => {
   };
 
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {

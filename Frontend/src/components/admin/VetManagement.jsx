@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import './VetManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const VetManagement = () => {
   const [veterinarios, setVeterinarios] = useState([]);
@@ -504,7 +505,7 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
@@ -1669,7 +1670,7 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 

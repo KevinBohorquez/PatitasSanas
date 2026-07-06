@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import './ServicesManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const ServicesManagement = () => {
   const [servicios, setServicios] = useState([]);
@@ -280,7 +281,7 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 
@@ -888,7 +889,7 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 
@@ -1573,7 +1574,7 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 

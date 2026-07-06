@@ -4,6 +4,7 @@ import Modal from '../common/Modal';
 import './UserManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -327,7 +328,7 @@ const UserManagement = () => {
   };
 
   const handleDelete = async (user) => {
-    if (!window.confirm(`¿Está seguro de eliminar PERMANENTEMENTE el administrador "${user.nombre}"? Esta acción no se puede deshacer.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar PERMANENTEMENTE el administrador "${user.nombre}"? Esta acción no se puede deshacer.` }))) {
       return;
     }
 
@@ -1127,7 +1128,7 @@ const UserManagement = () => {
   };
 
   const handleDelete = async (user) => {
-    if (!window.confirm(`¿Está seguro de eliminar PERMANENTEMENTE el administrador "${user.nombre}"? Esta acción no se puede deshacer.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar PERMANENTEMENTE el administrador "${user.nombre}"? Esta acción no se puede deshacer.` }))) {
       return;
     }
 

@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import './CitasManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const CitasManagement = () => {
   const [citas, setCitas] = useState([]);
@@ -409,7 +410,7 @@ const CitasManagement = () => {
       return;
     }
 
-    if (!window.confirm(`¿Está seguro de eliminar la cita de ${cita.nombre_mascota}?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar la cita de ${cita.nombre_mascota}?` }))) {
       return;
     }
 

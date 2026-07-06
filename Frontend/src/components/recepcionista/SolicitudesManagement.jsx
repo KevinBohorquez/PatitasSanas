@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import './SolicitudesManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const SolicitudesManagement = () => {
   const { user } = useAuth();
@@ -334,7 +335,7 @@ const SolicitudesManagement = () => {
       return;
     }
 
-    if (window.confirm(`¿Está seguro de eliminar la solicitud de ${solicitud.nombre_mascota}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar la solicitud de ${solicitud.nombre_mascota}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}`, {

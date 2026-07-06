@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import './ReceptionistManagement.css';
 import { toast } from '../../utils/toast';
 import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const ReceptionistManagement = () => {
   const [recepcionistas, setRecepcionistas] = useState([]);
@@ -421,7 +422,7 @@ const ReceptionistManagement = () => {
   };
 
   const handleDelete = async (receptionist) => {
-    if (!window.confirm(`¿Está seguro de eliminar al recepcionista "${receptionist.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al recepcionista "${receptionist.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
@@ -1408,7 +1409,7 @@ const ReceptionistManagement = () => {
   };
 
   const handleDelete = async (receptionist) => {
-    if (!window.confirm(`¿Está seguro de eliminar al recepcionista "${receptionist.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al recepcionista "${receptionist.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
