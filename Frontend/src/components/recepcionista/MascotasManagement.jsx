@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './MascotasManagement.css';
+import { toast } from '../../utils/toast';
 
 const MascotasManagement = () => {
   const [mascotas, setMascotas] = useState([]);
@@ -103,12 +104,12 @@ const MascotasManagement = () => {
         if (response.status === 404) {
           setMascotas([]);
         } else {
-          alert(`Error al cargar las mascotas: ${errorData.detail || response.statusText}`);
+          toast.error(`Error al cargar las mascotas: ${errorData.detail || response.statusText}`);
         }
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión al cargar mascotas. Verifique su conexión a internet.');
+      toast.error('Error de conexión al cargar mascotas. Verifique su conexión a internet.');
       setMascotas([]);
     } finally {
       setLoading(false);
@@ -275,15 +276,15 @@ const MascotasManagement = () => {
         });
         
         if (response.ok) {
-          alert('Mascota eliminada exitosamente');
+          toast.success('Mascota eliminada exitosamente');
           fetchMascotas(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          alert(`Error al eliminar mascota: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error al eliminar mascota: ${errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión al eliminar mascota');
+        toast.error('Error de conexión al eliminar mascota');
       } finally {
         setLoading(false);
       }
@@ -379,7 +380,7 @@ const MascotasManagement = () => {
       );
 
       if (!tipoAnimalObj) {
-        alert('Error: No se encontró el tipo de animal correspondiente');
+        toast.error('Error: No se encontró el tipo de animal correspondiente');
         setLoading(false);
         return;
       }
@@ -447,26 +448,26 @@ const MascotasManagement = () => {
             console.log('Estado de imagen:', imageResponse.status === 200 ? 'Agregada' : 'Error');
 
             if (imageResponse.ok) {
-              alert(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente con imagen`);
+              toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente con imagen`);
             } else {
-              alert(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero hubo un problema con la imagen. Error: ${imageResponseData.detail || 'Error desconocido'}`);
+              toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero hubo un problema con la imagen. Error: ${imageResponseData.detail || 'Error desconocido'}`);
             }
           } catch (imageError) {
             console.error('Error al agregar imagen:', imageError);
-            alert(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero no se pudo agregar la imagen debido a problemas de conexión.`);
+            toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero no se pudo agregar la imagen debido a problemas de conexión.`);
           }
         } else {
-          alert(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente`);
+          toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente`);
         }
         setShowModal(false);
         fetchMascotas(); 
       } else {
         console.error('Error del servidor');
-        alert(`Error: ${responseData.detail || 'Error desconocido al procesar la solicitud'}`);
+        toast.error(`Error: ${responseData.detail || 'Error desconocido al procesar la solicitud'}`);
       }
     } catch (error) {
       console.error('Error de conexión');
-      alert(`Error de conexión: ${error.message}`);
+      toast.error(`Error de conexión: ${error.message}`);
     } finally {
       setLoading(false);
     }

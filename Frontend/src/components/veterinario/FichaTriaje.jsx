@@ -1,5 +1,6 @@
 // components/veterinario/FichaTriaje.jsx
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 
 
 const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
@@ -164,7 +165,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);
-      alert(`Error al guardar los datos del triaje: ${error.message}`);
+      toast.error(`Error al guardar los datos del triaje: ${error.message}`);
     }
   };
 

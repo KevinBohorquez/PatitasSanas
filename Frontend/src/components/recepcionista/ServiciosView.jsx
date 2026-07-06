@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import './ServiciosView.css';
+import { toast } from '../../utils/toast';
 
 const ServiciosView = () => {
   const [servicios, setServicios] = useState([]);
@@ -72,12 +73,12 @@ const ServiciosView = () => {
         if (response.status === 404) {
           setServicios([]);
         } else {
-          alert(`Error al cargar los servicios: ${errorData.detail || response.statusText}`);
+          toast.error(`Error al cargar los servicios: ${errorData.detail || response.statusText}`);
         }
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión al cargar servicios. Verifique su conexión a internet.');
+      toast.error('Error de conexión al cargar servicios. Verifique su conexión a internet.');
       setServicios([]);
     } finally {
       setLoading(false);

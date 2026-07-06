@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './UserManagement.css';
+import { toast } from '../../utils/toast';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -333,10 +334,10 @@ const UserManagement = () => {
     
     const result = await deleteAdministrador(user.id);
     if (result.success) {
-      alert('Administrador eliminado permanentemente');
+      toast.success('Administrador eliminado permanentemente');
       fetchAdministradores(currentPage, selectedGenero, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -357,22 +358,22 @@ const UserManagement = () => {
     try {
       if (modalType === 'add') {
         if (!formData.nombre.trim()) {
-          alert('El nombre es obligatorio');
+          toast.warning('El nombre es obligatorio');
           return;
         }
 
         if (!formData.dni.trim() || !/^\d{8}$/.test(formData.dni.trim())) {
-          alert('El DNI debe tener 8 dígitos');
+          toast.warning('El DNI debe tener 8 dígitos');
           return;
         }
 
         if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email.trim())) {
-          alert('El email no tiene un formato válido');
+          toast.info('El email no tiene un formato válido');
           return;
         }
 
         if (!formData.contraseña.trim() || formData.contraseña.length < 3) {
-          alert('La contraseña debe tener al menos 3 caracteres');
+          toast.warning('La contraseña debe tener al menos 3 caracteres');
           return;
         }
 
@@ -394,9 +395,9 @@ const UserManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchAdministradores(currentPage, selectedGenero, searchTerm);
-          alert('Administrador creado exitosamente');
+          toast.success('Administrador creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         const updateData = {
@@ -436,14 +437,14 @@ const UserManagement = () => {
           messages.push('Contraseña actualizada');
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchAdministradores(currentPage, selectedGenero, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -1133,10 +1134,10 @@ const UserManagement = () => {
     
     const result = await deleteAdministrador(user.id);
     if (result.success) {
-      alert('Administrador eliminado permanentemente');
+      toast.success('Administrador eliminado permanentemente');
       fetchAdministradores(currentPage, selectedGenero, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -1158,22 +1159,22 @@ const UserManagement = () => {
       if (modalType === 'add') {
         // Validaciones básicas
         if (!formData.nombre.trim()) {
-          alert('El nombre es obligatorio');
+          toast.warning('El nombre es obligatorio');
           return;
         }
 
         if (!formData.dni.trim() || !/^\d{8}$/.test(formData.dni.trim())) {
-          alert('El DNI debe tener 8 dígitos');
+          toast.warning('El DNI debe tener 8 dígitos');
           return;
         }
 
         if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email.trim())) {
-          alert('El email no tiene un formato válido');
+          toast.info('El email no tiene un formato válido');
           return;
         }
 
         if (!formData.contraseña.trim() || formData.contraseña.length < 3) {
-          alert('La contraseña debe tener al menos 3 caracteres');
+          toast.warning('La contraseña debe tener al menos 3 caracteres');
           return;
         }
 
@@ -1196,9 +1197,9 @@ const UserManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchAdministradores(currentPage, selectedGenero, searchTerm);
-          alert('Administrador creado exitosamente');
+          toast.success('Administrador creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar administrador existente
@@ -1225,9 +1226,9 @@ const UserManagement = () => {
           if (!passwordResult.success) {
             throw new Error(passwordResult.message);
           }
-          alert('Administrador y contraseña actualizados exitosamente');
+          toast.success('Administrador y contraseña actualizados exitosamente');
         } else {
-          alert('Administrador actualizado exitosamente');
+          toast.success('Administrador actualizado exitosamente');
         }
 
         setShowModal(false);
@@ -1236,7 +1237,7 @@ const UserManagement = () => {
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }

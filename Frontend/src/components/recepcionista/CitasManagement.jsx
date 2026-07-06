@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './CitasManagement.css';
+import { toast } from '../../utils/toast';
 
 const CitasManagement = () => {
   const [citas, setCitas] = useState([]);
@@ -130,11 +131,11 @@ const CitasManagement = () => {
         setCitas(citasConDetalles);
       } else {
         console.error('Error al cargar citas:', response.statusText);
-        alert('Error al cargar las citas');
+        toast.error('Error al cargar las citas');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al cargar citas');
+      toast.error('Error de conexión al cargar citas');
     } finally {
       setLoading(false);
     }
@@ -233,13 +234,13 @@ const CitasManagement = () => {
           setServiciosSolicitados(serviciosFiltrados);
           
           if (serviciosFiltrados.length === 0) {
-            alert('Esta mascota no tiene servicios solicitados disponibles para agendar citas.');
+            toast.info('Esta mascota no tiene servicios solicitados disponibles para agendar citas.');
             return false;
           }
           return true;
         } else {
           setServiciosSolicitados([]);
-          alert('Esta mascota no tiene servicios solicitados. Debe tener al menos un servicio solicitado para agendar una cita.');
+          toast.warning('Esta mascota no tiene servicios solicitados. Debe tener al menos un servicio solicitado para agendar una cita.');
           return false;
         }
       }
@@ -386,16 +387,16 @@ const CitasManagement = () => {
       });
 
       if (response.ok) {
-        alert('Cita registrada exitosamente');
+        toast.success('Cita registrada exitosamente');
         setShowModal(false);
         fetchCitas(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        alert(`Error al registrar la cita: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(`Error al registrar la cita: ${errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al registrar la cita');
+      toast.error('Error de conexión al registrar la cita');
     } finally {
       setLoading(false);
     }
@@ -403,7 +404,7 @@ const CitasManagement = () => {
 
   const handleDelete = async (cita) => {
     if (cita.estado_cita !== 'Programada') {
-      alert('Solo se pueden eliminar citas con estado "Programada"');
+      toast.info('Solo se pueden eliminar citas con estado "Programada"');
       return;
     }
 
@@ -422,15 +423,15 @@ const CitasManagement = () => {
       });
 
       if (response.ok) {
-        alert('Cita eliminada exitosamente');
+        toast.success('Cita eliminada exitosamente');
         fetchCitas(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        alert(`Error al eliminar la cita: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(`Error al eliminar la cita: ${errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al eliminar la cita');
+      toast.error('Error de conexión al eliminar la cita');
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -70,12 +71,12 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
     
     // Validaciones básicas
     if (!formData.diagnostico.trim()) {
-      alert('El diagnóstico es obligatorio');
+      toast.warning('El diagnóstico es obligatorio');
       return;
     }
     
     if (!formData.patologia.trim()) {
-      alert('El nombre de la patología es obligatorio');
+      toast.warning('El nombre de la patología es obligatorio');
       return;
     }
 
@@ -113,7 +114,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       if (response.ok) {
         const result = await response.json();
         console.log('Diagnóstico actualizado correctamente:', result);
-        alert('Diagnóstico actualizado correctamente');
+        toast.success('Diagnóstico actualizado correctamente');
         
         // Llamar a onSave para cerrar modal y refrescar datos
         onSave();
@@ -124,14 +125,14 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
         // Mostrar errores de validación específicos
         if (errorData.detail && Array.isArray(errorData.detail)) {
           const errorMessages = errorData.detail.map(err => err.msg).join('\n');
-          alert(`Errores de validación:\n${errorMessages}`);
+          toast.error(`Errores de validación:\n${errorMessages}`);
         } else {
-          alert(`Error al actualizar: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error al actualizar: ${errorData.detail || 'Error desconocido'}`);
         }
       }
     } catch (error) {
       console.error('Error de red:', error);
-      alert('Error de conexión. Por favor, verifica tu conexión a internet.');
+      toast.error('Error de conexión. Por favor, verifica tu conexión a internet.');
     } finally {
       setSaving(false);
     }

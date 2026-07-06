@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ReceptionistManagement.css';
+import { toast } from '../../utils/toast';
 
 const ReceptionistManagement = () => {
   const [recepcionistas, setRecepcionistas] = useState([]);
@@ -424,7 +425,7 @@ const ReceptionistManagement = () => {
     }
 
     if (!receptionist.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -432,10 +433,10 @@ const ReceptionistManagement = () => {
     
     const result = await deactivateUser(receptionist.id_usuario);
     if (result.success) {
-      alert('Recepcionista eliminado exitosamente (usuario desactivado)');
+      toast.success('Recepcionista eliminado exitosamente (usuario desactivado)');
       fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -474,9 +475,9 @@ const ReceptionistManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
-          alert('Recepcionista creado exitosamente');
+          toast.success('Recepcionista creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar recepcionista existente
@@ -522,14 +523,14 @@ const ReceptionistManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -1411,7 +1412,7 @@ const ReceptionistManagement = () => {
     }
 
     if (!receptionist.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -1419,10 +1420,10 @@ const ReceptionistManagement = () => {
     
     const result = await deactivateUser(receptionist.id_usuario);
     if (result.success) {
-      alert('Recepcionista eliminado exitosamente (usuario desactivado)');
+      toast.success('Recepcionista eliminado exitosamente (usuario desactivado)');
       fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -1461,9 +1462,9 @@ const ReceptionistManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
-          alert('Recepcionista creado exitosamente');
+          toast.success('Recepcionista creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar recepcionista existente
@@ -1509,14 +1510,14 @@ const ReceptionistManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchRecepcionistas(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }

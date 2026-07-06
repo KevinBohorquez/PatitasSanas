@@ -4,6 +4,7 @@ import Modal from '../common/Modal';
 import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from '../../utils/toast';
 
 
 const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
@@ -142,7 +143,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         console.log('Disposición actualizada:', result);
       } catch (error) {
         console.error('Error al actualizar disposición:', error);
-        alert(`Error al actualizar disposición del veterinario: ${error.message}`);
+        toast.error(`Error al actualizar disposición del veterinario: ${error.message}`);
       }
     };
 
@@ -151,15 +152,15 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       e.preventDefault();
 
       if (!formData.motivoConsulta.trim()) {
-        alert('El motivo de la consulta es obligatorio');
+        toast.warning('El motivo de la consulta es obligatorio');
         return;
       }
       if (!formData.tipoConsulta.trim()) {
-        alert('El tipo de consulta es obligatorio');
+        toast.warning('El tipo de consulta es obligatorio');
         return;
       }
       if (formData.condicionGeneral === 'Select') {
-        alert('Debe seleccionar una condición general');
+        toast.warning('Debe seleccionar una condición general');
         return;
       }
 
@@ -187,7 +188,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
             body: JSON.stringify(payload)
           });
         } else {
-          alert('La creación de nuevas consultas aún no está implementada.');
+          toast.warning('La creación de nuevas consultas aún no está implementada.');
           return;
         }
 
@@ -202,12 +203,12 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         // 🚀 Aquí actualizas la disposición:
         await actualizarDisposicion();
 
-        alert('Consulta actualizada correctamente.');
+        toast.success('Consulta actualizada correctamente.');
         onComplete();
 
       } catch (error) {
         console.error('Error al guardar consulta:', error);
-        alert(`Error al guardar la consulta: ${error.message}`);
+        toast.error(`Error al guardar la consulta: ${error.message}`);
       }
     };
 
@@ -220,7 +221,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   // Función para añadir diagnóstico
   const handleAñadirDiagnostico = async () => {
     if (!consultaData?.id_consulta) {
-      alert('No hay una consulta activa para añadir diagnóstico');
+      toast.warning('No hay una consulta activa para añadir diagnóstico');
       return;
     }
 
@@ -245,7 +246,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       const result = await response.json();
       console.log('Diagnóstico añadido exitosamente:', result);
       
-      alert(`Diagnóstico añadido correctamente. ID: ${result.id}`);
+      toast.success(`Diagnóstico añadido correctamente. ID: ${result.id}`);
       
       if (triageData?.id_triaje) {
         await fetchDiagnosticos(triageData.id_triaje);
@@ -253,14 +254,14 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       
     } catch (error) {
       console.error('Error al añadir diagnóstico:', error);
-      alert(`Error al añadir diagnóstico: ${error.message}`);
+      toast.error(`Error al añadir diagnóstico: ${error.message}`);
     }
   };
 
   // Función para añadir servicio - CORREGIDA
   const handleAñadirServicio = () => {
     if (!consultaData?.id_consulta) {
-      alert('No hay consulta activa para añadir servicio');
+      toast.warning('No hay consulta activa para añadir servicio');
       return;
     }
 
@@ -475,7 +476,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           consultaId={consultaData?.id_consulta}
           onSave={async () => {
             setShowModificarServicio(false);
-            alert('Servicio creado correctamente');
+            toast.success('Servicio creado correctamente');
           }}
           onCancel={() => setShowModificarServicio(false)}
         />
