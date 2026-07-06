@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmProvider';
 import RoleSelection from './pages/RoleSelection';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
@@ -13,50 +14,52 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 function App() {
   return (
     <ToastProvider position="top-right" defaultDuration={4000}>
+      <ConfirmProvider>
       <AuthProvider>
         <Router>
           <div className="App">
-            <Routes>
-              {/* Ruta inicial - Selección de rol */}
-              <Route path="/" element={<RoleSelection />} />
+          <Routes>
+            {/* Ruta inicial - Selección de rol */}
+            <Route path="/" element={<RoleSelection />} />
+            
+            {/* Login con parámetro de rol */}
+            <Route path="/login/:role" element={<Login />} />
+            
+            {/* Rutas protegidas por rol */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/veterinario" 
+              element={
+                <ProtectedRoute allowedRoles={['veterinario']}>
+                  <VeterinarioDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/recepcionista" 
+              element={
+                <ProtectedRoute allowedRoles={['recepcionista']}>
+                  <RecepcionistaDashboard />
+                </ProtectedRoute>
+              } 
+            />
 
-              {/* Login con parámetro de rol */}
-              <Route path="/login/:role" element={<Login />} />
-
-              {/* Rutas protegidas por rol */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={['administrador']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/veterinario"
-                element={
-                  <ProtectedRoute allowedRoles={['veterinario']}>
-                    <VeterinarioDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/recepcionista"
-                element={
-                  <ProtectedRoute allowedRoles={['recepcionista']}>
-                    <RecepcionistaDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Redirección por defecto para rutas no encontradas */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Redirección por defecto para rutas no encontradas */}
+            <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Router>
       </AuthProvider>
+      </ConfirmProvider>
     </ToastProvider>
   );
 }
