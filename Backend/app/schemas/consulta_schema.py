@@ -427,9 +427,10 @@ class ResultadoServicioResponse(BaseResponse):
     id_resultado: int
     id_cita: int
     id_veterinario: int
-    resultado: str
-    interpretacion: Optional[str]
-    archivo_adjunto: Optional[str]
+    # nullable en la BD: la fila se pre-crea vacía y el veterinario la llena al atender la cita
+    resultado: Optional[str] = None
+    interpretacion: Optional[str] = None
+    archivo_adjunto: Optional[str] = None
     fecha_realizacion: datetime
 
 
