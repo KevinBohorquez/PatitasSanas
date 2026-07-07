@@ -23,7 +23,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchVeterinarios = async () => {
       try {
-        const response = await fetch('/api/v1/veterinarios/?page=1&per_page=20');
+        const response = await fetch('/api/v1/veterinarios/?page=1&per_page=20&solo_activos=true');
         
         if (response.ok) {
           const veterinariosData = await response.json();
