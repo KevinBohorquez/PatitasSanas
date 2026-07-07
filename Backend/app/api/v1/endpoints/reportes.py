@@ -106,11 +106,24 @@ def get_consultas_por_mes(
     return dashboard.get_consultas_por_mes(db, año=año)
 
 @router.get("/historial/{mascota_id}/pdf", response_class=FileResponse)
-async def descargar_historial_clinico_pdf(mascota_id: int, db: Session = Depends(get_db)):
+async def descargar_historial_clinico_pdf(
+    mascota_id: int,
+    fecha_inicio: Optional[date] = Query(None, description="Fecha de inicio del filtro (YYYY-MM-DD)"),
+    fecha_fin: Optional[date] = Query(None, description="Fecha de fin del filtro (YYYY-MM-DD)"),
+    db: Session = Depends(get_db)
+):
     """
     Genera y descarga el historial clínico en PDF de una mascota específica conectando a BD.
+    Acepta parámetros opcionales fecha_inicio y fecha_fin para filtrar por rango de fechas.
     """
     try:
+        # Validar rango de fechas
+        if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
+            raise HTTPException(
+                status_code=400,
+                detail="La fecha de inicio no puede ser posterior a la fecha de fin."
+            )
+
         # 1. Obtener información de la mascota
         mascota_db = db.query(Mascota, Raza, Cliente).select_from(Mascota) \
             .outerjoin(Raza, Mascota.id_raza == Raza.id_raza) \
@@ -131,14 +144,23 @@ async def descargar_historial_clinico_pdf(mascota_id: int, db: Session = Depends
             "cliente": str(f"{c_obj.nombre} {c_obj.apellido_paterno}" if c_obj else "Sin asignar")
         }
 
-        # 2. Obtener Historial
-        registros_db = db.query(HistorialClinico, Consulta, Diagnostico, Veterinario, Usuario).select_from(HistorialClinico) \
+        # 2. Obtener Historial con filtros de fecha opcionales
+        inicio_dt = datetime.combine(fecha_inicio, time.min) if fecha_inicio else None
+        fin_dt = datetime.combine(fecha_fin, time(23, 59, 59)) if fecha_fin else None
+
+        historial_query = db.query(HistorialClinico, Consulta, Diagnostico, Veterinario, Usuario).select_from(HistorialClinico) \
             .outerjoin(Consulta, HistorialClinico.id_consulta == Consulta.id_consulta) \
             .outerjoin(Diagnostico, HistorialClinico.id_diagnostico == Diagnostico.id_diagnostico) \
             .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
             .outerjoin(Usuario, Veterinario.id_usuario == Usuario.id_usuario) \
-            .filter(HistorialClinico.id_mascota == mascota_id) \
-            .order_by(HistorialClinico.fecha_evento.desc()).all()
+            .filter(HistorialClinico.id_mascota == mascota_id)
+
+        if inicio_dt:
+            historial_query = historial_query.filter(HistorialClinico.fecha_evento >= inicio_dt)
+        if fin_dt:
+            historial_query = historial_query.filter(HistorialClinico.fecha_evento <= fin_dt)
+
+        registros_db = historial_query.order_by(HistorialClinico.fecha_evento.desc()).all()
             
         historial_data = []
         for reg in registros_db:

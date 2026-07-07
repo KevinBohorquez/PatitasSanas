@@ -16,6 +16,8 @@ def send_reminder_email(
     mascota_nombre: str,
     fecha_hora: datetime,
     horas_antes: int,
+    veterinario_nombre: str | None = None,
+    servicio_nombre: str | None = None,
 ) -> bool:
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
@@ -40,6 +42,8 @@ def send_reminder_email(
         fecha_formateada=fecha_formateada,
         hora_formateada=hora_formateada,
         horas_antes=horas_antes,
+        veterinario_nombre=veterinario_nombre,
+        servicio_nombre=servicio_nombre,
     )
 
     try:

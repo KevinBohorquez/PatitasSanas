@@ -12,7 +12,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "chart.js": "^4.5.1",
     "react": "^19.1.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "recharts": "^2.15.4"

@@ -4,8 +4,38 @@ def build_reminder_html(
     fecha_formateada: str,
     hora_formateada: str,
     horas_antes: int,
+    veterinario_nombre: str | None = None,
+    servicio_nombre: str | None = None,
 ) -> str:
     alerta = "Tienes una cita en menos de 4 horas." if horas_antes <= 4 else f"Tienes una cita programada para mañana."
+
+    filas_extra = ""
+    if servicio_nombre:
+        filas_extra += f"""
+                <tr>
+                  <td style="padding:12px 16px;font-size:12px;color:#888888;
+                             text-transform:uppercase;letter-spacing:0.6px;
+                             border-bottom:1px solid #e8e8e8;">
+                    Servicio
+                  </td>
+                  <td style="padding:12px 16px;font-size:14px;color:#222222;
+                             border-bottom:1px solid #e8e8e8;">
+                    {servicio_nombre}
+                  </td>
+                </tr>"""
+    if veterinario_nombre:
+        filas_extra += f"""
+                <tr style="background:#f9f9f9;">
+                  <td style="padding:12px 16px;font-size:12px;color:#888888;
+                             text-transform:uppercase;letter-spacing:0.6px;
+                             border-bottom:1px solid #e8e8e8;">
+                    Veterinario
+                  </td>
+                  <td style="padding:12px 16px;font-size:14px;color:#222222;
+                             border-bottom:1px solid #e8e8e8;">
+                    {veterinario_nombre}
+                  </td>
+                </tr>"""
 
     return f"""<!DOCTYPE html>
 <html lang="es">
@@ -75,13 +105,15 @@ def build_reminder_html(
                 </tr>
                 <tr style="background:#f9f9f9;">
                   <td style="padding:12px 16px;font-size:12px;color:#888888;
-                             text-transform:uppercase;letter-spacing:0.6px;">
+                             text-transform:uppercase;letter-spacing:0.6px;
+                             {'border-bottom:1px solid #e8e8e8;' if filas_extra else ''}">
                     Hora
                   </td>
-                  <td style="padding:12px 16px;font-size:14px;color:#222222;">
+                  <td style="padding:12px 16px;font-size:14px;color:#222222;
+                             {'border-bottom:1px solid #e8e8e8;' if filas_extra else ''}">
                     {hora_formateada}
                   </td>
-                </tr>
+                </tr>{filas_extra}
               </table>
             </td>
           </tr>

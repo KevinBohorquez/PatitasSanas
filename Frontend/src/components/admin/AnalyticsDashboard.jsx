@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 import '../../styles/AnalyticsDashboard.css';
+import ServicesBarChart from './ServicesBarChart';
+import SpeciesPieChart from '../common/SpeciesPieChart';
+import KPICards from '../common/KPICards';
 import Loader from '../common/Loader/Loader';
+
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const API_BASE = '/api/v1';
 
 const PIE_COLORS_GENERO = ['#4f86c6', '#e67e22'];
-const PIE_COLORS_SEXO   = ['#27ae60', '#e74c3c'];
-const BAR_COLORS        = ['#4f86c6', '#27ae60', '#e67e22', '#e74c3c', '#9b59b6'];
+const PIE_COLORS_SEXO = ['#27ae60', '#e74c3c'];
+const BAR_COLORS = ['#4f86c6', '#27ae60', '#e67e22', '#e74c3c', '#9b59b6'];
 
 // ── Gráfico: condición de consultas ───────────────────────────────────────────
 const ConsultasCondicionChart = ({ data }) => {
   const chartData = [
     { name: 'Excelente', value: data.excelente },
-    { name: 'Buena',     value: data.buena },
-    { name: 'Regular',   value: data.regular },
-    { name: 'Mala',      value: data.mala },
-    { name: 'Crítica',   value: data.critica },
+    { name: 'Buena', value: data.buena },
+    { name: 'Regular', value: data.regular },
+    { name: 'Mala', value: data.mala },
+    { name: 'Crítica', value: data.critica },
   ];
   return (
     <div className="analytics-card">
@@ -45,7 +51,7 @@ const ConsultasCondicionChart = ({ data }) => {
 const ClientesGeneroChart = ({ data }) => {
   const chartData = [
     { name: 'Masculino', value: data.estadisticas.M },
-    { name: 'Femenino',  value: data.estadisticas.F },
+    { name: 'Femenino', value: data.estadisticas.F },
   ];
   return (
     <div className="analytics-card">
@@ -76,7 +82,7 @@ const ClientesGeneroChart = ({ data }) => {
 // ── Gráfico: mascotas por sexo ────────────────────────────────────────────────
 const MascotasSexoChart = ({ data }) => {
   const chartData = [
-    { name: 'Machos',  value: data.estadisticas_por_sexo.machos },
+    { name: 'Machos', value: data.estadisticas_por_sexo.machos },
     { name: 'Hembras', value: data.estadisticas_por_sexo.hembras },
   ];
   return (
@@ -162,31 +168,60 @@ const RazasChart = ({ data }) => {
 // ── Componente contenedor principal ───────────────────────────────────────────
 const AnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
-  const [data, setData]       = useState({
-    consultas:     null,
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    consultas: null,
     clientesGenero: null,
-    mascotasSexo:  null,
-    razas:         null,
+    mascotasSexo: null,
+    razas: null,
   });
+
+  const [kpiData, setKpiData] = useState({
+    totalCitas: 0,
+    tasaAsistencia: 0,
+    ingresosEstimados: 0,
+    citasPorEstado: { Pendiente: 0, Atendida: 0, Cancelada: 0 }
+  });
+
+  const printRef = useRef();
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [consultasRes, clientesRes, mascotasRes, razasRes] = await Promise.all([
+      const [
+        consultasRes,
+        clientesRes,
+        mascotasRes,
+        razasRes,
+        tasaAsistenciaRes,
+        statsGeneralesRes
+      ] = await Promise.all([
         fetch(`${API_BASE}/consultas/estadisticas/resumen`),
         fetch(`${API_BASE}/clientes/stats/genero`),
         fetch(`${API_BASE}/mascotas/stats/por-sexo`),
         fetch(`${API_BASE}/catalogos/razas/estadisticas/mascotas`),
+        fetch(`${API_BASE}/dashboard/tasa-asistencia`),
+        fetch(`${API_BASE}/dashboard/stats-generales`)
       ]);
 
       setData({
-        consultas:      consultasRes.ok  ? await consultasRes.json()  : null,
-        clientesGenero: clientesRes.ok   ? await clientesRes.json()   : null,
-        mascotasSexo:   mascotasRes.ok   ? await mascotasRes.json()   : null,
-        razas:          razasRes.ok      ? await razasRes.json()      : null,
+        consultas: consultasRes.ok ? await consultasRes.json() : null,
+        clientesGenero: clientesRes.ok ? await clientesRes.json() : null,
+        mascotasSexo: mascotasRes.ok ? await mascotasRes.json() : null,
+        razas: razasRes.ok ? await razasRes.json() : null,
       });
+
+      const tasaData = tasaAsistenciaRes.ok ? await tasaAsistenciaRes.json() : null;
+      const statsData = statsGeneralesRes.ok ? await statsGeneralesRes.json() : null;
+
+      setKpiData({
+        totalCitas: statsData?.total_citas ?? 0,
+        tasaAsistencia: tasaData?.tasa_asistencia ?? 0,
+        ingresosEstimados: statsData?.ingresos_estimados ?? 0,
+        citasPorEstado: statsData?.citas_por_estado ?? { Pendiente: 0, Atendida: 0, Cancelada: 0 }
+      });
+
     } catch {
       setError('No se pudieron cargar los datos. Verifica la conexión con el servidor.');
     } finally {
@@ -195,6 +230,31 @@ const AnalyticsDashboard = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const exportarPDF = async () => {
+    const element = printRef.current;
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Dashboard_PatitasSanas_${new Date().toLocaleDateString()}.pdf`);
+
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -215,60 +275,93 @@ const AnalyticsDashboard = () => {
   }
 
   const totalConsultas = data.consultas?.periodo?.total_consultas ?? 0;
-  const totalClientes  = data.clientesGenero?.estadisticas?.total ?? 0;
-  const totalMascotas  = data.mascotasSexo?.total ?? 0;
+  const totalClientes = data.clientesGenero?.estadisticas?.total ?? 0;
+  const totalMascotas = data.mascotasSexo?.total ?? 0;
+
+  const kpisToRender = [
+    { title: "Total Citas", value: kpiData.totalCitas, icon: "calendar" },
+    { title: "Tasa de Asistencia", value: `${typeof kpiData.tasaAsistencia === 'number' ? kpiData.tasaAsistencia.toFixed(1) : kpiData.tasaAsistencia}%`, icon: "check-circle" },
+    { title: "Ingresos Estimados", value: `S/ ${typeof kpiData.ingresosEstimados === 'number' ? kpiData.ingresosEstimados.toFixed(2) : kpiData.ingresosEstimados}`, icon: "dollar-sign" },
+    {
+      title: "Estado de Citas",
+      value: `Atendidas: ${kpiData.citasPorEstado.Atendida || kpiData.citasPorEstado.Atendido || 0}`,
+      icon: "activity"
+    }
+  ];
 
   return (
     <div className="analytics-dashboard">
-      <div className="analytics-header">
-        <h2 className="analytics-title">Analíticas y Estadísticas</h2>
-        <button className="analytics-refresh" onClick={fetchData} title="Actualizar datos">
-          🔄 Actualizar
-        </button>
-      </div>
-
-      {/* Tarjetas resumen */}
-      <div className="analytics-summary">
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">🏥</span>
-          <div>
-            <p className="analytics-summary-label">Total Consultas</p>
-            <p className="analytics-summary-value">{totalConsultas}</p>
-          </div>
-        </div>
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">👥</span>
-          <div>
-            <p className="analytics-summary-label">Total Clientes</p>
-            <p className="analytics-summary-value">{totalClientes}</p>
-          </div>
-        </div>
-        <div className="analytics-summary-card">
-          <span className="analytics-summary-icon">🐾</span>
-          <div>
-            <p className="analytics-summary-label">Total Mascotas</p>
-            <p className="analytics-summary-value">{totalMascotas}</p>
-          </div>
+      <div className="analytics-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 className="analytics-title" style={{ margin: 0 }}>Analíticas y Estadísticas</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="analytics-refresh"
+            onClick={exportarPDF}
+            title="Descargar reporte en PDF"
+            style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            📄 Exportar PDF
+          </button>
+          <button
+            className="analytics-refresh"
+            onClick={fetchData}
+            title="Actualizar datos"
+            style={{ backgroundColor: '#4f86c6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            🔄 Actualizar
+          </button>
         </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="analytics-grid">
-        {data.consultas && (
-          <ConsultasCondicionChart data={data.consultas.estadisticas_condicion} />
-        )}
-        {data.clientesGenero && (
-          <ClientesGeneroChart data={data.clientesGenero} />
-        )}
-        {data.mascotasSexo && (
-          <MascotasSexoChart data={data.mascotasSexo} />
-        )}
-        {data.consultas?.diagnosticos_frecuentes?.length > 0 && (
-          <DiagnosticosChart data={data.consultas.diagnosticos_frecuentes} />
-        )}
-        {data.razas && (
-          <RazasChart data={data.razas} />
-        )}
+      <div ref={printRef} style={{ padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+
+        <div style={{ marginBottom: '20px' }}>
+          <KPICards kpis={kpisToRender} />
+        </div>
+
+        <div className="analytics-summary">
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">🏥</span>
+            <div>
+              <p className="analytics-summary-label">Total Consultas</p>
+              <p className="analytics-summary-value">{totalConsultas}</p>
+            </div>
+          </div>
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">👥</span>
+            <div>
+              <p className="analytics-summary-label">Total Clientes</p>
+              <p className="analytics-summary-value">{totalClientes}</p>
+            </div>
+          </div>
+          <div className="analytics-summary-card">
+            <span className="analytics-summary-icon">🐾</span>
+            <div>
+              <p className="analytics-summary-label">Total Mascotas</p>
+              <p className="analytics-summary-value">{totalMascotas}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="analytics-grid">
+          {data.consultas && (
+            <ConsultasCondicionChart data={data.consultas.estadisticas_condicion} />
+          )}
+          {data.clientesGenero && (
+            <ClientesGeneroChart data={data.clientesGenero} />
+          )}
+          {data.mascotasSexo && (
+            <MascotasSexoChart data={data.mascotasSexo} />
+          )}
+          {data.consultas?.diagnosticos_frecuentes?.length > 0 && (
+            <DiagnosticosChart data={data.consultas.diagnosticos_frecuentes} />
+          )}
+          {data.razas && (
+            <RazasChart data={data.razas} />
+          )}
+          <ServicesBarChart />
+          <SpeciesPieChart />
+        </div>
       </div>
     </div>
   );
