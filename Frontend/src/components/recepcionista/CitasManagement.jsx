@@ -425,7 +425,8 @@ const CitasManagement = () => {
         fecha_hora_programada: formData.fecha_hora_programada,
         estado_cita: 'Programada',
         requiere_ayuno: formData.requiere_ayuno,
-        observaciones: formData.observaciones || ''
+        // La BD exige observaciones NULL o con >= 3 caracteres; enviar null si está vacío
+        observaciones: formData.observaciones?.trim() || null
       };
 
       // Agregar veterinario si fue seleccionado
