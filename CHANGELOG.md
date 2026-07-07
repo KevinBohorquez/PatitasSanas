@@ -2,6 +2,16 @@ Markdown
 # Changelog (Registro de Cambios)
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [v1.4.7] - 2026-07-07
+### Añadido (Added) — SC-013
+- **SCI-FE-008** – Selector de veterinario disponible en el formulario de registro de citas (`CitasManagement`).
+  - Consume el endpoint existente `GET /api/v1/veterinarios/disponibles` al abrir el modal.
+  - La selección de veterinario es opcional; si no se elige, la cita queda "Sin asignar".
+  - El selector muestra nombre, tipo y turno de cada veterinario con disposición "Libre".
+- **SCI-FE-008** – Columna "VETERINARIO" añadida a la tabla de citas con badge visual:
+  - Verde si hay veterinario asignado.
+  - Gris itálico si la cita no tiene veterinario asignado.
+
 ## [v.1.3.0] - 2026-06-15
 ### Añadido (Added)
 - Integracion de insights clave en el dashboard del administrados.

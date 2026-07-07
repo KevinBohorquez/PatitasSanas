@@ -11,7 +11,9 @@ const CitasManagement = () => {
   const [citas, setCitas] = useState([]);
   const [filteredCitas, setFilteredCitas] = useState([]);
   const [mascotas, setMascotas] = useState([]);
+  const [veterinariosDisponibles, setVeterinariosDisponibles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingVeterinarios, setLoadingVeterinarios] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMascota, setSelectedMascota] = useState(null);
   const [serviciosSolicitados, setServiciosSolicitados] = useState([]);
@@ -26,6 +28,7 @@ const CitasManagement = () => {
   const [formData, setFormData] = useState({
     id_mascota: '',
     id_servicio_solicitado: '',
+    id_veterinario: '',
     fecha_hora_programada: '',
     requiere_ayuno: false,
     observaciones: ''
@@ -80,8 +83,8 @@ const CitasManagement = () => {
         const citasConDetalles = await Promise.all(
           data.map(async (cita) => {
             try {
-              // Obtener información de mascota y servicio
-              const [mascotaResponse, servicioResponse] = await Promise.all([
+              // Obtener información de mascota, servicio y veterinario
+              const requests = [
                 fetch(`${BASE_URL}/mascotas/${cita.id_mascota}`, {
                   method: 'GET',
                   mode: 'cors',
@@ -91,11 +94,25 @@ const CitasManagement = () => {
                   method: 'GET',
                   mode: 'cors',
                   headers: { 'Accept': 'application/json' },
-                })
-              ]);
+                }),
+              ];
+
+              // Obtener veterinario solo si está asignado
+              if (cita.id_veterinario) {
+                requests.push(
+                  fetch(`${BASE_URL}/veterinarios/${cita.id_veterinario}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 'Accept': 'application/json' },
+                  })
+                );
+              }
+
+              const [mascotaResponse, servicioResponse, veterinarioResponse] = await Promise.all(requests);
 
               let nombreMascota = 'Desconocida';
               let nombreServicio = 'Sin servicio';
+              let nombreVeterinario = 'Sin asignar';
 
               if (mascotaResponse.ok) {
                 const mascotaData = await mascotaResponse.json();
@@ -107,10 +124,16 @@ const CitasManagement = () => {
                 nombreServicio = servicioData.nombre_servicio || 'Sin servicio';
               }
 
+              if (veterinarioResponse && veterinarioResponse.ok) {
+                const vetData = await veterinarioResponse.json();
+                nombreVeterinario = `${vetData.nombre || ''} ${vetData.apellido_paterno || ''}`.trim() || 'Sin asignar';
+              }
+
               return {
                 ...cita,
                 nombre_mascota: nombreMascota,
                 nombre_servicio: nombreServicio,
+                nombre_veterinario: nombreVeterinario,
                 fecha_formateada: new Date(cita.fecha_hora_programada).toLocaleDateString('es-ES'),
                 hora_formateada: new Date(cita.fecha_hora_programada).toLocaleTimeString('es-ES', { 
                   hour: '2-digit', 
@@ -123,6 +146,7 @@ const CitasManagement = () => {
                 ...cita,
                 nombre_mascota: 'Error',
                 nombre_servicio: 'Error',
+                nombre_veterinario: 'Error',
                 fecha_formateada: 'N/A',
                 hora_formateada: 'N/A'
               };
@@ -253,10 +277,35 @@ const CitasManagement = () => {
     }
   };
 
+  const fetchVeterinariosDisponibles = async () => {
+    setLoadingVeterinarios(true);
+    try {
+      const response = await fetch(`${BASE_URL}/veterinarios/disponibles`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVeterinariosDisponibles(data.veterinarios_disponibles || []);
+      } else {
+        console.error('Error al cargar veterinarios disponibles:', response.statusText);
+        setVeterinariosDisponibles([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar veterinarios disponibles:', error);
+      setVeterinariosDisponibles([]);
+    } finally {
+      setLoadingVeterinarios(false);
+    }
+  };
+
   const handleAdd = () => {
     setFormData({
       id_mascota: '',
       id_servicio_solicitado: '',
+      id_veterinario: '',
       fecha_hora_programada: '',
       requiere_ayuno: false,
       observaciones: ''
@@ -264,6 +313,7 @@ const CitasManagement = () => {
     setSelectedMascota(null);
     setServiciosSolicitados([]);
     setValidationErrors({});
+    fetchVeterinariosDisponibles();
     setShowModal(true);
   };
 
@@ -378,6 +428,11 @@ const CitasManagement = () => {
         observaciones: formData.observaciones || ''
       };
 
+      // Agregar veterinario si fue seleccionado
+      if (formData.id_veterinario) {
+        citaData.id_veterinario = parseInt(formData.id_veterinario);
+      }
+
       const response = await fetch(`${BASE_URL}/consultas/cita`, {
         method: 'POST',
         mode: 'cors',
@@ -448,6 +503,19 @@ const CitasManagement = () => {
     { key: 'id_cita', header: 'N°' },
     { key: 'nombre_mascota', header: 'MASCOTA' },
     { key: 'nombre_servicio', header: 'SERVICIO' },
+    {
+      key: 'nombre_veterinario',
+      header: 'VETERINARIO',
+      render: (cita) => (
+        <span className={`vet-badge ${
+          cita.nombre_veterinario && cita.nombre_veterinario !== 'Sin asignar'
+            ? 'vet-badge--asignado'
+            : 'vet-badge--sin-asignar'
+        }`}>
+          {cita.nombre_veterinario || 'Sin asignar'}
+        </span>
+      )
+    },
     { key: 'fecha_formateada', header: 'FECHA' },
     { key: 'hora_formateada', header: 'HORA' },
     { 
@@ -613,6 +681,34 @@ const CitasManagement = () => {
                 />
                 {validationErrors.fecha_hora_programada && (
                   <span className="error-message">{validationErrors.fecha_hora_programada}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Selector de Veterinario */}
+            <div className="form-row">
+              <div className="form-group full-width">
+                <label>VETERINARIO ASIGNADO</label>
+                <select
+                  id="select-veterinario"
+                  value={formData.id_veterinario}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    id_veterinario: e.target.value
+                  }))}
+                  disabled={loadingVeterinarios}
+                >
+                  <option value="">
+                    {loadingVeterinarios ? 'Cargando veterinarios...' : 'Sin asignar (opcional)'}
+                  </option>
+                  {veterinariosDisponibles.map(vet => (
+                    <option key={vet.id_veterinario} value={vet.id_veterinario}>
+                      {`${vet.nombre} ${vet.apellido_paterno}`} — {vet.tipo_veterinario} · Turno {vet.turno}
+                    </option>
+                  ))}
+                </select>
+                {veterinariosDisponibles.length === 0 && !loadingVeterinarios && (
+                  <span className="vet-info-msg">No hay veterinarios con disposición "Libre" en este momento.</span>
                 )}
               </div>
             </div>
