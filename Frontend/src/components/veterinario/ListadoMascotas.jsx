@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ListadoMascotas.css';
 import HistorialClinicoModal from './HistorialClinico'; // Este archivo puede reutilizarse como base para mostrar información del historial
+import Loader from '../common/Loader/Loader';
 
 const ListadoMascotas = () => {
   const [mascotas, setMascotas] = useState([]);
@@ -130,7 +131,7 @@ const ListadoMascotas = () => {
   }));
 
   if (loading) {
-    return <p>Cargando mascotas...</p>;
+    return <Loader message="Cargando mascotas" />;
   }
 
   if (error) {

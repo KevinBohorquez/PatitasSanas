@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -68,23 +70,23 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
 
     // Validaciones básicas
     if (!formData.idVeterinario) {
-      alert('Debe seleccionar un veterinario');
+      toast.warning('Debe seleccionar un veterinario');
       return;
     }
 
     if (!formData.idServicio) {
-      alert('Debe seleccionar un servicio');
+      toast.warning('Debe seleccionar un servicio');
       return;
     }
 
     if (!formData.fechaHoraProgramada) {
-      alert('Debe seleccionar una fecha y hora programada');
+      toast.warning('Debe seleccionar una fecha y hora programada');
       return;
     }
 
     // Validar que consultaId existe y es válido
     if (!consultaId) {
-      alert('Error: No se ha proporcionado un ID de consulta válido');
+      toast.error('Error: No se ha proporcionado un ID de consulta válido');
       return;
     }
 
@@ -125,18 +127,18 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
       const result = await response.json();
       console.log('Servicio solicitado y cita creados correctamente:', result);
       
-      alert('Servicio creado correctamente');
+      toast.success('Servicio creado correctamente');
       onSave();
     } catch (error) {
       console.error('Error al crear servicio:', error);
-      alert(`Error al crear el servicio: ${error.message}`);
+      toast.error(`Error al crear el servicio: ${error.message}`);
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <p>Cargando datos del servicio...</p>;
+    return <Loader message="Cargando datos del servicio" />;
   }
 
   if (error) {

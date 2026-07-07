@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ServicesManagement.css';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const ServicesManagement = () => {
   const [servicios, setServicios] = useState([]);
@@ -278,16 +281,16 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 
     const result = await deleteServicio(service.id_servicio);
     if (result.success) {
-      alert('Servicio eliminado exitosamente');
+      toast.success('Servicio eliminado exitosamente');
       fetchServicios(); // Recargar lista
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
   };
 
@@ -298,17 +301,17 @@ const ServicesManagement = () => {
     try {
       // Validaciones básicas
       if (!formData.nombre_servicio.trim()) {
-        alert('El nombre del servicio es obligatorio');
+        toast.warning('El nombre del servicio es obligatorio');
         return;
       }
 
       if (!formData.precio || parseFloat(formData.precio) <= 0) {
-        alert('El precio debe ser mayor a 0');
+        toast.warning('El precio debe ser mayor a 0');
         return;
       }
 
       if (!formData.id_tipo_servicio) {
-        alert('Debe seleccionar un tipo de servicio');
+        toast.warning('Debe seleccionar un tipo de servicio');
         return;
       }
 
@@ -330,13 +333,13 @@ const ServicesManagement = () => {
       if (result.success) {
         setShowModal(false);
         fetchServicios(); // Recargar lista
-        alert(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
       } else {
-        alert(`Error: ${result.message}`);
+        toast.error(`Error: ${result.message}`);
       }
     } catch (error) {
       console.error('Error en submit:', error);
-      alert('Error al guardar servicio');
+      toast.error('Error al guardar servicio');
     } finally {
       setLoading(false);
     }
@@ -463,9 +466,7 @@ const ServicesManagement = () => {
       </div>
 
       {loading && (
-        <div className="loading-container">
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
       {error && (
@@ -888,16 +889,16 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 
     const result = await deleteServicio(service.id_servicio);
     if (result.success) {
-      alert('Servicio eliminado exitosamente');
+      toast.success('Servicio eliminado exitosamente');
       fetchServicios(); // Recargar lista
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
   };
 
@@ -908,17 +909,17 @@ const ServicesManagement = () => {
     try {
       // Validaciones básicas
       if (!formData.nombre_servicio.trim()) {
-        alert('El nombre del servicio es obligatorio');
+        toast.warning('El nombre del servicio es obligatorio');
         return;
       }
 
       if (!formData.precio || parseFloat(formData.precio) <= 0) {
-        alert('El precio debe ser mayor a 0');
+        toast.warning('El precio debe ser mayor a 0');
         return;
       }
 
       if (!formData.id_tipo_servicio) {
-        alert('Debe seleccionar un tipo de servicio');
+        toast.warning('Debe seleccionar un tipo de servicio');
         return;
       }
 
@@ -940,13 +941,13 @@ const ServicesManagement = () => {
       if (result.success) {
         setShowModal(false);
         fetchServicios(); // Recargar lista
-        alert(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
       } else {
-        alert(`Error: ${result.message}`);
+        toast.error(`Error: ${result.message}`);
       }
     } catch (error) {
       console.error('Error en submit:', error);
-      alert('Error al guardar servicio');
+      toast.error('Error al guardar servicio');
     } finally {
       setLoading(false);
     }
@@ -1219,9 +1220,7 @@ const ServicesManagement = () => {
 
 
       {loading && (
-        <div style={styles.loadingIndicator}>
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
     
@@ -1575,16 +1574,16 @@ const ServicesManagement = () => {
   }, [selectedTipoFilter, searchTerm]);
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar el servicio "${service.nombre_servicio}"?` }))) {
       return;
     }
 
     const result = await deleteServicio(service.id_servicio);
     if (result.success) {
-      alert('Servicio eliminado exitosamente');
+      toast.success('Servicio eliminado exitosamente');
       fetchServicios(); // Recargar lista
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
   };
 
@@ -1595,17 +1594,17 @@ const ServicesManagement = () => {
     try {
       // Validaciones básicas
       if (!formData.nombre_servicio.trim()) {
-        alert('El nombre del servicio es obligatorio');
+        toast.warning('El nombre del servicio es obligatorio');
         return;
       }
 
       if (!formData.precio || parseFloat(formData.precio) <= 0) {
-        alert('El precio debe ser mayor a 0');
+        toast.warning('El precio debe ser mayor a 0');
         return;
       }
 
       if (!formData.id_tipo_servicio) {
-        alert('Debe seleccionar un tipo de servicio');
+        toast.warning('Debe seleccionar un tipo de servicio');
         return;
       }
 
@@ -1627,13 +1626,13 @@ const ServicesManagement = () => {
       if (result.success) {
         setShowModal(false);
         fetchServicios(); // Recargar lista
-        alert(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Servicio creado exitosamente' : 'Servicio actualizado exitosamente');
       } else {
-        alert(`Error: ${result.message}`);
+        toast.error(`Error: ${result.message}`);
       }
     } catch (error) {
       console.error('Error en submit:', error);
-      alert('Error al guardar servicio');
+      toast.error('Error al guardar servicio');
     } finally {
       setLoading(false);
     }
@@ -1904,9 +1903,7 @@ const ServicesManagement = () => {
 
     
       {loading && (
-        <div style={styles.loadingIndicator}>
-          Cargando servicios...
-        </div>
+        <Loader message="Cargando servicios" />
       )}
 
     

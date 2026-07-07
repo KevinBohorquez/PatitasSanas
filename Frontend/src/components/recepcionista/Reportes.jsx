@@ -1,6 +1,7 @@
 // components/recepcionista/Reportes.jsx
 import React, { useState, useEffect } from 'react';
 import './Reportes.css';
+import Loader from '../common/Loader/Loader';
 
 const Reportes = () => {
   const [loading, setLoading] = useState(true);
@@ -318,7 +319,7 @@ const Reportes = () => {
         </div>
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Cargando reportes estadísticos...</p>
+          <Loader message="Cargando reportes estadísticos" />
         </div>
       </div>
     );

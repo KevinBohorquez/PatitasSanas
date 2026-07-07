@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Cargando...</div>
+        <Loader message="Cargando" />
       </div>
     );
   }
@@ -75,6 +75,7 @@ export default ProtectedRoute;
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Loader from './Loader/Loader';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -83,7 +84,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Cargando...</div>
+        <Loader message="Cargando" />
       </div>
     );
   }

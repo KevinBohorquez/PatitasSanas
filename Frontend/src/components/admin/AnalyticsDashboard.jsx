@@ -7,6 +7,7 @@ import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
 import SpeciesPieChart from '../common/SpeciesPieChart';
 import KPICards from '../common/KPICards';
+import Loader from '../common/Loader/Loader';
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -259,7 +260,7 @@ const AnalyticsDashboard = () => {
     return (
       <div className="analytics-state">
         <div className="analytics-spinner" />
-        <p>Cargando analíticas…</p>
+        <Loader message="Cargando analíticas" />
       </div>
     );
   }

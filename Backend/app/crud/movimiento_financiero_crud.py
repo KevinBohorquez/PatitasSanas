@@ -38,15 +38,40 @@ class CRUDMovimientoFinanciero(CRUDBase[MovimientoFinanciero, MovimientoFinancie
             .order_by(desc(MovimientoFinanciero.fecha_movimiento))\
             .limit(limit).all()
 
-    def get_resumen(self, db: Session) -> Dict[str, Any]:
-        total_ingresos = db.query(func.coalesce(func.sum(MovimientoFinanciero.monto), 0))\
-            .filter(MovimientoFinanciero.tipo == 'Ingreso').scalar()
-        total_egresos = db.query(func.coalesce(func.sum(MovimientoFinanciero.monto), 0))\
-            .filter(MovimientoFinanciero.tipo == 'Egreso').scalar()
+    def get_resumen(
+        self, db: Session,
+        fecha_desde: Optional[date] = None,
+        fecha_hasta: Optional[date] = None
+    ) -> Dict[str, Any]:
+        query = db.query(MovimientoFinanciero)
+        if fecha_desde:
+            query = query.filter(func.date(MovimientoFinanciero.fecha_movimiento) >= fecha_desde)
+        if fecha_hasta:
+            query = query.filter(func.date(MovimientoFinanciero.fecha_movimiento) <= fecha_hasta)
+
+        total_ingresos = float(query.filter(MovimientoFinanciero.tipo == 'Ingreso')
+                              .with_entities(func.coalesce(func.sum(MovimientoFinanciero.monto), 0)).scalar())
+        total_egresos = float(query.filter(MovimientoFinanciero.tipo == 'Egreso')
+                             .with_entities(func.coalesce(func.sum(MovimientoFinanciero.monto), 0)).scalar())
+
+        desglose_ingresos = {}
+        for row in (query.filter(MovimientoFinanciero.tipo == 'Ingreso')
+                    .with_entities(MovimientoFinanciero.categoria, func.sum(MovimientoFinanciero.monto))
+                    .group_by(MovimientoFinanciero.categoria).all()):
+            desglose_ingresos[row[0]] = float(row[1])
+
+        desglose_egresos = {}
+        for row in (query.filter(MovimientoFinanciero.tipo == 'Egreso')
+                    .with_entities(MovimientoFinanciero.categoria, func.sum(MovimientoFinanciero.monto))
+                    .group_by(MovimientoFinanciero.categoria).all()):
+            desglose_egresos[row[0]] = float(row[1])
+
         return {
-            "total_ingresos": float(total_ingresos),
-            "total_egresos": float(total_egresos),
-            "saldo_neto": float(total_ingresos) - float(total_egresos)
+            "total_ingresos": total_ingresos,
+            "total_egresos": total_egresos,
+            "saldo_neto": total_ingresos - total_egresos,
+            "desglose_ingresos": desglose_ingresos,
+            "desglose_egresos": desglose_egresos
         }
 
 

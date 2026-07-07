@@ -3,6 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './SolicitudesManagement.css';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const SolicitudesManagement = () => {
   const { user } = useAuth();
@@ -252,11 +255,11 @@ const SolicitudesManagement = () => {
         setSolicitudes(solicitudesConNombres);
       } else {
         console.error('Error al cargar solicitudes:', response.statusText);
-        alert('Error al cargar las solicitudes');
+        toast.error('Error al cargar las solicitudes');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al cargar solicitudes');
+      toast.error('Error de conexión al cargar solicitudes');
     } finally {
       setLoading(false);
     }
@@ -328,11 +331,11 @@ const SolicitudesManagement = () => {
   // Función para eliminar solicitud
   const handleDelete = async (solicitud) => {
     if (solicitud.estado !== 'Pendiente') {
-      alert('Solo se pueden eliminar solicitudes en estado "Pendiente"');
+      toast.info('Solo se pueden eliminar solicitudes en estado "Pendiente"');
       return;
     }
 
-    if (window.confirm(`¿Está seguro de eliminar la solicitud de ${solicitud.nombre_mascota}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar la solicitud de ${solicitud.nombre_mascota}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}`, {
@@ -344,15 +347,15 @@ const SolicitudesManagement = () => {
         });
 
         if (response.ok) {
-          alert('Solicitud eliminada exitosamente');
+          toast.success('Solicitud eliminada exitosamente');
           fetchSolicitudes();
         } else {
           const errorData = await response.json();
-          alert(`Error: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión al eliminar solicitud');
+        toast.error('Error de conexión al eliminar solicitud');
       } finally {
         setLoading(false);
       }
@@ -386,7 +389,7 @@ const SolicitudesManagement = () => {
 
     // Validaciones básicas
     if (!formData.id_mascota || !formData.tipo_solicitud) {
-      alert('Por favor, complete todos los campos requeridos');
+      toast.warning('Por favor, complete todos los campos requeridos');
       setLoading(false);
       return;
     }
@@ -401,7 +404,7 @@ const SolicitudesManagement = () => {
     }
 
     if (!recepcionistaActual || !recepcionistaActual.id_recepcionista) {
-      alert('Error: No se pudo identificar al recepcionista actual. Verifique que su usuario esté correctamente configurado como recepcionista.');
+      toast.error('Error: No se pudo identificar al recepcionista actual. Verifique que su usuario esté correctamente configurado como recepcionista.');
       console.error('Error de recepcionista:', {
         user: user,
         recepcionistaInfo: recepcionistaActual
@@ -439,18 +442,18 @@ const SolicitudesManagement = () => {
       if (response.ok) {
         const responseData = await response.json();
         // console.log('Respuesta del servidor:', responseData);
-        alert('Solicitud agregada exitosamente');
+        toast.success('Solicitud agregada exitosamente');
         setShowModal(false);
         fetchSolicitudes(); 
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Error del servidor:', JSON.stringify(errorData, null, 2));
         console.error('Status de respuesta:', response.status);
-        alert(`Error: ${errorData.detail || errorData.message || 'Error desconocido al crear solicitud'}`);
+        toast.error(`Error: ${errorData.detail || errorData.message || 'Error desconocido al crear solicitud'}`);
       }
     } catch (error) {
       console.error('Error de conexión al guardar solicitud:', error);
-      alert('Error de conexión al guardar solicitud');
+      toast.error('Error de conexión al guardar solicitud');
     } finally {
       setLoading(false);
     }
@@ -543,9 +546,7 @@ const SolicitudesManagement = () => {
         )}
 
         {loading ? (
-          <div className="loading-container">
-            Cargando solicitudes...
-          </div>
+          <Loader message="Cargando solicitudes" />
         ) : (
           <Table 
             columns={columns}

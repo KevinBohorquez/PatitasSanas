@@ -1,0 +1,181 @@
+/* components/common/Toast/Toast.css
+   Sistema de notificaciones Toast — limpio, flotante y no intrusivo. */
+
+.toast-viewport {
+  position: fixed;
+  z-index: 99999;               /* por encima de modales */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 16px;
+  pointer-events: none;         /* el contenedor no bloquea clics */
+  box-sizing: border-box;
+}
+
+/* Posiciones */
+.toast-viewport--top-right    { top: 0; right: 0; align-items: flex-end; }
+.toast-viewport--bottom-right { bottom: 0; right: 0; align-items: flex-end; }
+.toast-viewport--top-left     { top: 0; left: 0; align-items: flex-start; }
+.toast-viewport--bottom-left  { bottom: 0; left: 0; align-items: flex-start; }
+.toast-viewport--top-center   { top: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+.toast-viewport--bottom-center{ bottom: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+
+/* Las posiciones "bottom" apilan desde abajo */
+.toast-viewport--bottom-right,
+.toast-viewport--bottom-left,
+.toast-viewport--bottom-center { flex-direction: column-reverse; }
+
+/* ---- Tarjeta del toast ---- */
+.toast {
+  --toast-accent: #2563eb;
+  --toast-icon-bg: #eff6ff;
+  --toast-tint: #f8fafc;
+
+  position: relative;
+  pointer-events: auto;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-left: 4px solid var(--toast-accent);
+  border-radius: 12px;
+  box-shadow:
+    0 6px 16px -4px rgba(15, 23, 42, 0.18),
+    0 2px 6px -2px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  font-family: inherit;
+}
+
+/* Paleta por tipo (psicología del color) */
+.toast--success { --toast-accent: #16a34a; --toast-icon-bg: #dcfce7; --toast-tint: #f2fdf5; }
+.toast--error   { --toast-accent: #dc2626; --toast-icon-bg: #fee2e2; --toast-tint: #fef4f4; }
+.toast--warning { --toast-accent: #d97706; --toast-icon-bg: #fef3c7; --toast-tint: #fffcf3; }
+.toast--info    { --toast-accent: #2563eb; --toast-icon-bg: #dbeafe; --toast-tint: #f5f9ff; }
+
+.toast { background: linear-gradient(180deg, var(--toast-tint), #ffffff 60%); }
+
+/* Ícono: mascota de PatitasSanas (imagen .webp con su propio círculo) */
+.toast__icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  margin-top: 1px;
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.12));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.toast__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.toast__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.toast__message {
+  margin: 3px 0 0;
+  font-size: 0.83rem;
+  line-height: 1.4;
+  color: #475569;
+  word-break: break-word;
+}
+
+.toast__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: -3px -3px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.toast__close:hover  { background: rgba(15, 23, 42, 0.06); color: #334155; }
+.toast__close:focus-visible {
+  outline: 2px solid var(--toast-accent);
+  outline-offset: 1px;
+}
+
+/* Barra de progreso (tiempo restante) */
+.toast__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--toast-accent);
+  opacity: 0.55;
+  transform-origin: left center;
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+/* Pausa la barra al pasar el mouse (junto con el temporizador en JS) */
+.toast:hover .toast__progress { animation-play-state: paused; }
+
+/* ---- Animaciones de entrada / salida ---- */
+.toast--entering { animation: toast-in 0.32s cubic-bezier(0.21, 1.02, 0.73, 1) both; }
+.toast--leaving  { animation: toast-out 0.28s cubic-bezier(0.55, 0, 0.75, 0.35) both; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(120%) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0)    scale(1); max-height: 200px; margin-bottom: 0; }
+  to   { opacity: 0; transform: translateX(120%) scale(0.98); }
+}
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* Las posiciones de la izquierda entran/salen desde la izquierda */
+.toast-viewport--top-left   .toast--entering,
+.toast-viewport--bottom-left .toast--entering { animation-name: toast-in-left; }
+.toast-viewport--top-left   .toast--leaving,
+.toast-viewport--bottom-left .toast--leaving  { animation-name: toast-out-left; }
+
+@keyframes toast-in-left {
+  from { opacity: 0; transform: translateX(-120%) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
+}
+@keyframes toast-out-left {
+  from { opacity: 1; transform: translateX(0)     scale(1); }
+  to   { opacity: 0; transform: translateX(-120%) scale(0.98); }
+}
+
+/* ---- Responsive: en móviles ocupa el ancho disponible ---- */
+@media (max-width: 480px) {
+  .toast-viewport {
+    width: 100%;
+    padding: 10px;
+  }
+  .toast-viewport--top-center,
+  .toast-viewport--bottom-center { transform: none; left: 0; align-items: stretch; }
+}
+
+/* ---- Accesibilidad: respeta reducción de movimiento ---- */
+@media (prefers-reduced-motion: reduce) {
+  .toast--entering,
+  .toast--leaving { animation-duration: 0.01ms; }
+  .toast__progress { display: none; }
+}

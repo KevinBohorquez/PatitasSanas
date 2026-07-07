@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './VetManagement.css';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const VetManagement = () => {
   const [veterinarios, setVeterinarios] = useState([]);
@@ -549,12 +552,12 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
     if (!vet.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -562,10 +565,10 @@ const VetManagement = () => {
     
     const result = await deactivateUser(vet.id_usuario);
     if (result.success) {
-      alert('Veterinario eliminado exitosamente (usuario desactivado)');
+      toast.success('Veterinario eliminado exitosamente (usuario desactivado)');
       fetchVeterinarios(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -637,9 +640,9 @@ const VetManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchVeterinarios(currentPage, selectedTurno, searchTerm);
-          alert('Veterinario creado exitosamente');
+          toast.success('Veterinario creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar veterinario existente
@@ -692,14 +695,14 @@ const VetManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchVeterinarios(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -854,7 +857,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );
@@ -1759,12 +1762,12 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
     if (!vet.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -1772,10 +1775,10 @@ const VetManagement = () => {
     
     const result = await deactivateUser(vet.id_usuario);
     if (result.success) {
-      alert('Veterinario eliminado exitosamente (usuario desactivado)');
+      toast.success('Veterinario eliminado exitosamente (usuario desactivado)');
       fetchVeterinarios(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -1817,9 +1820,9 @@ const VetManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchVeterinarios(currentPage, selectedTurno, searchTerm);
-          alert('Veterinario creado exitosamente');
+          toast.success('Veterinario creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar veterinario existente
@@ -1872,14 +1875,14 @@ const VetManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchVeterinarios(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -2087,7 +2090,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );
