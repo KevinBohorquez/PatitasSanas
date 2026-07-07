@@ -11,6 +11,7 @@ import ServicesManagement from '../components/admin/ServicesManagement';
 import ReportsManagement from '../components/admin/ReportsManagement';
 import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
 import FlujoCaja from '../components/admin/FlujoCaja';
+import BalanceFinanciero from '../components/admin/BalanceFinanciero';
 import '../styles/Dashboard.css';
 
 const AdminDashboard = () => {
@@ -35,7 +36,8 @@ const AdminDashboard = () => {
     { id: 'servicios', label: 'Servicios', icon: '🏥' },
     { id: 'reportes', label: 'Reportes', icon: '📄' },
     { id: 'analytics', label: 'Analíticas', icon: '📊' },
-    { id: 'flujocaja', label: 'Flujo de Caja', icon: '💰' }
+    { id: 'flujocaja', label: 'Flujo de Caja', icon: '💰' },
+    { id: 'balance', label: 'Balance Financiero', icon: '📈' }
   ];
 
   const renderContent = () => {
@@ -54,6 +56,8 @@ const AdminDashboard = () => {
         return <AnalyticsDashboard />;
       case 'flujocaja':
         return <FlujoCaja />;
+      case 'balance':
+        return <BalanceFinanciero />;
       default:
         return <Dashboard />;
     }

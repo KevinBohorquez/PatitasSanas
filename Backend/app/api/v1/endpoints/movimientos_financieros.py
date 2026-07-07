@@ -14,10 +14,12 @@ router = APIRouter()
 
 @router.get("/resumen")
 async def get_resumen_financiero(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    fecha_desde: Optional[date] = Query(None, description="Fecha desde (YYYY-MM-DD)"),
+    fecha_hasta: Optional[date] = Query(None, description="Fecha hasta (YYYY-MM-DD)")
 ):
     try:
-        resumen = movimiento_financiero.get_resumen(db)
+        resumen = movimiento_financiero.get_resumen(db, fecha_desde, fecha_hasta)
         return resumen
     except Exception as e:
         raise HTTPException(
