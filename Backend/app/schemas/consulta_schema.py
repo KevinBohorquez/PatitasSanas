@@ -318,9 +318,15 @@ class CitaCreate(BaseModel):
     
     @validator('observaciones')
     def validate_observaciones(cls, v):
-        if v and len(v.strip()) < 3:
+        # Normalizar vacío/espacios a None (la BD exige NULL o >= 3 caracteres)
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if len(v) < 3:
             raise ValueError('Observaciones debe tener al menos 3 caracteres')
-        return v.strip() if v else v
+        return v
 
 
 class CitaUpdate(BaseModel):
