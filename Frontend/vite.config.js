@@ -1,15 +1,21 @@
 // vite.config.js
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 // @ts-ignore — vitest extiende la config de vite
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Carga las variables de entorno (.env) para el modo actual
+  const env = loadEnv(mode, process.cwd(), '')
+  // Destino del backend al que se reenvían las llamadas /api (ver .env.example)
+  const proxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:8000'
+
+  return {
   plugins: [react()],
   server: {
     // Proxy para desarrollo local
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: proxyTarget,
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path,
@@ -44,6 +50,7 @@ export default defineConfig({
       ],
     },
   },
+  }
 })
 /*import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
