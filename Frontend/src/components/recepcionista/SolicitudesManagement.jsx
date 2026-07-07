@@ -231,10 +231,27 @@ const SolicitudesManagement = () => {
                 }
               }
               
+              // Obtener el veterinario asignado (vía Triaje) por la solicitud
+              let nombreVeterinario = 'Sin asignar';
+              try {
+                const vetResponse = await fetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}/veterinario`, {
+                  method: 'GET',
+                  mode: 'cors',
+                  headers: { 'Accept': 'application/json' },
+                });
+                if (vetResponse.ok) {
+                  const vetData = await vetResponse.json();
+                  nombreVeterinario = vetData.nombre_veterinario || 'Sin asignar';
+                }
+              } catch {
+                // Si falla, se queda en 'Sin asignar'
+              }
+
               return {
                 ...solicitud,
                 nombre_mascota: nombreMascota,
                 nombre_dueño: nombreDueño,
+                nombre_veterinario: nombreVeterinario,
                 fecha_hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleDateString('es-ES'),
                 hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
               };
@@ -244,6 +261,7 @@ const SolicitudesManagement = () => {
                 ...solicitud,
                 nombre_mascota: 'Error',
                 nombre_dueño: 'Error',
+                nombre_veterinario: 'Sin asignar',
                 fecha_hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleDateString('es-ES'),
                 hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
               };
@@ -468,6 +486,19 @@ const SolicitudesManagement = () => {
   const columns = [
     { key: 'nombre_mascota', header: 'MASCOTA' },
     { key: 'nombre_dueño', header: 'CLIENTE' },
+    {
+      key: 'nombre_veterinario',
+      header: 'VETERINARIO',
+      render: (row) => (
+        <span className={`vet-badge ${
+          row.nombre_veterinario && row.nombre_veterinario !== 'Sin asignar'
+            ? 'vet-badge--asignado'
+            : 'vet-badge--sin-asignar'
+        }`}>
+          {row.nombre_veterinario || 'Sin asignar'}
+        </span>
+      )
+    },
     { key: 'fecha_hora_formateada', header: 'FECHA' },
     { key: 'hora_formateada', header: 'HORA' },
     { 
