@@ -2,12 +2,17 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/AppBar.css';
+import { confirm } from '../../utils/confirm';
 
 const AppBar = ({ title, subtitle }) => {
   const { logout } = useAuth();
 
-  const handleLogout = () => {
-    if (window.confirm('¿Está seguro de cerrar sesión?')) {
+  const handleLogout = async () => {
+    if (await confirm({
+      title: 'Cerrar sesión',
+      message: '¿Seguro que deseas cerrar tu sesión?',
+      confirmText: 'Cerrar sesión',
+    })) {
       logout();
     }
   };

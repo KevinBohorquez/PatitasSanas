@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ClientesManagement.css';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
@@ -166,11 +169,11 @@ const ClientesManagement = () => {
         setClientes(data.clientes || data);
       } else {
         console.error('Error al cargar clientes:', response.statusText);
-        alert('Error al cargar los clientes');
+        toast.error('Error al cargar los clientes');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al cargar clientes');
+      toast.error('Error de conexión al cargar clientes');
     } finally {
       setLoading(false);
     }
@@ -246,7 +249,7 @@ const ClientesManagement = () => {
 
   //Eliminar cliente Modificando solo su estado
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
@@ -258,15 +261,15 @@ const ClientesManagement = () => {
         });
 
         if (response.ok) {
-          alert('Cliente eliminado exitosamente');
+          toast.success('Cliente eliminado exitosamente');
           fetchClientes(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          alert(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión al eliminar cliente');
+        toast.error('Error de conexión al eliminar cliente');
       } finally {
         setLoading(false);
       }
@@ -280,14 +283,14 @@ const ClientesManagement = () => {
     // Validaciones básicas
     if (!formData.dni || !formData.nombre || !formData.apellido_paterno || !formData.apellido_materno ||
       !formData.telefono || !formData.email || !formData.direccion) {
-      alert('Por favor, complete todos los campos requeridos, incluyendo el Apellido Materno.');
+      toast.warning('Por favor, complete todos los campos requeridos, incluyendo el Apellido Materno.');
       setLoading(false);
       return;
     }
 
     // Verificar si hay errores de validación
     if (Object.keys(validationErrors).length > 0) {
-      alert('Por favor, corrija los errores en el formulario antes de continuar');
+      toast.error('Por favor, corrija los errores en el formulario antes de continuar');
       setLoading(false);
       return;
     }
@@ -330,7 +333,7 @@ const ClientesManagement = () => {
       }
 
       if (response.ok) {
-        alert(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
         setShowModal(false);
         fetchClientes(); // Recargar la lista
       } else {
@@ -341,11 +344,11 @@ const ClientesManagement = () => {
         } else if (errorData.detail) {
           errorMessage = errorData.detail;
         }
-        alert(`Error al guardar: \\n${errorMessage}`);
+        toast.error(`Error al guardar: \\n${errorMessage}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al guardar cliente');
+      toast.error('Error de conexión al guardar cliente');
     } finally {
       setLoading(false);
     }
@@ -380,7 +383,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (
@@ -741,11 +744,11 @@ const ClientesManagement = () => {
         setClientes(data.clientes || data);
       } else {
         console.error('Error al cargar clientes:', response.statusText);
-        alert('Error al cargar los clientes');
+        toast.error('Error al cargar los clientes');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al cargar clientes');
+      toast.error('Error de conexión al cargar clientes');
     } finally {
       setLoading(false);
     }
@@ -816,7 +819,7 @@ const ClientesManagement = () => {
   };
   //Eliminar cliente Modificando solo su estado
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
@@ -828,15 +831,15 @@ const ClientesManagement = () => {
         });
         
         if (response.ok) {
-          alert('Cliente eliminado exitosamente');
+          toast.success('Cliente eliminado exitosamente');
           fetchClientes(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          alert(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión al eliminar cliente');
+        toast.error('Error de conexión al eliminar cliente');
       } finally {
         setLoading(false);
       }
@@ -850,7 +853,7 @@ const ClientesManagement = () => {
     // Validaciones básicas
     if (!formData.dni || !formData.nombre || !formData.apellido_paterno || 
         !formData.telefono || !formData.email) {
-      alert('Por favor, complete todos los campos requeridos');
+      toast.warning('Por favor, complete todos los campos requeridos');
       setLoading(false);
       return;
     }
@@ -893,16 +896,16 @@ const ClientesManagement = () => {
       }
 
       if (response.ok) {
-        alert(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
         setShowModal(false);
         fetchClientes(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al guardar cliente');
+      toast.error('Error de conexión al guardar cliente');
     } finally {
       setLoading(false);
     }
@@ -937,7 +940,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (
@@ -1272,11 +1275,11 @@ const ClientesManagement = () => {
         setClientes(data.clientes || data);
       } else {
         console.error('Error al cargar clientes:', response.statusText);
-        alert('Error al cargar los clientes');
+        toast.error('Error al cargar los clientes');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al cargar clientes');
+      toast.error('Error de conexión al cargar clientes');
     } finally {
       setLoading(false);
     }
@@ -1347,7 +1350,7 @@ const ClientesManagement = () => {
   };
 
   const handleDelete = async (cliente) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?`)) {
+    if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
         const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
@@ -1359,15 +1362,15 @@ const ClientesManagement = () => {
         });
         
         if (response.ok) {
-          alert('Cliente eliminado exitosamente');
+          toast.success('Cliente eliminado exitosamente');
           fetchClientes(); 
         } else {
           const errorData = await response.json();
-          alert(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión al eliminar cliente');
+        toast.error('Error de conexión al eliminar cliente');
       } finally {
         setLoading(false);
       }
@@ -1381,7 +1384,7 @@ const ClientesManagement = () => {
     // Validaciones básicas
     if (!formData.dni || !formData.nombre || !formData.apellido_paterno || 
         !formData.telefono || !formData.email) {
-      alert('Por favor, complete todos los campos requeridos');
+      toast.warning('Por favor, complete todos los campos requeridos');
       setLoading(false);
       return;
     }
@@ -1424,16 +1427,16 @@ const ClientesManagement = () => {
       }
 
       if (response.ok) {
-        alert(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
+        toast.success(modalType === 'add' ? 'Cliente agregado exitosamente' : 'Cliente actualizado exitosamente');
         setShowModal(false);
         fetchClientes();
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión al guardar cliente');
+      toast.error('Error de conexión al guardar cliente');
     } finally {
       setLoading(false);
     }
@@ -1468,7 +1471,7 @@ const ClientesManagement = () => {
   ];
 
   if (loading && clientes.length === 0) {
-    return <div className="loading-container">Cargando clientes...</div>;
+    return <Loader message="Cargando clientes" />;
   }
 
   return (

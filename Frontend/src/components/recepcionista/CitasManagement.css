@@ -169,6 +169,39 @@
   font-size: 0.9rem;
 }
 
+/* ---- BADGE VETERINARIO ---- */
+.vet-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.vet-badge--asignado {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1.2px solid #81c784;
+}
+
+.vet-badge--sin-asignar {
+  background: #f5f5f5;
+  color: #757575;
+  border: 1.2px solid #bdbdbd;
+  font-style: italic;
+}
+
+/* ---- MENSAJE INFORMATIVO VETERINARIO ---- */
+.vet-info-msg {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #e67e22;
+  font-weight: 500;
+}
+
 /* ---- ESTADOS DE CITAS ---- */
 .status-badge {
   padding: 6px 12px;

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -15,6 +16,7 @@ const Login = () => {
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { role } = useParams();
+  const toast = useToast();
 
   // Redireccionando tras autenticación 
   useEffect(() => {
@@ -58,6 +60,7 @@ const Login = () => {
       
       if (result.success) {
         // Login exitoso - Redirige al dashboard correspondiente
+        toast.success('Sesión iniciada correctamente', { title: 'Bienvenido' });
         const normalizedRole = result.user.role.toLowerCase();
         const dashboardRoutes = {
           administrador: '/admin',
@@ -170,6 +173,7 @@ export default Login;
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -183,6 +187,7 @@ const Login = () => {
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { role } = useParams();
+  const toast = useToast();
 
   // Datos de usuarios por rol
   const users = {

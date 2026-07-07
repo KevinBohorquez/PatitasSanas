@@ -1,5 +1,6 @@
 // src/components/admin/ConsultasLineChart.jsx
 import React, { useState, useEffect } from 'react';
+import Loader from '../common/Loader/Loader';
 
 const API_BASE_URL = '/api/v1';
 
@@ -150,7 +151,7 @@ const ConsultasLineChart = () => {
       {loading && (
         <div style={styles.estado}>
           <span style={styles.spinner}>⏳</span>
-          <p style={styles.estadoTexto}>Cargando datos…</p>
+          <Loader message="Cargando datos" />
         </div>
       )}
 
