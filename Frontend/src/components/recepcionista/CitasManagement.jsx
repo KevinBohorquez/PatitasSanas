@@ -273,6 +273,7 @@ const CitasManagement = () => {
       return false;
     } catch (error) {
       console.error('Error al cargar servicios solicitados:', error);
+      toast.error('No se pudieron cargar los servicios de la mascota. Intente nuevamente.');
       return false;
     }
   };
@@ -292,10 +293,12 @@ const CitasManagement = () => {
       } else {
         console.error('Error al cargar veterinarios disponibles:', response.statusText);
         setVeterinariosDisponibles([]);
+        toast.error('No se pudieron cargar los veterinarios disponibles.');
       }
     } catch (error) {
       console.error('Error al cargar veterinarios disponibles:', error);
       setVeterinariosDisponibles([]);
+      toast.error('No se pudieron cargar los veterinarios disponibles.');
     } finally {
       setLoadingVeterinarios(false);
     }
