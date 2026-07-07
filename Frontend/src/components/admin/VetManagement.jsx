@@ -577,14 +577,20 @@ const VetManagement = () => {
   // Función para activar/desactivar la cuenta del veterinario (CP-S1-31)
   const handleToggleEstado = async (vet) => {
     if (!vet.id_usuario) {
-      alert('No se puede cambiar el estado: no tiene usuario asociado');
+      toast.error('No se puede cambiar el estado: no tiene usuario asociado');
       return;
     }
 
     const estaActivo = vet.estado_usuario === 'Activo';
     const accion = estaActivo ? 'desactivar' : 'activar';
 
-    if (!window.confirm(`¿Está seguro de ${accion} al veterinario "${vet.nombre}"?`)) {
+    const confirmado = await confirm({
+      variant: estaActivo ? 'danger' : 'default',
+      title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} veterinario?`,
+      message: `¿Está seguro de ${accion} al veterinario "${vet.nombre}"?`,
+      confirmText: `Sí, ${accion}`
+    });
+    if (!confirmado) {
       return;
     }
 
@@ -595,10 +601,10 @@ const VetManagement = () => {
       : await activateUser(vet.id_usuario);
 
     if (result.success) {
-      alert(`Veterinario ${estaActivo ? 'desactivado' : 'activado'} exitosamente`);
+      toast.success(`Veterinario ${estaActivo ? 'desactivado' : 'activado'} exitosamente`);
       fetchVeterinarios(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al ${accion}: ${result.message}`);
+      toast.error(`Error al ${accion}: ${result.message}`);
     }
 
     setDeleteLoading(false);
