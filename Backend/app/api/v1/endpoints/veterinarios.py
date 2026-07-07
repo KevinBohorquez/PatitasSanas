@@ -67,6 +67,44 @@ async def get_veterinarios(
         )
 
 
+@router.get("/disponibles")
+async def get_veterinarios_disponibles(
+        db: Session = Depends(get_db),
+        turno: Optional[str] = Query(None, description="Filtrar por turno"),
+        especialidad_id: Optional[int] = Query(None, description="Filtrar por ID de especialidad")
+):
+    """
+    Obtener veterinarios disponibles (disposicion = 'Libre')
+
+    IMPORTANTE: debe declararse ANTES de "/{veterinario_id}" para que FastAPI
+    no intente parsear "disponibles" como un id entero (causaría un 422).
+    """
+    try:
+        query = db.query(Veterinario).filter(Veterinario.disposicion == "Libre")
+
+        if turno:
+            query = query.filter(Veterinario.turno == turno)
+        if especialidad_id:
+            query = query.filter(Veterinario.id_especialidad == especialidad_id)
+
+        veterinarios = query.all()
+
+        return {
+            "veterinarios_disponibles": veterinarios,
+            "total": len(veterinarios),
+            "filtros": {
+                "turno": turno,
+                "especialidad_id": especialidad_id
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener veterinarios disponibles: {str(e)}"
+        )
+
+
 @router.get("/{veterinario_id}")
 async def get_veterinario(
         veterinario_id: int,
@@ -182,41 +220,6 @@ async def get_veterinario_by_codigo_cmvp(
         raise HTTPException(
             status_code=500,
             detail=f"Error al buscar veterinario: {str(e)}"
-        )
-
-
-@router.get("/disponibles")
-async def get_veterinarios_disponibles(
-        db: Session = Depends(get_db),
-        turno: Optional[str] = Query(None, description="Filtrar por turno"),
-        especialidad_id: Optional[int] = Query(None, description="Filtrar por ID de especialidad")
-):
-    """
-    Obtener veterinarios disponibles (disposicion = 'Libre')
-    """
-    try:
-        query = db.query(Veterinario).filter(Veterinario.disposicion == "Libre")
-
-        if turno:
-            query = query.filter(Veterinario.turno == turno)
-        if especialidad_id:
-            query = query.filter(Veterinario.id_especialidad == especialidad_id)
-
-        veterinarios = query.all()
-
-        return {
-            "veterinarios_disponibles": veterinarios,
-            "total": len(veterinarios),
-            "filtros": {
-                "turno": turno,
-                "especialidad_id": especialidad_id
-            }
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error al obtener veterinarios disponibles: {str(e)}"
         )
 
 
