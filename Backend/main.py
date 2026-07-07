@@ -6,12 +6,10 @@ from fastapi.responses import JSONResponse  # <--- [IMPORTANTE] Agregar esto
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List, Optional
 import os
 from datetime import datetime
 
 from app.config.database import get_db
-from app.models.clientes import Cliente
 
 # ✅ IMPORTAR TODOS LOS ROUTERS
 from app.api.v1.endpoints.auth import router as auth_router

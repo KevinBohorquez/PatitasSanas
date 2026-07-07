@@ -2,8 +2,7 @@
 from pydantic import BaseModel, validator
 from typing import Optional
 from datetime import datetime, date
-from decimal import Decimal
-from .base_schema import BaseResponse, PaginationResponse
+from .base_schema import BaseResponse
 
 # ===== SOLICITUD ATENCIÓN =====
 

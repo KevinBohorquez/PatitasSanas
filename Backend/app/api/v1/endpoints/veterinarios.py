@@ -1,12 +1,12 @@
 # app/api/v1/endpoints/veterinarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
-from typing import List, Optional
+from typing import Optional
 
 from app.config.database import get_db
 # ✅ TEMPORAL: Usar el patrón que funciona en clientes
 from app.crud import veterinario  # ← Si existe este import
-from app.models import ResultadoServicio, Cita, ServicioSolicitado
+from app.models import ResultadoServicio, Cita
 from app.models.veterinario import Veterinario
 from app.models.especialidad import Especialidad
 from app.models.usuario import Usuario

@@ -1,18 +1,16 @@
 # app/crud/reportes_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_, or_, extract
-from typing import Dict, List, Any, Optional
-from datetime import datetime, date, timedelta
+from sqlalchemy import func, desc, and_, or_
+from typing import Dict, Any
+from datetime import date, timedelta
 from app.models.clientes import Cliente
 from app.models.mascota import Mascota
 from app.models.veterinario import Veterinario
 from app.models.consulta import Consulta
-from app.models.cita import Cita
 from app.models.servicio import Servicio
 from app.models.solicitud_atencion import SolicitudAtencion
 from app.models.triaje import Triaje
 from app.models.diagnostico import Diagnostico
-from app.models.tratamiento import Tratamiento
 from app.models.servicio_solicitado import ServicioSolicitado
 
 

@@ -1,7 +1,7 @@
 # app/api/v1/endpoints/clientes.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 
 from app.config.database import get_db
 from app.crud import cliente
@@ -10,7 +10,7 @@ from app.schemas import (
     ClienteCreate, ClienteUpdate, ClienteResponse,
     ClienteListResponse, ClienteSearch, MessageResponse
 )
-from app.api.deps import get_cliente_or_404, validate_pagination
+from app.api.deps import get_cliente_or_404
 
 router = APIRouter()
 

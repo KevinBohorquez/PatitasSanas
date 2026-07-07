@@ -1,7 +1,7 @@
 # app/crud/mascota_crud.py (CORREGIDO CON PATRÓN CRUD)
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, text
-from typing import List, Optional, Tuple, Dict, Any
+from sqlalchemy import text
+from typing import List, Optional, Tuple, Dict
 from app.crud.base_crud import CRUDBase
 from app.models.mascota import Mascota
 from app.models.cliente_mascota import ClienteMascota
