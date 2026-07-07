@@ -1,8 +1,7 @@
 # app/api/v1/endpoints/usuarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
+from typing import Optional
 
 from app.config.database import get_db
 from app.crud.usuario_crud import usuario

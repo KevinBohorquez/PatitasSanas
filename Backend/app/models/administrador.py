@@ -1,5 +1,5 @@
 # app/models/administrador.py
-from sqlalchemy import Column, Integer, String, Date, CHAR, Enum as SQLEnum, CheckConstraint, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, CHAR, CheckConstraint, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 

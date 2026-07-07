@@ -1,7 +1,7 @@
 # app/api/v1/endpoints/administradores.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 
 from app.config.database import get_db
 from app.crud.administrador_crud import administrador

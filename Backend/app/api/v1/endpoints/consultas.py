@@ -6,8 +6,6 @@ from typing import List, Optional
 from datetime import datetime, date
 
 from app.config.database import get_db
-from app.crud.catalogo_crud import servicio
-from app.crud import servicio_solicitado
 from app.crud.consulta_crud import (
     consulta, diagnostico, tratamiento, historial_clinico,
     triaje, solicitud_atencion, cita

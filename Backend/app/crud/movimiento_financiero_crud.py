@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date
+from datetime import date
 from app.crud.base_crud import CRUDBase
 from app.models.movimiento_financiero import MovimientoFinanciero
 from app.schemas.movimiento_financiero_schema import (
