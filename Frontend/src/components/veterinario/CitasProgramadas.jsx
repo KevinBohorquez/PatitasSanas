@@ -3,6 +3,8 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import AtenderCita from './AtenderCita';
 import { useAuth } from "../../context/AuthContext";
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
 
 const CitasProgramadas = () => {
   const { user } = useAuth();
@@ -82,7 +84,7 @@ const CitasProgramadas = () => {
       setSelectedCita(cita);
       setShowAtender(true);
     } else {
-      alert('No se puede atender la cita seleccionada.');
+      toast.warning('No se puede atender la cita seleccionada.');
     }
   };
 
@@ -122,7 +124,7 @@ const CitasProgramadas = () => {
   ];
 
   if (loading) {
-    return <p>Cargando citas...</p>;
+    return <Loader message="Cargando citas" />;
   }
 
   if (error) {

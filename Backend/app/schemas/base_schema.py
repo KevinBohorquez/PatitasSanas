@@ -1,6 +1,5 @@
 # app/schemas/base_schema.py (CORREGIDO)
-from pydantic import BaseModel, validator
-from typing import Optional, Any
+from pydantic import BaseModel
 
 
 class BaseResponse(BaseModel):

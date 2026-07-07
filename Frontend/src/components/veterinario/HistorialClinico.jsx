@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './HistorialClinico.css';
+import Loader from '../common/Loader/Loader';
+import EmptyState from '../common/EmptyState/EmptyState';
 
 const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
   const [historial, setHistorial] = useState(null); // Guardar el historial clínico
@@ -67,7 +69,7 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
     <div className="form-section">
       <h2>Historial Clínico de la Mascota</h2>
 
-      {loading && <p>Cargando historial clínico y consultas...</p>}
+      {loading && <Loader message="Cargando historial clínico y consultas" />}
       {error && <p>Error: {error}</p>}
 
       {/* Mostrar historial clínico si existe */}
@@ -102,9 +104,14 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
             <label>Observaciones:</label>
             <input type="text" value={historial.observaciones || '--'} disabled />
           </div>
+
+          <div className="form-group">
+            <label>Veterinario Responsable:</label>
+            <input type="text" value={historial.veterinario || '--'} disabled />
+          </div>
         </div>
       ) : (
-        <p>No se encontraron datos para el historial clínico.</p>
+        <EmptyState title="Sin historial" message="No se encontraron datos para el historial clínico." size={120} />
       )}
 
       {/* Mostrar lista de consultas si existen */}
@@ -135,7 +142,7 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
           </table>
         </div>
       ) : (
-        <p>No se encontraron consultas para esta mascota.</p>
+        <EmptyState title="Sin consultas" message="No se encontraron consultas para esta mascota." size={120} />
       )}
 
       <button onClick={onClose} className="btn-close">Cerrar</button>

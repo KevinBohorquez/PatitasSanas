@@ -1,8 +1,8 @@
 # app/schemas/usuario_schema.py
 from pydantic import BaseModel, validator
 from typing import Optional, List
-from datetime import datetime, date
-from .base_schema import BaseResponse, PaginationResponse, validate_name
+from datetime import datetime
+from .base_schema import BaseResponse, PaginationResponse
 
 # ===== ENUMS =====
 TIPO_USUARIO_CHOICES = ['Administrador', 'Veterinario', 'Recepcionista']

@@ -505,6 +505,24 @@
   background: #c42e2e;
 }
 
+.action-btn.activate {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.action-btn.activate:hover {
+  background: #a5d6a7;
+}
+
+.action-btn.deactivate {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.action-btn.deactivate:hover {
+  background: #ffcc80;
+}
+
 /* Status Badges */
 .status-badge {
   padding: 0.25rem 0.75rem;

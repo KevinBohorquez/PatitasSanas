@@ -1,7 +1,6 @@
 # app/crud/auth_crud.py
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, Tuple, List
-from datetime import datetime, timedelta
 from app.models.usuario import Usuario
 from app.models.administrador import Administrador
 from app.models.veterinario import Veterinario

@@ -8,6 +8,10 @@ from app.models.cita import Cita
 from app.models.clientes import Cliente
 from app.models.cliente_mascota import ClienteMascota
 from app.models.mascota import Mascota
+from app.models.servicio_solicitado import ServicioSolicitado
+from app.models.servicio import Servicio
+from app.models.resultado_servicio import ResultadoServicio
+from app.models.veterinario import Veterinario
 from app.services.notifications.email_service import send_reminder_email
 
 logger = logging.getLogger(__name__)
@@ -25,10 +29,14 @@ def _enviar_recordatorios(horas_antes: int) -> None:
         ventana_fin    = now + timedelta(hours=horas_antes + 1)
 
         citas = (
-            db.query(Cita, Mascota, Cliente)
+            db.query(Cita, Mascota, Cliente, Servicio, Veterinario)
             .join(Mascota, Cita.id_mascota == Mascota.id_mascota)
             .join(ClienteMascota, ClienteMascota.id_mascota == Mascota.id_mascota)
             .join(Cliente, Cliente.id_cliente == ClienteMascota.id_cliente)
+            .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
+            .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+            .outerjoin(ResultadoServicio, ResultadoServicio.id_cita == Cita.id_cita)
+            .outerjoin(Veterinario, Veterinario.id_veterinario == ResultadoServicio.id_veterinario)
             .filter(
                 Cita.estado_cita == "Programada",
                 Cita.fecha_hora_programada >= ventana_inicio,
@@ -38,14 +46,20 @@ def _enviar_recordatorios(horas_antes: int) -> None:
             .all()
         )
 
-        for cita, mascota, cliente in citas:
+        for cita, mascota, cliente, servicio, veterinario in citas:
             nombre_completo = f"{cliente.nombre} {cliente.apellido_paterno}"
+            veterinario_nombre = (
+                f"{veterinario.nombre} {veterinario.apellido_paterno}" if veterinario else None
+            )
+            servicio_nombre = servicio.nombre_servicio if servicio else None
             enviado = send_reminder_email(
                 to_email=cliente.email,
                 cliente_nombre=nombre_completo,
                 mascota_nombre=mascota.nombre,
                 fecha_hora=cita.fecha_hora_programada,
                 horas_antes=horas_antes,
+                veterinario_nombre=veterinario_nombre,
+                servicio_nombre=servicio_nombre,
             )
             if enviado:
                 setattr(cita, flag, True)

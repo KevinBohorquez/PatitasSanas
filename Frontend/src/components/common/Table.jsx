@@ -1,4 +1,5 @@
 import React from 'react';
+import EmptyState from './EmptyState/EmptyState';
 import '../../styles/Dashboard.css';
 
 const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponibles" }) => {
@@ -17,7 +18,7 @@ const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponible
           {data.length === 0 ? (
             <tr>
               <td colSpan={columns.length + (actions ? 1 : 0)} className="empty-message">
-                {emptyMessage}
+                <EmptyState title={emptyMessage} size={130} />
               </td>
             </tr>
           ) : (
@@ -31,15 +32,21 @@ const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponible
                 {actions && (
                   <td>
                     <div className="action-buttons">
-                      {actions.map((action, actionIndex) => (
-                        <button
-                          key={actionIndex}
-                          className={`action-btn ${action.type}`}
-                          onClick={() => action.onClick(row)}
-                        >
-                          {action.label}
-                        </button>
-                      ))}
+                      {actions.map((action, actionIndex) => {
+                        const label = typeof action.label === 'function' ? action.label(row) : action.label;
+                        const type = typeof action.type === 'function' ? action.type(row) : action.type;
+                        const title = typeof action.title === 'function' ? action.title(row) : action.title;
+                        return (
+                          <button
+                            key={actionIndex}
+                            className={`action-btn ${type}`}
+                            title={title}
+                            onClick={() => action.onClick(row)}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </td>
                 )}

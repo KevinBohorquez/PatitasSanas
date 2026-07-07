@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './VetManagement.css';
+import { toast } from '../../utils/toast';
+import Loader from '../common/Loader/Loader';
+import { confirm } from '../../utils/confirm';
 
 const VetManagement = () => {
   const [veterinarios, setVeterinarios] = useState([]);
@@ -166,7 +169,15 @@ const VetManagement = () => {
 
       const vetResult = await createVeterinario(vetData);
       if (!vetResult.success) {
-        console.warn('⚠️ Fallo crear veterinario, pero usuario ya fue creado');
+        console.warn('⚠️ Fallo crear veterinario, revirtiendo usuario creado en el paso 1...');
+        const rollbackResult = await deleteUser(userId);
+        if (!rollbackResult.success) {
+          console.error('⚠️ No se pudo revertir el usuario huérfano:', rollbackResult.message);
+          throw new Error(
+            `Error creando veterinario: ${vetResult.message}. ` +
+            `Además no se pudo revertir el usuario creado (contactar al administrador).`
+          );
+        }
         throw new Error(`Error creando veterinario: ${vetResult.message}`);
       }
 
@@ -271,6 +282,44 @@ const VetManagement = () => {
       return { success: true };
     } catch (error) {
       console.error('Error desactivando usuario:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
+  // Función para activar usuario (revertir desactivación)
+  const activateUser = async (userId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/usuarios/${userId}/activate`, {
+        method: 'PATCH'
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status}`);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error activando usuario:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
+  // Función para eliminar usuario (usada para revertir creación si falla el paso 2)
+  const deleteUser = async (userId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status}`);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error eliminando usuario (rollback):', error);
       return { success: false, message: error.message };
     }
   };
@@ -389,13 +438,13 @@ const VetManagement = () => {
         })
       );
 
-      // Filtrar solo usuarios activos
-      const veterinariosActivos = veterinariosCompletos.filter(
-        vet => vet.estado_usuario === 'Activo' || vet.estado_usuario === 'N/A'
-      );
+      // Nota: ya NO se filtran los veterinarios inactivos aquí. Antes se
+      // ocultaban por completo de la lista, lo que hacía imposible
+      // reactivarlos desde la interfaz (bug CP-S1-31). Ahora se muestran
+      // todos y se distingue su estado con una columna + acción.
 
       // Mapear los datos para que coincidan con la estructura esperada por Table
-      const mappedVeterinarios = veterinariosActivos.map(vet => ({
+      const mappedVeterinarios = veterinariosCompletos.map(vet => ({
         id: vet.id_veterinario,
         id_usuario: vet.id_usuario,
         dni: vet.dni || 'Sin DNI',
@@ -411,6 +460,7 @@ const VetManagement = () => {
         id_especialidad: vet.id_especialidad,
         disposicion: vet.disposicion || 'Libre',
         username: vet.username,
+        estado_usuario: vet.estado_usuario || 'N/A',
         tipo_veterinario: vet.tipo_veterinario || 'General'
       }));
 
@@ -502,12 +552,12 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
     if (!vet.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -515,10 +565,46 @@ const VetManagement = () => {
     
     const result = await deactivateUser(vet.id_usuario);
     if (result.success) {
-      alert('Veterinario eliminado exitosamente (usuario desactivado)');
+      toast.success('Veterinario eliminado exitosamente (usuario desactivado)');
       fetchVeterinarios(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
+    }
+
+    setDeleteLoading(false);
+  };
+
+  // Función para activar/desactivar la cuenta del veterinario (CP-S1-31)
+  const handleToggleEstado = async (vet) => {
+    if (!vet.id_usuario) {
+      toast.error('No se puede cambiar el estado: no tiene usuario asociado');
+      return;
+    }
+
+    const estaActivo = vet.estado_usuario === 'Activo';
+    const accion = estaActivo ? 'desactivar' : 'activar';
+
+    const confirmado = await confirm({
+      variant: estaActivo ? 'danger' : 'default',
+      title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} veterinario?`,
+      message: `¿Está seguro de ${accion} al veterinario "${vet.nombre}"?`,
+      confirmText: `Sí, ${accion}`
+    });
+    if (!confirmado) {
+      return;
+    }
+
+    setDeleteLoading(true);
+
+    const result = estaActivo
+      ? await deactivateUser(vet.id_usuario)
+      : await activateUser(vet.id_usuario);
+
+    if (result.success) {
+      toast.success(`Veterinario ${estaActivo ? 'desactivado' : 'activado'} exitosamente`);
+      fetchVeterinarios(currentPage, selectedTurno, searchTerm);
+    } else {
+      toast.error(`Error al ${accion}: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -560,9 +646,9 @@ const VetManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchVeterinarios(currentPage, selectedTurno, searchTerm);
-          alert('Veterinario creado exitosamente');
+          toast.success('Veterinario creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar veterinario existente
@@ -615,14 +701,14 @@ const VetManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchVeterinarios(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -748,13 +834,28 @@ const VetManagement = () => {
       key: 'especialidad', 
       header: 'ESPECIALIDAD',
       render: (vet) => getNombreEspecialidad(vet.id_especialidad)
+    },
+    {
+      key: 'estado_usuario',
+      header: 'ESTADO',
+      render: (vet) => {
+        const estado = vet.estado_usuario || 'N/A';
+        const cssClass = estado === 'Activo' ? 'status-active' : estado === 'Inactivo' ? 'status-inactive' : '';
+        return <span className={`status-badge ${cssClass}`}>{estado}</span>;
+      }
     }
   ];
 
-  // ✅ MEJORADO: Acciones con ojo para vista
+  // ✅ MEJORADO: Acciones con ojo para vista + toggle de estado Activo/Inactivo (CP-S1-31)
   const actions = [
     { label: '👁️', type: 'view', onClick: handleView },
     { label: '✏️', type: 'edit', onClick: handleEdit },
+    {
+      label: (vet) => (vet.estado_usuario === 'Activo' ? '⛔' : '✅'),
+      type: (vet) => (vet.estado_usuario === 'Activo' ? 'deactivate' : 'activate'),
+      title: (vet) => (vet.estado_usuario === 'Activo' ? 'Desactivar veterinario' : 'Activar veterinario'),
+      onClick: handleToggleEstado
+    },
     { label: '🗑️', type: 'delete', onClick: handleDelete }
   ];
 
@@ -762,7 +863,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );
@@ -1667,12 +1768,12 @@ const VetManagement = () => {
   };
 
   const handleDelete = async (vet) => {
-    if (!window.confirm(`¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.`)) {
+    if (!(await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al veterinario "${vet.nombre}"? Esta acción desactivará su cuenta de usuario.` }))) {
       return;
     }
 
     if (!vet.id_usuario) {
-      alert('No se puede eliminar: no tiene usuario asociado');
+      toast.warning('No se puede eliminar: no tiene usuario asociado');
       return;
     }
 
@@ -1680,10 +1781,10 @@ const VetManagement = () => {
     
     const result = await deactivateUser(vet.id_usuario);
     if (result.success) {
-      alert('Veterinario eliminado exitosamente (usuario desactivado)');
+      toast.success('Veterinario eliminado exitosamente (usuario desactivado)');
       fetchVeterinarios(currentPage, selectedTurno, searchTerm);
     } else {
-      alert(`Error al eliminar: ${result.message}`);
+      toast.error(`Error al eliminar: ${result.message}`);
     }
 
     setDeleteLoading(false);
@@ -1725,9 +1826,9 @@ const VetManagement = () => {
         if (result.success) {
           setShowModal(false);
           fetchVeterinarios(currentPage, selectedTurno, searchTerm);
-          alert('Veterinario creado exitosamente');
+          toast.success('Veterinario creado exitosamente');
         } else {
-          alert(`Error: ${result.message}`);
+          toast.error(`Error: ${result.message}`);
         }
       } else {
         // Actualizar veterinario existente
@@ -1780,14 +1881,14 @@ const VetManagement = () => {
           }
         }
 
-        alert(messages.join(', '));
+        toast.info(messages.join(', '));
         setShowModal(false);
         fetchVeterinarios(currentPage, selectedTurno, searchTerm);
       }
 
     } catch (error) {
       console.error('Error en submit:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -1995,7 +2096,7 @@ const VetManagement = () => {
     return (
       <div className="vet-management">
         <div className="loading-container">
-          <p>Cargando veterinarios...</p>
+          <Loader message="Cargando veterinarios" />
         </div>
       </div>
     );

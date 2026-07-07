@@ -129,7 +129,7 @@ def test_send_reminder_error_conexion_retorna_false():
 # ──────────────────────────────────────────────
 
 def _make_cita(horas_offset: int, flag_24: bool = False, flag_4: bool = False):
-    """Crea objetos mock de (Cita, Mascota, Cliente) para usar en tests."""
+    """Crea objetos mock de (Cita, Mascota, Cliente, Servicio, Veterinario) para usar en tests."""
     cita = MagicMock()
     cita.id_cita = 1
     cita.estado_cita = "Programada"
@@ -145,16 +145,31 @@ def _make_cita(horas_offset: int, flag_24: bool = False, flag_4: bool = False):
     cliente.apellido_paterno = "Sanchez"
     cliente.email = "pedro@ejemplo.com"
 
-    return cita, mascota, cliente
+    servicio = MagicMock()
+    servicio.nombre_servicio = "Vacunación"
+
+    veterinario = MagicMock()
+    veterinario.nombre = "Ana"
+    veterinario.apellido_paterno = "Lopez"
+
+    return cita, mascota, cliente, servicio, veterinario
+
+
+def _mock_query_chain(mock_db, resultado):
+    """Configura mock_db.query(...) para que devuelva `resultado` tras los 3 join + 4 outerjoin + filter reales."""
+    chain = mock_db.query.return_value
+    for _ in range(3):
+        chain = chain.join.return_value
+    for _ in range(4):
+        chain = chain.outerjoin.return_value
+    chain.filter.return_value.all.return_value = resultado
 
 
 def test_recordatorio_24h_envia_correo_y_marca_flag():
-    cita, mascota, cliente = _make_cita(horas_offset=24)
+    cita, mascota, cliente, servicio, veterinario = _make_cita(horas_offset=24)
 
     mock_db = MagicMock()
-    mock_db.query.return_value.join.return_value.join.return_value.join.return_value.filter.return_value.all.return_value = [
-        (cita, mascota, cliente)
-    ]
+    _mock_query_chain(mock_db, [(cita, mascota, cliente, servicio, veterinario)])
 
     with patch("app.services.notifications.reminder_scheduler.SessionLocal", return_value=mock_db):
         with patch("app.services.notifications.reminder_scheduler.send_reminder_email", return_value=True) as mock_send:
@@ -166,18 +181,18 @@ def test_recordatorio_24h_envia_correo_y_marca_flag():
         mascota_nombre=mascota.nombre,
         fecha_hora=cita.fecha_hora_programada,
         horas_antes=24,
+        veterinario_nombre="Ana Lopez",
+        servicio_nombre="Vacunación",
     )
     assert cita.recordatorio_24h_enviado is True
     mock_db.commit.assert_called_once()
 
 
 def test_recordatorio_4h_envia_correo_y_marca_flag():
-    cita, mascota, cliente = _make_cita(horas_offset=4)
+    cita, mascota, cliente, servicio, veterinario = _make_cita(horas_offset=4)
 
     mock_db = MagicMock()
-    mock_db.query.return_value.join.return_value.join.return_value.join.return_value.filter.return_value.all.return_value = [
-        (cita, mascota, cliente)
-    ]
+    _mock_query_chain(mock_db, [(cita, mascota, cliente, servicio, veterinario)])
 
     with patch("app.services.notifications.reminder_scheduler.SessionLocal", return_value=mock_db):
         with patch("app.services.notifications.reminder_scheduler.send_reminder_email", return_value=True) as mock_send:
@@ -187,13 +202,33 @@ def test_recordatorio_4h_envia_correo_y_marca_flag():
     assert cita.recordatorio_4h_enviado is True
 
 
-def test_recordatorio_no_envia_si_correo_falla():
-    cita, mascota, cliente = _make_cita(horas_offset=24)
+def test_recordatorio_sin_veterinario_ni_servicio_envia_datos_none():
+    """Cuando la cita no tiene Servicio_Solicitado/Resultado_servicio asociado (outerjoin vacío)."""
+    cita, mascota, cliente, _servicio, _veterinario = _make_cita(horas_offset=24)
 
     mock_db = MagicMock()
-    mock_db.query.return_value.join.return_value.join.return_value.join.return_value.join.return_value.filter.return_value.all.return_value = [
-        (cita, mascota, cliente)
-    ]
+    _mock_query_chain(mock_db, [(cita, mascota, cliente, None, None)])
+
+    with patch("app.services.notifications.reminder_scheduler.SessionLocal", return_value=mock_db):
+        with patch("app.services.notifications.reminder_scheduler.send_reminder_email", return_value=True) as mock_send:
+            _enviar_recordatorios(24)
+
+    mock_send.assert_called_once_with(
+        to_email=cliente.email,
+        cliente_nombre="Pedro Sanchez",
+        mascota_nombre=mascota.nombre,
+        fecha_hora=cita.fecha_hora_programada,
+        horas_antes=24,
+        veterinario_nombre=None,
+        servicio_nombre=None,
+    )
+
+
+def test_recordatorio_no_envia_si_correo_falla():
+    cita, mascota, cliente, servicio, veterinario = _make_cita(horas_offset=24)
+
+    mock_db = MagicMock()
+    _mock_query_chain(mock_db, [(cita, mascota, cliente, servicio, veterinario)])
 
     with patch("app.services.notifications.reminder_scheduler.SessionLocal", return_value=mock_db):
         with patch("app.services.notifications.reminder_scheduler.send_reminder_email", return_value=False):
@@ -206,7 +241,7 @@ def test_recordatorio_no_envia_si_correo_falla():
 
 def test_recordatorio_sin_citas_no_envia_nada():
     mock_db = MagicMock()
-    mock_db.query.return_value.join.return_value.join.return_value.join.return_value.join.return_value.filter.return_value.all.return_value = []
+    _mock_query_chain(mock_db, [])
 
     with patch("app.services.notifications.reminder_scheduler.SessionLocal", return_value=mock_db):
         with patch("app.services.notifications.reminder_scheduler.send_reminder_email") as mock_send:

@@ -1,18 +1,16 @@
 # app/api/v1/endpoints/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Dict, Any
 
 from app.config.database import get_db
 from app.crud.auth_crud import auth
 from app.schemas.auth_schema import (
-    LoginRequest, LoginResponse, LoginErrorResponse,
-    PasswordChangeRequest, PasswordChangeResponse,
-    PasswordResetRequest, PasswordResetResponse,
-    SessionInfoResponse, LogoutResponse,
-    UserStatusValidationRequest, UserStatusValidationResponse,
-    PermissionCheckRequest, PermissionCheckResponse,
-    UserPermissionsResponse
+    LoginRequest, LoginResponse, PasswordChangeRequest,
+    PasswordChangeResponse, PasswordResetRequest,
+    PasswordResetResponse, SessionInfoResponse,
+    LogoutResponse, UserStatusValidationRequest,
+    UserStatusValidationResponse, PermissionCheckRequest,
+    PermissionCheckResponse, UserPermissionsResponse
 )
 
 router = APIRouter()

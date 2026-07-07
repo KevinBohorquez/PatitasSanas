@@ -1,6 +1,6 @@
 # app/crud/administrador_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
 from typing import List, Optional, Tuple, Dict, Any
 from app.crud.base_crud import CRUDBase
 from app.models.administrador import Administrador

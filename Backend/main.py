@@ -6,12 +6,10 @@ from fastapi.responses import JSONResponse  # <--- [IMPORTANTE] Agregar esto
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List, Optional
 import os
 from datetime import datetime
 
 from app.config.database import get_db
-from app.models.clientes import Cliente
 
 # ✅ IMPORTAR TODOS LOS ROUTERS
 from app.api.v1.endpoints.auth import router as auth_router
@@ -29,6 +27,7 @@ from app.api.v1.endpoints.servicio_solicitado import router as servicio_solicita
 from app.api.v1.endpoints.reportes import router as reportes_router
 from app.api.v1.endpoints.alarmas import router as alarmas_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
+from app.api.v1.endpoints.movimientos_financieros import router as movimientos_financieros_router
 
 from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
 
@@ -75,6 +74,7 @@ app.include_router(solicitudes_router, prefix="/api/v1/solicitudes", tags=["🏥
 app.include_router(reportes_router, prefix="/api/v1/reportes", tags=["📄 reportes"])
 app.include_router(alarmas_router, prefix="/api/v1/alarmas", tags=["🔔 alarmas"])
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["📊 dashboard"])
+app.include_router(movimientos_financieros_router, prefix="/api/v1/movimientos-financieros", tags=["💰 finanzas"])
 
 
 @app.on_event("startup")
