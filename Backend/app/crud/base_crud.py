@@ -41,12 +41,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             raise Exception("No se pudo determinar el campo de ID")
 
-        if hasattr(self.model, id_field):
-            return db.query(self.model).filter(getattr(self.model, id_field) == id).first()
-        else:
-            # Fallback a 'id' si no existe el campo específico
-            return db.query(self.model).filter(getattr(self.model, 'id', None) == id).first()
-
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100, order_by: str = None
     ) -> List[ModelType]:
