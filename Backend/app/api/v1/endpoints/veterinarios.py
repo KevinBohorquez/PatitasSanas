@@ -9,6 +9,7 @@ from app.crud import veterinario  # ← Si existe este import
 from app.models import ResultadoServicio, Cita, ServicioSolicitado
 from app.models.veterinario import Veterinario
 from app.models.especialidad import Especialidad
+from app.models.usuario import Usuario
 from app.schemas import VeterinarioResponse, VeterinarioCreate, VeterinarioUpdate
 
 # from app.schemas.veterinario_schema import (...)  # ← Comentado temporalmente
@@ -24,7 +25,8 @@ async def get_veterinarios(
         especialidad: Optional[str] = Query(None, description="Filtrar por especialidad"),
         tipo_veterinario: Optional[str] = Query(None, description="Filtrar por tipo de veterinario"),
         disposicion: Optional[str] = Query(None, description="Filtrar por disposición"),
-        turno: Optional[str] = Query(None, description="Filtrar por turno")
+        turno: Optional[str] = Query(None, description="Filtrar por turno"),
+        solo_activos: Optional[bool] = Query(None, description="Si es true, solo devuelve veterinarios cuyo usuario está Activo")
 ):
     """
     Obtener lista de veterinarios con paginación
@@ -43,6 +45,9 @@ async def get_veterinarios(
             query = query.filter(Veterinario.disposicion == disposicion)
         if turno:
             query = query.filter(Veterinario.turno == turno)
+        if solo_activos:
+            query = query.join(Usuario, Veterinario.id_usuario == Usuario.id_usuario) \
+                .filter(Usuario.estado == "Activo")
 
         total = query.count()
         veterinarios = query.offset(skip).limit(per_page).all()

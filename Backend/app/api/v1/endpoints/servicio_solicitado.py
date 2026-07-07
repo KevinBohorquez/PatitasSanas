@@ -7,7 +7,7 @@ from starlette import status
 
 from app.config.database import get_db
 
-from app.models import Cita, ServicioSolicitado, Servicio, Consulta, Veterinario, ResultadoServicio
+from app.models import Cita, ServicioSolicitado, Servicio, Consulta, Veterinario, ResultadoServicio, Usuario
 
 from app.schemas.consulta_schema import (
     ServicioSolicitadoUpdate, ServicioSolicitadoResponse, ServicioCitaCreate
@@ -130,6 +130,17 @@ async def create_servicio_cita(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Veterinario no encontrado"
+            )
+
+        # Verificar que el veterinario esté activo (RF-009 / CP-S1-13, CP-S1-14)
+        # El estado Activo/Inactivo vive en Usuario, no en Veterinario
+        usuario_obj = db.query(Usuario).filter(
+            Usuario.id_usuario == veterinario_obj.id_usuario
+        ).first()
+        if not usuario_obj or usuario_obj.estado != "Activo":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="El veterinario no está disponible (estado inactivo)"
             )
 
         # Obtener id_mascota a través de joins: Consulta -> Triaje -> Solicitud_atencion -> Mascota
