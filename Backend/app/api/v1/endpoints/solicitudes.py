@@ -117,6 +117,41 @@ async def get_solicitud_atencion(
             detail=f"Error al obtener solicitud: {str(e)}"
         )
 
+@router.get("/{solicitud_id}/veterinario")
+async def get_veterinario_de_solicitud(
+        solicitud_id: int,
+        db: Session = Depends(get_db)
+):
+    """
+    Obtener el veterinario asignado a una solicitud.
+
+    La asignación no vive en la solicitud: el trigger la crea en el Triaje,
+    así que se resuelve por la cadena Solicitud -> Triaje -> Veterinario.
+    Si el trigger no asignó ninguno, devuelve 'Sin asignar'.
+    """
+    try:
+        veterinario = db.query(Veterinario) \
+            .join(Triaje, Triaje.id_veterinario == Veterinario.id_veterinario) \
+            .filter(Triaje.id_solicitud == solicitud_id) \
+            .first()
+
+        if not veterinario:
+            return {"id_veterinario": None, "nombre_veterinario": "Sin asignar"}
+
+        return {
+            "id_veterinario": veterinario.id_veterinario,
+            "nombre_veterinario": f"{veterinario.nombre} {veterinario.apellido_paterno}".strip(),
+            "tipo_veterinario": veterinario.tipo_veterinario,
+            "turno": veterinario.turno,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener veterinario de la solicitud: {str(e)}"
+        )
+
+
 @router.delete("/{solicitud_id}")
 async def delete_solicitud(
         solicitud_id: int,
