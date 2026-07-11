@@ -4,6 +4,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './CitasManagement.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
@@ -453,7 +454,7 @@ const CitasManagement = () => {
         fetchCitas(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        toast.error(`Error al registrar la cita: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(formatApiError(errorData, 'No se pudo registrar la cita'));
       }
     } catch (error) {
       console.error('Error:', error);
@@ -488,7 +489,7 @@ const CitasManagement = () => {
         fetchCitas(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        toast.error(`Error al eliminar la cita: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(formatApiError(errorData, 'No se pudo eliminar la cita'));
       }
     } catch (error) {
       console.error('Error:', error);
