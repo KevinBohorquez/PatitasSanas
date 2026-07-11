@@ -528,3 +528,41 @@ def get_resultados_y_citas(id_usuario: int, db: Session = Depends(get_db)):
         }
         for r in resultados
     ]
+
+
+@router.get("/citas-programadas/{id_usuario}")
+def get_citas_programadas(id_usuario: int, db: Session = Depends(get_db)):
+    """
+    Citas PROGRAMADAS asignadas al veterinario, resueltas por Cita.id_veterinario
+    (SC-016 / F4). A diferencia de /resultados-citas (que dependía de
+    Resultado_servicio), incluye las citas creadas por el recepcionista que antes
+    no llegaban al veterinario.
+    """
+    veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+    if not veterinario:
+        raise HTTPException(status_code=404, detail="Veterinario no encontrado")
+
+    citas = (
+        db.query(Cita)
+        .filter(
+            Cita.id_veterinario == veterinario.id_veterinario,
+            Cita.estado_cita == "Programada",
+        )
+        .order_by(Cita.fecha_hora_programada.asc())
+        .all()
+    )
+
+    # Mismo envoltorio { "cita": {...} } que /resultados-citas para reutilizar el
+    # render del frontend (que pide mascota/servicio/veterinario por id_cita).
+    return [
+        {
+            "cita": {
+                "id_cita": c.id_cita,
+                "fecha_hora_programada": c.fecha_hora_programada,
+                "estado_cita": c.estado_cita,
+                "requiere_ayuno": c.requiere_ayuno,
+                "observaciones": c.observaciones,
+            }
+        }
+        for c in citas
+    ]

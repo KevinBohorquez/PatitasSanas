@@ -59,6 +59,16 @@ async def create_cita(
                     detail="Servicio solicitado no encontrado"
                 )
 
+        # Verificar que el veterinario asignado existe (SC-016 / F4).
+        # El campo es opcional: si no se envía, la cita queda sin asignar.
+        if cita_data.id_veterinario:
+            vet_obj = veterinario.get(db, cita_data.id_veterinario)
+            if not vet_obj:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Veterinario no encontrado"
+                )
+
         # Crear la cita
         cita_dict = cita_data.dict()
         cita_dict["estado_cita"] = "Programada"
