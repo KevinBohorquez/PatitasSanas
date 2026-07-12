@@ -478,12 +478,14 @@ async def update_veterinario_disposicion(
         )
 
 @router.put("/veterinario/usuario/{id_usuario}/disposicionLibre", response_model=VeterinarioResponse)
-async def update_veterinario_disposicion(
+async def update_veterinario_disposicion_libre(
         id_usuario: int,
         db: Session = Depends(get_db)
 ):
     """
-    Actualizar la disposición de un veterinario a 'Ocupado'
+    Actualizar la disposición de un veterinario a 'Libre'.
+    (SC-033 / F14: nombre de función único —antes duplicaba
+    update_veterinario_disposicion— y docstring corregido, decía 'Ocupado'.)
     """
     try:
         # Buscar al veterinario usando el id_usuario

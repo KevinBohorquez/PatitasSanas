@@ -44,7 +44,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       if (response.ok) {
         const triageResult = await response.json();
         setTriageData(triageResult);
-        console.log('Triaje cargado para consulta:', triageResult);
         
         const consulta = await fetchConsultaData(triageResult.id_triaje);
         // SC-041 / F22: los diagnósticos se piden por id_consulta, no por id_triaje.
@@ -113,9 +112,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       if (response.ok) {
         const diagnosticosData = await response.json();
         setDiagnosticos(diagnosticosData);
-        console.log('Diagnósticos cargados:', diagnosticosData);
       } else {
-        console.log('No se encontraron diagnósticos para esta consulta');
         setDiagnosticos([]);
       }
     } catch (error) {
@@ -151,7 +148,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         }
 
         const result = await response.json();
-        console.log('Disposición actualizada:', result);
       } catch (error) {
         console.error('Error al actualizar disposición:', error);
         toast.error(`Error al actualizar disposición del veterinario: ${error.message}`);
@@ -185,7 +181,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         es_seguimiento: formData.esSeguimiento
       };
 
-      console.log('Datos de consulta preparados para enviar:', payload);
 
       try {
         let response;
@@ -209,7 +204,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         }
 
         const result = await response.json();
-        console.log('Consulta actualizada correctamente:', result);
 
         // 🚀 Aquí actualizas la disposición:
         await actualizarDisposicion();
@@ -237,7 +231,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
     }
 
     try {
-      console.log('Añadiendo diagnóstico para consulta:', consultaData.id_consulta);
       
       const response = await fetch(
         `/api/v1/consultas/diagnostico/${consultaData.id_consulta}`,
@@ -255,7 +248,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       }
 
       const result = await response.json();
-      console.log('Diagnóstico añadido exitosamente:', result);
 
       toast.success(`Diagnóstico añadido correctamente. ID: ${result.id}`);
       
@@ -276,7 +268,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       return;
     }
 
-    console.log('Abriendo modal de servicio para consulta ID:', consultaData.id_consulta);
     setShowModificarServicio(true);
   };
 

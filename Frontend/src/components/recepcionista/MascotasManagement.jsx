@@ -158,7 +158,6 @@ const MascotasManagement = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Razas cargadas:', data); 
         setRazas(data || []);
       } else {
         console.error('Error al cargar razas:', response.status);
@@ -405,7 +404,6 @@ const MascotasManagement = () => {
       };
 
       // Agregar campos adicionales
-      console.log('Iniciando proceso de creación de mascota...');
 
       const url = modalType === 'add' 
         ? `${BASE_URL}/mascotas/?cliente_id=${formData.id_cliente}`
@@ -413,10 +411,8 @@ const MascotasManagement = () => {
       
       const method = modalType === 'add' ? 'POST' : 'PUT';
 
-      console.log('URL:', url, 'Method:', method);
 
       // Petición sin imagen
-      console.log('Registrando mascota...');
 
       let response = await fetch(url, {
         method: method,
@@ -429,12 +425,10 @@ const MascotasManagement = () => {
       });
 
       let responseData = await response.json();
-      console.log('Estado de registro:', response.status === 201 ? 'Éxito' : 'Error');
 
       if (response.ok) {
         if (formData.imagen && formData.imagen.trim()) {
           try {
-            console.log('Intentando agregar imagen...');
             mascotaData.imagen = formData.imagen.trim();
             
             const updateUrl = modalType === 'add' 
@@ -452,7 +446,6 @@ const MascotasManagement = () => {
             });
 
             const imageResponseData = await imageResponse.json();
-            console.log('Estado de imagen:', imageResponse.status === 200 ? 'Agregada' : 'Error');
 
             if (imageResponse.ok) {
               toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente con imagen`);

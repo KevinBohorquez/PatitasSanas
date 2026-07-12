@@ -87,7 +87,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando usuario:', error);
@@ -112,7 +111,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Veterinario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando veterinario:', error);
@@ -124,7 +122,6 @@ const VetManagement = () => {
   const createVeterinarioCompleto = async (formData) => {
     try {
       // PASO 1: Crear usuario
-      console.log('🔸 Paso 1: Creando usuario...');
       const userData = {
         username: formData.username.trim(),
         contraseña: formData.contraseña.trim(),
@@ -138,10 +135,8 @@ const VetManagement = () => {
       }
 
       const userId = userResult.data.id_usuario;
-      console.log('✅ Usuario creado con ID:', userId);
 
       // PASO 2: Crear veterinario con el id_usuario
-      console.log('🔸 Paso 2: Creando perfil de veterinario...');
       
       // ⚠️ IMPORTANTE: Usar fecha actual para fecha_ingreso
       const fechaIngreso = new Date().toISOString().split('T')[0];
@@ -181,7 +176,6 @@ const VetManagement = () => {
         throw new Error(`Error creando veterinario: ${vetResult.message}`);
       }
 
-      console.log('✅ Veterinario creado exitosamente');
       return { success: true, data: vetResult.data };
 
     } catch (error) {
@@ -207,7 +201,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Veterinario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando veterinario:', error);
@@ -232,7 +225,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando usuario:', error);
@@ -259,7 +251,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);
@@ -363,7 +354,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('✅ Especialidades obtenidas:', data);
       setEspecialidades(data || []);
     } catch (error) {
       console.error('Error obteniendo especialidades:', error);
@@ -1350,7 +1340,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando usuario:', error);
@@ -1375,7 +1364,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Veterinario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando veterinario:', error);
@@ -1387,7 +1375,6 @@ const VetManagement = () => {
   const createVeterinarioCompleto = async (formData) => {
     try {
       // PASO 1: Crear usuario
-      console.log('🔸 Paso 1: Creando usuario...');
       const userData = {
         username: formData.username.trim(),
         contraseña: formData.contraseña.trim(),
@@ -1401,10 +1388,8 @@ const VetManagement = () => {
       }
 
       const userId = userResult.data.id_usuario;
-      console.log('✅ Usuario creado con ID:', userId);
 
       // PASO 2: Crear veterinario con el id_usuario
-      console.log('🔸 Paso 2: Creando perfil de veterinario...');
       
       // ⚠️ IMPORTANTE: Usar fecha actual para fecha_ingreso
       const fechaIngreso = new Date().toISOString().split('T')[0];
@@ -1436,7 +1421,6 @@ const VetManagement = () => {
         throw new Error(`Error creando veterinario: ${vetResult.message}`);
       }
 
-      console.log('✅ Veterinario creado exitosamente');
       return { success: true, data: vetResult.data };
 
     } catch (error) {
@@ -1462,7 +1446,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Veterinario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando veterinario:', error);
@@ -1487,7 +1470,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando usuario:', error);
@@ -1514,7 +1496,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);
@@ -1580,7 +1561,6 @@ const VetManagement = () => {
       }
 
       const data = await response.json();
-      console.log('✅ Especialidades obtenidas:', data);
       setEspecialidades(data || []);
     } catch (error) {
       console.error('Error obteniendo especialidades:', error);
@@ -1617,9 +1597,6 @@ const VetManagement = () => {
       let filteredData = data.veterinarios || [];
       
       // 🔍 DEBUG: Verificar estructura de datos recibidos
-      console.log('✅ Datos de veterinarios obtenidos:', data);
-      console.log('📋 Primer veterinario completo:', filteredData[0]);
-      console.log('🔧 Campos disponibles:', filteredData[0] ? Object.keys(filteredData[0]) : 'No hay datos');
       
       // Filtrar por término de búsqueda localmente
       if (search.trim()) {
@@ -1685,7 +1662,6 @@ const VetManagement = () => {
         tipo_veterinario: vet.tipo_veterinario || 'General'
       }));
 
-      console.log('📊 Veterinarios mapeados (primer elemento):', mappedVeterinarios[0]);
 
       setVeterinarios(mappedVeterinarios);
       setTotalRecords(data.total || 0);

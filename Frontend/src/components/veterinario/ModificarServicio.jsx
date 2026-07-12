@@ -105,8 +105,6 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
         observaciones: formData.observaciones || null
       };
 
-      console.log('Enviando datos del servicio:', payload);
-      console.log('Consulta ID:', consultaId);
 
       // Usar el consultaId correctamente en la URL
       const response = await fetch(
@@ -126,7 +124,6 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
       }
 
       const result = await response.json();
-      console.log('Servicio solicitado y cita creados correctamente:', result);
 
       toast.success('Servicio creado correctamente');
       onSave();

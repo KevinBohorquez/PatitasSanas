@@ -24,7 +24,6 @@ const SolicitudesAtencion = () => {
   // Función para actualizar la disposición del veterinario
   const updateVeterinarioDisposicion = async (idUsuario) => {
     try {
-      console.log('🔄 Actualizando disposición para usuario ID:', idUsuario);
       
       const response = await fetch(
         `/api/v1/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
@@ -43,8 +42,6 @@ const SolicitudesAtencion = () => {
       }
 
       const data = await response.json();
-      console.log('✅ Disposición actualizada exitosamente:', data);
-      console.log(`📍 Veterinario ${data.nombre} ${data.apellido_paterno} ahora está: ${data.disposicion}`);
       return data;
     } catch (error) {
       console.error('❌ Error al actualizar disposición:', error);
@@ -173,8 +170,6 @@ const SolicitudesAtencion = () => {
     
     // Mostrar información del usuario en consola para debug
     if (user) {
-      console.log('👤 Usuario logueado:', user);
-      console.log('🆔 ID de usuario para endpoint:', user.id);
     }
   }, [user]);
 
@@ -185,13 +180,10 @@ const SolicitudesAtencion = () => {
 
   // Función modificada para manejar la atención
   const handleAtender = async (solicitud) => {
-  console.log('🎯 Iniciando proceso de atención para solicitud:', solicitud.id);
 
   // Extraer el id_consulta si existe
   if (solicitud._original && solicitud._original.id_consulta) {
-    console.log('📝 Esta solicitud tiene consulta_id:', solicitud._original.id_consulta);
   } else {
-    console.log('📝 Esta solicitud NO tiene un consulta_id asociado.');
   }
 
   if (!user || !user.id) {
@@ -202,13 +194,11 @@ const SolicitudesAtencion = () => {
 
   try {
     setProcesandoAtencion(true);
-    console.log('⏳ Procesando atención...');
 
     // Primero actualizar la disposición del veterinario a "Ocupado"
     await updateVeterinarioDisposicion(user.id);
 
     // Si todo sale bien, proceder con el triaje
-    console.log('✅ Abriendo modal de triaje...');
     setSelectedSolicitud(solicitud);
     setShowTriaje(true);
 

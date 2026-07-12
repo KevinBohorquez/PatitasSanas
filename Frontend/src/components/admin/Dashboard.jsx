@@ -73,11 +73,6 @@ const Dashboard = () => {
       const recepData = recepResponse.ok ? await recepResponse.json() : { usuarios: [] };
       const serviciosData = serviciosResponse.ok ? await serviciosResponse.json() : [];
 
-      console.log('📊 Datos obtenidos (todos):');
-      console.log('👑 Administradores (todos):', adminData);
-      console.log('👨‍⚕️ Veterinarios (todos):', vetData);
-      console.log('👩‍💼 Recepcionistas (todos):', recepData);
-      console.log('🏥 Servicios (todos):', serviciosData);
 
       // 2. FILTRAR MANUALMENTE por estado = "Activo" (usuarios) y activo = true (servicios)
       const administradoresActivos = adminData.usuarios ? 
@@ -93,11 +88,6 @@ const Dashboard = () => {
       const serviciosActivos = Array.isArray(serviciosData) ? 
         serviciosData.filter(servicio => servicio.activo === true) : [];
 
-      console.log('✅ FILTRADOS POR ESTADO ACTIVO:');
-      console.log('👑 Administradores activos:', administradoresActivos.length, administradoresActivos);
-      console.log('👨‍⚕️ Veterinarios activos:', veterinariosActivos.length, veterinariosActivos);
-      console.log('👩‍💼 Recepcionistas activos:', recepcionistasActivos.length, recepcionistasActivos);
-      console.log('🏥 Servicios activos (activo=true):', serviciosActivos.length, serviciosActivos);
 
       // Mostrar usuarios inactivos para debugging
       const administradoresInactivos = adminData.usuarios ? 
@@ -112,16 +102,12 @@ const Dashboard = () => {
         serviciosData.filter(servicio => servicio.activo === false || servicio.activo === null) : [];
 
       if (administradoresInactivos.length > 0) {
-        console.log('❌ Administradores INACTIVOS (NO CONTADOS):', administradoresInactivos.length, administradoresInactivos);
       }
       if (veterinariosInactivos.length > 0) {
-        console.log('❌ Veterinarios INACTIVOS (NO CONTADOS):', veterinariosInactivos.length, veterinariosInactivos);
       }
       if (recepcionistasInactivos.length > 0) {
-        console.log('❌ Recepcionistas INACTIVOS (NO CONTADOS):', recepcionistasInactivos.length, recepcionistasInactivos);
       }
       if (serviciosInactivos.length > 0) {
-        console.log('❌ Servicios INACTIVOS (NO CONTADOS):', serviciosInactivos.length, serviciosInactivos);
       }
 
       // 3. Calcular totales de solo usuarios activos y servicios activos
@@ -140,12 +126,6 @@ const Dashboard = () => {
         servicios
       });
 
-      console.log('🎯 STATS FINALES (SOLO USUARIOS CON ESTADO = "Activo" Y SERVICIOS CON ACTIVO = true):');
-      console.log('Total usuarios activos:', totalUsuarios);
-      console.log('Veterinarios activos:', veterinarios);
-      console.log('Recepcionistas activos:', recepcionistas);
-      console.log('Administradores activos:', administradores);
-      console.log('Servicios activos:', servicios);
 
     } catch (error) {
       console.error('❌ Error fetching dashboard data:', error);

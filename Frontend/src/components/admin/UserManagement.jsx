@@ -81,7 +81,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Administrador creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando administrador:', error);
@@ -105,7 +104,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Administrador actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando administrador:', error);
@@ -155,7 +153,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);
@@ -930,7 +927,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Administrador creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando administrador:', error);
@@ -955,7 +951,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Administrador actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando administrador:', error);
@@ -983,7 +978,6 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);

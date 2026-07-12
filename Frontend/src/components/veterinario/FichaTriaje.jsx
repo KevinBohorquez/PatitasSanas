@@ -57,7 +57,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       } else if (response.status === 404) {
         // No existe triaje aún, mantener formulario vacío
-        console.log('No existe triaje para esta solicitud, creando nuevo');
       } else {
         throw new Error('Error al cargar datos de triaje');
       }
@@ -127,17 +126,13 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         condicion_corporal: formData.condicionCorporal
       };
 
-      console.log('Datos a enviar:', triageDataToSend);
-      console.log('¿Existe triaje?', !!triageData);
       if (triageData) {
-        console.log('ID del triaje:', triageData.id_triaje);
       }
 
       let response;
       
       if (triageData) {
         // Actualizar triaje existente
-        console.log('Actualizando triaje existente...');
         response = await fetch(`/api/v1/triaje/triaje/${triageData.id_triaje}`, {
           method: 'PUT',
           headers: {
@@ -147,7 +142,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       } else {
         // Crear nuevo triaje
-        console.log('Creando nuevo triaje...');
         response = await fetch('/api/v1/triaje/', {
           method: 'POST',
           headers: {
@@ -157,7 +151,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       }
 
-      console.log('Status de respuesta:', response.status);
       
       if (!response.ok) {
         const errorBody = await response.json().catch(() => null);
@@ -166,7 +159,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       }
 
       const result = await response.json();
-      console.log('Triaje guardado exitosamente:', result);
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);

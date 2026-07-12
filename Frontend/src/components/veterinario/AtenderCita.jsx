@@ -18,7 +18,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   // Cargar resultado de servicio si existe
   const fetchResultadoServicio = async (citaId) => {
     try {
-      console.log('Cargando resultado para cita ID:', citaId);
       
       const response = await fetch(
         `/api/v1/consultas/resultado_servicio/${citaId}`
@@ -26,7 +25,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       
       if (!response.ok) {
         if (response.status === 404) {
-          console.log('No hay resultado previo, usando valores por defecto');
           setFormData({
             resultado: '',
             interpretacion: '',
@@ -40,7 +38,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       }
       
       const data = await response.json();
-      console.log('Resultado cargado:', data);
       
       setFormData({
         resultado: data.resultado || '',
@@ -59,7 +56,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   };
 
   useEffect(() => {
-    console.log('Cita recibida:', cita);
     
     if (cita && cita.id) {
       fetchResultadoServicio(cita.id);
@@ -153,7 +149,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       }
 
       const data = await response.json();
-      console.log('✅ Resultado actualizado exitosamente:', data);
       
       toast.success('Cita atendida exitosamente', { title: 'Cita guardada' });
       onComplete();

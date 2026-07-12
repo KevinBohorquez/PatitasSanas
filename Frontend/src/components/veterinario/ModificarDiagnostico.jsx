@@ -100,7 +100,6 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
         eficacia_tratamiento: formData.eficaciaTratamiento
       };
 
-      console.log('Enviando datos:', payload);
 
       const response = await fetch(
         `/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
@@ -115,7 +114,6 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Diagnóstico actualizado correctamente:', result);
         toast.success('Diagnóstico actualizado correctamente');
         
         // Llamar a onSave para cerrar modal y refrescar datos

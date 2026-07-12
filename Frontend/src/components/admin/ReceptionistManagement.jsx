@@ -65,7 +65,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando usuario:', error);
@@ -90,7 +89,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Recepcionista creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando recepcionista:', error);
@@ -102,7 +100,6 @@ const ReceptionistManagement = () => {
   const createRecepcionistaCompleto = async (formData) => {
     try {
       // PASO 1: Crear usuario
-      console.log('🔸 Paso 1: Creando usuario...');
       const userData = {
         username: formData.username.trim(),
         contraseña: formData.contraseña.trim(),
@@ -116,10 +113,8 @@ const ReceptionistManagement = () => {
       }
 
       const userId = userResult.data.id_usuario;
-      console.log('✅ Usuario creado con ID:', userId);
 
       // PASO 2: Crear recepcionista con el id_usuario
-      console.log('🔸 Paso 2: Creando perfil de recepcionista...');
       const recepData = {
         id_usuario: userId, // ← Campo requerido
         dni: formData.dni.trim(),
@@ -140,7 +135,6 @@ const ReceptionistManagement = () => {
         throw new Error(`Error creando recepcionista: ${recepResult.message}`);
       }
 
-      console.log('✅ Recepcionista creado exitosamente');
       return { success: true, data: recepResult.data };
 
     } catch (error) {
@@ -166,7 +160,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Recepcionista actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando recepcionista:', error);
@@ -191,7 +184,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando usuario:', error);
@@ -218,7 +210,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);
@@ -1052,7 +1043,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando usuario:', error);
@@ -1077,7 +1067,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Recepcionista creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando recepcionista:', error);
@@ -1089,7 +1078,6 @@ const ReceptionistManagement = () => {
   const createRecepcionistaCompleto = async (formData) => {
     try {
       // PASO 1: Crear usuario
-      console.log('🔸 Paso 1: Creando usuario...');
       const userData = {
         username: formData.username.trim(),
         contraseña: formData.contraseña.trim(),
@@ -1103,10 +1091,8 @@ const ReceptionistManagement = () => {
       }
 
       const userId = userResult.data.id_usuario;
-      console.log('✅ Usuario creado con ID:', userId);
 
       // PASO 2: Crear recepcionista con el id_usuario
-      console.log('🔸 Paso 2: Creando perfil de recepcionista...');
       const recepData = {
         id_usuario: userId, // ← Campo requerido
         dni: formData.dni.trim(),
@@ -1127,7 +1113,6 @@ const ReceptionistManagement = () => {
         throw new Error(`Error creando recepcionista: ${recepResult.message}`);
       }
 
-      console.log('✅ Recepcionista creado exitosamente');
       return { success: true, data: recepResult.data };
 
     } catch (error) {
@@ -1153,7 +1138,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Recepcionista actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando recepcionista:', error);
@@ -1178,7 +1162,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Usuario actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando usuario:', error);
@@ -1205,7 +1188,6 @@ const ReceptionistManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Contraseña cambiada:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error cambiando contraseña:', error);
