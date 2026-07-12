@@ -43,9 +43,13 @@ async def create_solicitud_atencion(
                 detail="Recepcionista no encontrada"
             )
 
-        # Agregar timestamp actual si no se proporciona
+        # Agregar timestamp actual si no se proporciona.
+        # Nota: la clave existe en el dict con valor None (el schema la define como
+        # Optional=None), por lo que dict.get(clave, default) NO aplica el default y
+        # dejaría fecha_hora_solicitud = NULL. Se valida el valor explícitamente.
         solicitud_dict = solicitud_data.dict()
-        solicitud_dict['fecha_hora_solicitud'] = solicitud_dict.get('fecha_hora_solicitud', datetime.now())
+        if not solicitud_dict.get('fecha_hora_solicitud'):
+            solicitud_dict['fecha_hora_solicitud'] = datetime.now()
         solicitud_dict['estado'] = 'Pendiente'  # Estado inicial
 
         # Crear la solicitud
