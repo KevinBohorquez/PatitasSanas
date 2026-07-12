@@ -1,5 +1,5 @@
 # app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import List, Optional
@@ -1061,6 +1061,48 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
         archivo_adjunto=resultado_servicio.archivo_adjunto,
         fecha_realizacion=resultado_servicio.fecha_realizacion
     )
+
+
+@router.post("/resultado_servicio/{cita_id}/adjunto")
+async def subir_adjunto_resultado(
+    cita_id: int,
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """
+    Subir el archivo adjunto de un resultado de servicio a Google Drive (SC-020 / F27)
+    y guardar el enlace resultante en archivo_adjunto.
+
+    Requiere configurar GOOGLE_SERVICE_ACCOUNT_JSON (y opcionalmente GDRIVE_FOLDER_ID);
+    si Drive no está configurado, responde 503 con un mensaje claro.
+    """
+    resultado_servicio = db.query(ResultadoServicio).filter(
+        ResultadoServicio.id_cita == cita_id
+    ).first()
+    if not resultado_servicio:
+        raise HTTPException(
+            status_code=404,
+            detail="Resultado del servicio no encontrado para esta cita",
+        )
+
+    from app.services.storage import drive_service
+
+    try:
+        contenido = await archivo.read()
+        enlace = drive_service.subir_archivo(contenido, archivo.filename, archivo.content_type)
+    except RuntimeError as e:
+        # Drive no configurado o falta la librería.
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir el adjunto: {str(e)}")
+
+    resultado_servicio.archivo_adjunto = enlace
+    db.commit()
+    db.refresh(resultado_servicio)
+
+    return {"archivo_adjunto": enlace}
 
 
 @router.get("/diagnosticos/{id_consulta}", response_model=List[DiagnosticoResponse])

@@ -14,7 +14,7 @@ class ResultadoServicio(Base):
     
     resultado = Column(Text, nullable=False)
     interpretacion = Column(Text)
-    archivo_adjunto = Column(String(100))
+    archivo_adjunto = Column(String(500))  # SC-020 / F27: guarda un enlace (p. ej. Drive)
     fecha_realizacion = Column(DateTime, nullable=False)
 
     cita = relationship("Cita", backref="resultados")

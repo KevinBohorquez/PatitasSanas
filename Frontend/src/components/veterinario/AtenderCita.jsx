@@ -77,9 +77,12 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   };
 
   const handleFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    // SC-020 / F27: conservar el File real para subirlo a Drive al guardar.
     setFormData({
       ...formData,
-      archivoAdjunto: e.target.files[0] ? e.target.files[0].name : null
+      archivoAdjunto: file ? file.name : null,
+      archivoAdjuntoFile: file
     });
   };
 
@@ -101,21 +104,37 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       return;
     }
     
-    const updatedData = {
-      id_cita: cita.id,
-      id_veterinario: cita.id_veterinario || 4, // fallback
-      resultado: formData.resultado.trim(),
-      interpretacion: formData.interpretacion.trim() || null,
-      archivo_adjunto: formData.archivoAdjunto || null,
-      fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`
-    };
-
-    console.log('=== DATOS A ENVIAR (PUT) ===', updatedData);
-
     try {
       setLoading(true);
       setError(null);
-      
+
+      // SC-020 / F27: si se seleccionó un archivo, subirlo a Google Drive y usar el
+      // enlace devuelto como archivo_adjunto (antes solo se guardaba el nombre).
+      let archivoLink = formData.archivoAdjunto || null;
+      if (formData.archivoAdjuntoFile) {
+        const fd = new FormData();
+        fd.append('archivo', formData.archivoAdjuntoFile);
+        const upRes = await fetch(
+          `/api/v1/consultas/resultado_servicio/${cita.id}/adjunto`,
+          { method: 'POST', body: fd }
+        );
+        if (!upRes.ok) {
+          const upErr = await upRes.json().catch(() => null);
+          throw new Error((upErr && upErr.detail) || 'No se pudo subir el archivo adjunto a Drive');
+        }
+        const upData = await upRes.json();
+        archivoLink = upData.archivo_adjunto;
+      }
+
+      const updatedData = {
+        id_cita: cita.id,
+        id_veterinario: cita.id_veterinario || 4, // fallback
+        resultado: formData.resultado.trim(),
+        interpretacion: formData.interpretacion.trim() || null,
+        archivo_adjunto: archivoLink,
+        fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`
+      };
+
       const response = await fetch(
         `/api/v1/consultas/resultado_servicio/${cita.id}`,
         {
