@@ -697,6 +697,7 @@ const handleView = (receptionist) => {
               <option value="Mañana">Mañana</option>
               <option value="Tarde">Tarde</option>
               <option value="Noche">Noche</option>
+              <option value="Madrugada">Madrugada</option>
             </select>
             {(searchTerm || selectedTurno) && (
               <button onClick={clearFilters} className="clear-filters-btn">
@@ -916,6 +917,7 @@ const handleView = (receptionist) => {
                   <option value="Mañana">Mañana</option>
                   <option value="Tarde">Tarde</option>
                   <option value="Noche">Noche</option>
+                  <option value="Madrugada">Madrugada</option>
                 </select>
                 {formErrors.turno && <span className="error-message">{formErrors.turno}</span>}
               </div>
@@ -1649,6 +1651,7 @@ const ReceptionistManagement = () => {
             <option value="Mañana">Mañana</option>
             <option value="Tarde">Tarde</option>
             <option value="Noche">Noche</option>
+            <option value="Madrugada">Madrugada</option>
           </select>
 
           {(searchTerm || selectedTurno) && (
@@ -1846,6 +1849,7 @@ const ReceptionistManagement = () => {
                   <option value="Mañana">Mañana</option>
                   <option value="Tarde">Tarde</option>
                   <option value="Noche">Noche</option>
+                  <option value="Madrugada">Madrugada</option>
                 </select>
                 {formErrors.turno && <span className="error-message">{formErrors.turno}</span>}
               </div>

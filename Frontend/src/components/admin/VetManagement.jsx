@@ -904,6 +904,7 @@ const VetManagement = () => {
               <option value="Mañana">Mañana</option>
               <option value="Tarde">Tarde</option>
               <option value="Noche">Noche</option>
+              <option value="Madrugada">Madrugada</option>
             </select>
 
             {(searchTerm || selectedTurno) && (
@@ -1168,6 +1169,7 @@ const VetManagement = () => {
                     <option value="Mañana">MAÑANA</option>
                     <option value="Tarde">TARDE</option>
                     <option value="Noche">NOCHE</option>
+                    <option value="Madrugada">MADRUGADA</option>
                   </select>
                   {formErrors.turno && <span className="error-message">{formErrors.turno}</span>}
                 </div>
@@ -2013,7 +2015,7 @@ const VetManagement = () => {
       header: 'TURNO',
       render: (vet) => {
         const turno = vet.turno || 'Sin turno';
-        return turno === 'Mañana' ? 'MAÑ' : turno === 'Tarde' ? 'TAR' : turno === 'Noche' ? 'NOC' : turno;
+        return turno === 'Mañana' ? 'MAÑ' : turno === 'Tarde' ? 'TAR' : turno === 'Noche' ? 'NOC' : turno === 'Madrugada' ? 'MAD' : turno;
       },
       style: { width: '60px', fontSize: '12px' }
     },
@@ -2136,6 +2138,7 @@ const VetManagement = () => {
             <option value="Mañana">Mañana</option>
             <option value="Tarde">Tarde</option>
             <option value="Noche">Noche</option>
+            <option value="Madrugada">Madrugada</option>
           </select>
 
           {(searchTerm || selectedTurno) && (
@@ -2360,6 +2363,7 @@ const VetManagement = () => {
                   <option value="Mañana">MAÑANA</option>
                   <option value="Tarde">TARDE</option>
                   <option value="Noche">NOCHE</option>
+                  <option value="Madrugada">MADRUGADA</option>
                 </select>
                 {formErrors.turno && <span className="error-message">{formErrors.turno}</span>}
               </div>
