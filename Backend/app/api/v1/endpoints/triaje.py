@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.config.database import get_db
 from app.crud.consulta_crud import (
-    triaje
+    triaje, solicitud_atencion
 )
 from app.models import Triaje
 
@@ -218,6 +218,18 @@ async def update_triaje(
 
         # Actualizar el triaje
         triaje_actualizado = triaje.update(db, db_obj=triaje_obj, obj_in=triaje_data)
+
+        # SC-018 / F23: al guardar el triaje, la solicitud avanza a "En triaje"
+        # (solo desde "Pendiente", para no regresar estados posteriores). Es un
+        # avance complementario: si falla, no debe romper el guardado del triaje.
+        try:
+            solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud)
+            if solicitud_obj and solicitud_obj.estado == "Pendiente":
+                solicitud_atencion.cambiar_estado(
+                    db, solicitud_id=triaje_obj.id_solicitud, nuevo_estado="En triaje"
+                )
+        except Exception:
+            pass
 
         return triaje_actualizado
 
