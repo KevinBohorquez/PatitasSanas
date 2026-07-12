@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
@@ -120,16 +121,9 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
         // Llamar a onSave para cerrar modal y refrescar datos
         onSave();
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => null);
         console.error('Error del servidor:', errorData);
-        
-        // Mostrar errores de validación específicos
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errorMessages = errorData.detail.map(err => err.msg).join('\n');
-          toast.error(`Errores de validación:\n${errorMessages}`);
-        } else {
-          toast.error(`Error al actualizar: ${errorData.detail || 'Error desconocido'}`);
-        }
+        toast.error(formatApiError(errorData, 'No se pudo actualizar el diagnóstico'));
       }
     } catch (error) {
       console.error('Error de red:', error);

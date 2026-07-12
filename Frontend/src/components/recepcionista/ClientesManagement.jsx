@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ClientesManagement.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
@@ -265,7 +266,7 @@ const ClientesManagement = () => {
           fetchClientes(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(formatApiError(errorData, 'No se pudo eliminar el cliente'));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -337,14 +338,8 @@ const ClientesManagement = () => {
         setShowModal(false);
         fetchClientes(); // Recargar la lista
       } else {
-        const errorData = await response.json();
-        let errorMessage = 'Error desconocido';
-        if (Array.isArray(errorData.detail)) {
-          errorMessage = errorData.detail.map(err => err.msg).join('\\n');
-        } else if (errorData.detail) {
-          errorMessage = errorData.detail;
-        }
-        toast.error(`Error al guardar: \\n${errorMessage}`);
+        const errorData = await response.json().catch(() => null);
+        toast.error(formatApiError(errorData, 'No se pudo guardar el cliente'));
       }
     } catch (error) {
       console.error('Error:', error);
@@ -835,7 +830,7 @@ const ClientesManagement = () => {
           fetchClientes(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(formatApiError(errorData, 'No se pudo eliminar el cliente'));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -901,7 +896,7 @@ const ClientesManagement = () => {
         fetchClientes(); // Recargar la lista
       } else {
         const errorData = await response.json();
-        toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(formatApiError(errorData, 'No se pudo guardar el cliente'));
       }
     } catch (error) {
       console.error('Error:', error);
@@ -1366,7 +1361,7 @@ const ClientesManagement = () => {
           fetchClientes(); 
         } else {
           const errorData = await response.json();
-          toast.error(`Error al eliminar cliente: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(formatApiError(errorData, 'No se pudo eliminar el cliente'));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -1432,7 +1427,7 @@ const ClientesManagement = () => {
         fetchClientes();
       } else {
         const errorData = await response.json();
-        toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
+        toast.error(formatApiError(errorData, 'No se pudo guardar el cliente'));
       }
     } catch (error) {
       console.error('Error:', error);

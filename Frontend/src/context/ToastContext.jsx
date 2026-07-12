@@ -11,11 +11,23 @@ import { createContext, useContext, useState, useCallback, useMemo, useEffect } 
 import { createPortal } from 'react-dom';
 import Toast from '../components/common/Toast/Toast';
 import { _bindToast } from '../utils/toast';
+import { truncate } from '../utils/apiError';
 import '../components/common/Toast/Toast.css';
 
 const ToastContext = createContext(null);
 
 let idSeq = 0;
+
+// Red de seguridad: normaliza cualquier mensaje a un texto corto de una sola
+// pieza, aunque el llamador pase un error crudo o gigante de la BD / validación.
+function normalizeMessage(message) {
+  if (message == null) return '';
+  if (typeof message !== 'string') {
+    // Un objeto/array (p. ej. el detail de un 422) nunca debe volcarse crudo.
+    try { message = JSON.stringify(message); } catch { message = String(message); }
+  }
+  return truncate(message, 220);
+}
 
 export function ToastProvider({
   children,
@@ -35,7 +47,7 @@ export function ToastProvider({
       id,
       type: opts.type || 'info',
       title: opts.title,
-      message: opts.message || '',
+      message: normalizeMessage(opts.message),
       duration: opts.duration ?? defaultDuration,
     };
     setToasts((prev) => [...prev, toast]);

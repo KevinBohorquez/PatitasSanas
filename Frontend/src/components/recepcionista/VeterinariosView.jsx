@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import './VeterinariosView.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 const VeterinariosView = () => {
@@ -74,7 +75,7 @@ const VeterinariosView = () => {
         if (response.status === 404) {
           setVeterinarios([]);
         } else {
-          toast.error(`Error al cargar los veterinarios: ${errorData.detail || response.statusText}`);
+          toast.error(formatApiError(errorData, 'No se pudieron cargar los veterinarios'));
         }
       }
     } catch (error) {

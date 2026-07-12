@@ -3,6 +3,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './MascotasManagement.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
@@ -106,7 +107,7 @@ const MascotasManagement = () => {
         if (response.status === 404) {
           setMascotas([]);
         } else {
-          toast.error(`Error al cargar las mascotas: ${errorData.detail || response.statusText}`);
+          toast.error(formatApiError(errorData, 'No se pudieron cargar las mascotas'));
         }
       }
     } catch (error) {
@@ -282,7 +283,7 @@ const MascotasManagement = () => {
           fetchMascotas(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          toast.error(`Error al eliminar mascota: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(formatApiError(errorData, 'No se pudo eliminar la mascota'));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -465,7 +466,7 @@ const MascotasManagement = () => {
         fetchMascotas(); 
       } else {
         console.error('Error del servidor');
-        toast.error(`Error: ${responseData.detail || 'Error desconocido al procesar la solicitud'}`);
+        toast.error(formatApiError(responseData, 'No se pudo guardar la mascota'));
       }
     } catch (error) {
       console.error('Error de conexión');
