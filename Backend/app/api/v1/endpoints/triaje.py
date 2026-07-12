@@ -229,7 +229,10 @@ async def update_triaje(
                     db, solicitud_id=triaje_obj.id_solicitud, nuevo_estado="En triaje"
                 )
         except Exception:
-            pass
+            # SC-052 / F37: un avance de estado fallido no debe envenenar la
+            # transacción ni romper el guardado del triaje (que triaje.update ya
+            # confirmó). Se descarta el cambio de estado incompleto.
+            db.rollback()
 
         return triaje_actualizado
 
