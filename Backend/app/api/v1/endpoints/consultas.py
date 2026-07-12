@@ -1120,6 +1120,15 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
     from app.crud.consulta_crud import cita as cita_crud
     cita_crud.marcar_atendida(db, cita_id=cita_id)
 
+    # SC-042 / F24: al registrar el resultado, el examen avanza a 'Completado'.
+    cita_obj = db.query(Cita).filter(Cita.id_cita == cita_id).first()
+    if cita_obj and cita_obj.id_servicio_solicitado:
+        ss = db.query(ServicioSolicitado).filter(
+            ServicioSolicitado.id_servicio_solicitado == cita_obj.id_servicio_solicitado
+        ).first()
+        if ss:
+            ss.estado_examen = 'Completado'
+
     db.commit()
     db.refresh(resultado_servicio)
 
