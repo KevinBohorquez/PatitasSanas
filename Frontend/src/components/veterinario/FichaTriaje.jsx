@@ -1,6 +1,7 @@
 // components/veterinario/FichaTriaje.jsx
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 
@@ -109,7 +110,10 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       // Preparar datos para enviar a la API
       const triageDataToSend = {
         id_solicitud: solicitud.id, // SIEMPRE incluir id_solicitud
-        id_veterinario: 1, // Aquí deberías obtener el ID del veterinario logueado
+        // Conservar el veterinario ya asignado por el trigger (auto-asignación).
+        // Antes estaba fijo en 1, lo que reasignaba el triaje al veterinario 1 en
+        // cada actualización y hacía que la solicitud desapareciera del veterinario real.
+        id_veterinario: triageData?.id_veterinario || 1,
         peso_mascota: parseFloat(formData.peso) || 0,
         latido_por_minuto: parseInt(formData.latidosPm) || 0,
         talla: parseFloat(formData.talla) || 0,
@@ -156,9 +160,9 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       console.log('Status de respuesta:', response.status);
       
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Error del servidor:', errorData);
-        throw new Error(`Error ${response.status}: ${errorData}`);
+        const errorBody = await response.json().catch(() => null);
+        console.error('Error del servidor:', errorBody);
+        throw new Error(formatApiError(errorBody, 'No se pudieron guardar los datos del triaje'));
       }
 
       const result = await response.json();
@@ -166,7 +170,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);
-      toast.error(`Error al guardar los datos del triaje: ${error.message}`);
+      toast.error(error.message || 'No se pudieron guardar los datos del triaje');
     }
   };
 
