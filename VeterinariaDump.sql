@@ -458,7 +458,7 @@ CREATE TABLE `Recepcionista` (
   `telefono` char(9) NOT NULL,
   `email` varchar(100) NOT NULL,
   `fecha_ingreso` date DEFAULT NULL,
-  `turno` enum('Mañana','Tarde','Noche') DEFAULT NULL,
+  `turno` enum('Mañana','Tarde','Noche','Madrugada') DEFAULT NULL,
   `genero` char(1) NOT NULL,
   PRIMARY KEY (`id_recepcionista`),
   UNIQUE KEY `id_usuario` (`id_usuario`),
@@ -728,6 +728,7 @@ DELIMITER ;;
                 WHEN (v.turno = 'Mañana' AND hora_peru >= 7 AND hora_peru < 13) 
                      OR (v.turno = 'Tarde' AND hora_peru >= 13 AND hora_peru < 19)
                      OR (v.turno = 'Noche' AND hora_peru >= 19 AND hora_peru < 23)
+                     OR (v.turno = 'Madrugada' AND (hora_peru >= 23 OR hora_peru < 7))
                 THEN 'Libre'
                 ELSE 'Fuera de turno'
             END
@@ -898,7 +899,7 @@ CREATE TABLE `Veterinario` (
   `email` varchar(100) NOT NULL,
   `fecha_ingreso` date NOT NULL,
   `disposicion` enum('Ocupado','Libre','Fuera de turno') DEFAULT 'Libre',
-  `turno` enum('Mañana','Tarde','Noche') NOT NULL,
+  `turno` enum('Mañana','Tarde','Noche','Madrugada') NOT NULL,
   PRIMARY KEY (`id_veterinario`),
   UNIQUE KEY `id_usuario` (`id_usuario`),
   UNIQUE KEY `dni` (`dni`),
@@ -1036,8 +1037,8 @@ BEGIN
     ELSEIF hora_actual >= 19 AND hora_actual < 23 THEN
         SET turno_actual = 'Noche';
     ELSE
-	-- Por defecto agarra el turno mañana 
-        SET turno_actual = 'Mañana';
+        -- Franja 23:00-07:00: turno Madrugada (SC-026 / F7).
+        SET turno_actual = 'Madrugada';
     END IF;
     
     -- Caso 1: Médicos GENERALES LIBRES en turno actual
@@ -1201,6 +1202,7 @@ BEGIN
         (turno = 'Mañana' AND (hora_total < 7 OR hora_total >= 13))
         OR (turno = 'Tarde' AND (hora_total < 13 OR hora_total >= 19))
         OR (turno = 'Noche' AND (hora_total < 19 OR hora_total >= 23))
+        OR (turno = 'Madrugada' AND (hora_total >= 7 AND hora_total < 23))
     );
     
     -- Cambiar a "Libre" veterinarios que están "Fuera de turno" pero ya en horario
@@ -1211,6 +1213,7 @@ BEGIN
         (turno = 'Mañana' AND hora_total >= 7 AND hora_total < 13)
         OR (turno = 'Tarde' AND hora_total >= 13 AND hora_total < 19)
         OR (turno = 'Noche' AND hora_total >= 19 AND hora_total < 23)
+        OR (turno = 'Madrugada' AND (hora_total >= 23 OR hora_total < 7))
     );
 END ;;
 DELIMITER ;
