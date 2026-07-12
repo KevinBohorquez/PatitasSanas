@@ -193,6 +193,9 @@ async def create_servicio_cita(
         db.add(nueva_cita)
         db.flush()  # Para obtener el ID de la cita sin hacer commit
 
+        # SC-042 / F24: al crear la cita, el examen avanza de 'Solicitado' a 'Citado'.
+        nuevo_servicio_solicitado.estado_examen = 'Citado'
+
         # Crear el diccionario para Resultado_servicio
         resultado_servicio_dict = {
             'id_cita': nueva_cita.id_cita,
