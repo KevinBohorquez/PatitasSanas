@@ -39,7 +39,7 @@ async def get_veterinarios(
 
         # Aplicar filtros opcionales
         if especialidad:
-            query = query.join(Veterinario.especialidad).filter(Especialidad.nombre.ilike(f"%{especialidad}%"))
+            query = query.join(Veterinario.especialidad).filter(Especialidad.descripcion.ilike(f"%{especialidad}%"))
         if tipo_veterinario:
             query = query.filter(Veterinario.tipo_veterinario == tipo_veterinario)
         if disposicion:
@@ -269,7 +269,7 @@ async def get_veterinarios_by_especialidad(
         return {
             "especialidad": {
                 "id": especialidad_obj.id_especialidad,
-                "nombre": especialidad_obj.nombre
+                "nombre": especialidad_obj.descripcion
             },
             "veterinarios": veterinarios,
             "total": total,
