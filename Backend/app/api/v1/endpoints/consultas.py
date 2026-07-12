@@ -184,6 +184,15 @@ async def delete_cita(
             detail="Cita no encontrada"
         )
 
+    # SC-039 / F20: no borrar una cita con Resultado_servicio. La cascada del ORM lo
+    # eliminaba en silencio, perdiendo el registro clínico registrado por el veterinario.
+    tiene_resultado = db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first()
+    if tiene_resultado:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No se puede eliminar la cita: tiene un resultado de servicio asociado.",
+        )
+
     cita.remove(db, id=cita_id)
     return {"message": "Cita eliminada correctamente", "success": True}
 
