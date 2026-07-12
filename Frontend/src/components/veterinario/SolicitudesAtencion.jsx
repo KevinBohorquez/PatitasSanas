@@ -8,6 +8,7 @@ import FichaConsulta from './FichaConsulta';
 import { useAuth } from '../../context/AuthContext';
 import './SolicitudesAtencion.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 
 const SolicitudesAtencion = () => {
   const { user } = useAuth(); // Obtener usuario del contexto
@@ -38,7 +39,7 @@ const SolicitudesAtencion = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+        throw new Error(formatApiError(errorData, 'No se pudo actualizar la disposición del veterinario'));
       }
 
       const data = await response.json();

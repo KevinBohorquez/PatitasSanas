@@ -5,6 +5,7 @@ import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 
@@ -194,8 +195,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         }
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Error ${response.status}: ${errorText}`);
+          const errorBody = await response.json().catch(() => null);
+          throw new Error(formatApiError(errorBody, 'No se pudo guardar la consulta'));
         }
 
         const result = await response.json();
@@ -209,7 +210,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
       } catch (error) {
         console.error('Error al guardar consulta:', error);
-        toast.error(`Error al guardar la consulta: ${error.message}`);
+        toast.error(error.message || 'No se pudo guardar la consulta');
       }
     };
 
@@ -240,22 +241,22 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error ${response.status}: ${errorText}`);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(formatApiError(errorBody, 'No se pudo añadir el diagnóstico'));
       }
 
       const result = await response.json();
       console.log('Diagnóstico añadido exitosamente:', result);
-      
+
       toast.success(`Diagnóstico añadido correctamente. ID: ${result.id}`);
-      
+
       if (triageData?.id_triaje) {
         await fetchDiagnosticos(triageData.id_triaje);
       }
-      
+
     } catch (error) {
       console.error('Error al añadir diagnóstico:', error);
-      toast.error(`Error al añadir diagnóstico: ${error.message}`);
+      toast.error(error.message || 'No se pudo añadir el diagnóstico');
     }
   };
 

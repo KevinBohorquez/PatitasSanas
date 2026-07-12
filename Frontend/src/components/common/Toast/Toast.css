@@ -91,6 +91,14 @@
   line-height: 1.4;
   color: #475569;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  /* Tope de altura: máximo 5 líneas con puntos suspensivos, para que un error
+     largo nunca genere una notificación gigante. */
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .toast__close {

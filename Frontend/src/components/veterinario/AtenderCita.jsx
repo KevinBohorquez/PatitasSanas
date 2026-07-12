@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import Loader from '../common/Loader/Loader';
+import { formatApiError } from '../../utils/apiError';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -147,20 +148,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       );
 
       if (!response.ok) {
-        let errorMessage = `Error HTTP ${response.status}`;
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) {
-            if (typeof errorData.detail === 'string') {
-              errorMessage = errorData.detail;
-            } else if (Array.isArray(errorData.detail)) {
-              errorMessage = errorData.detail.map(e => e.msg).join(', ');
-            }
-          }
-        } catch {
-          errorMessage = `Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(formatApiError(errorBody, 'No se pudo guardar el resultado de la cita'));
       }
 
       const data = await response.json();

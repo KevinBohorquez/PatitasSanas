@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from '../common/Table';
 import './ServiciosView.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 const ServiciosView = () => {
@@ -74,7 +75,7 @@ const ServiciosView = () => {
         if (response.status === 404) {
           setServicios([]);
         } else {
-          toast.error(`Error al cargar los servicios: ${errorData.detail || response.statusText}`);
+          toast.error(formatApiError(errorData, 'No se pudieron cargar los servicios'));
         }
       }
     } catch (error) {
