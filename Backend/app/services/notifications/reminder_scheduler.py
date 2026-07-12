@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy import text
 
 from app.config.database import SessionLocal
 from app.models.cita import Cita
@@ -81,6 +82,27 @@ def check_reminders() -> None:
     _enviar_recordatorios(4)
 
 
+def actualizar_turnos_veterinarios() -> None:
+    """
+    Ejecuta el procedimiento ActualizarTurnosVeterinarios desde la app (SC-028 / F9),
+    para no depender del event_scheduler de MySQL, que en Railway puede estar apagado
+    y dejar las disposiciones de turno sin actualizarse.
+    """
+    db = SessionLocal()
+    try:
+        db.execute(text("CALL ActualizarTurnosVeterinarios()"))
+        db.commit()
+        logger.info(
+            "Scheduler: turnos de veterinarios actualizados [%s]",
+            datetime.now().strftime("%H:%M:%S"),
+        )
+    except Exception as exc:
+        logger.error("Error al actualizar turnos de veterinarios: %s", exc)
+        db.rollback()
+    finally:
+        db.close()
+
+
 def start_scheduler() -> None:
     scheduler.add_job(
         check_reminders,
@@ -89,8 +111,17 @@ def start_scheduler() -> None:
         id="reminder_job",
         replace_existing=True,
     )
+    # SC-028 / F9: actualizar disposiciones de turno desde la app (no depender del
+    # event_scheduler de MySQL, que en Railway puede estar OFF).
+    scheduler.add_job(
+        actualizar_turnos_veterinarios,
+        trigger="interval",
+        minutes=5,
+        id="turnos_job",
+        replace_existing=True,
+    )
     scheduler.start()
-    logger.info("Scheduler de recordatorios iniciado (cada 30 min)")
+    logger.info("Scheduler iniciado (recordatorios cada 30 min; turnos cada 5 min)")
 
 
 def stop_scheduler() -> None:
