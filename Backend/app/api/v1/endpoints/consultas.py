@@ -521,6 +521,20 @@ async def update_consulta(
         # Actualizar la recepcionista
         consulta_actualizada = consulta.update(db, db_obj=consulta_obj, obj_in=consulta_data)
 
+        # SC-018 / F23: al guardar la consulta, la solicitud avanza a "En atencion"
+        # (solo desde "Pendiente"/"En triaje"). Con esto el trigger de liberación del
+        # veterinario (En atencion -> Completada) ya se dispara al finalizar.
+        try:
+            triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+            if triaje_obj:
+                solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud)
+                if solicitud_obj and solicitud_obj.estado in ("Pendiente", "En triaje"):
+                    solicitud_atencion.cambiar_estado(
+                        db, solicitud_id=triaje_obj.id_solicitud, nuevo_estado="En atencion"
+                    )
+        except Exception:
+            pass
+
         return consulta_actualizada
 
     except HTTPException:
