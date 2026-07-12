@@ -9,7 +9,10 @@ class Cita(Base):
     id_cita = Column(Integer, primary_key=True, autoincrement=True)
     id_mascota = Column(Integer, ForeignKey('Mascota.id_mascota'))
     id_servicio_solicitado = Column(Integer, ForeignKey('Servicio_Solicitado.id_servicio_solicitado'))
-    
+    # Veterinario asignado a la cita (SC-016 / F4). El recepcionista lo elige al
+    # programar; antes se descartaba por no existir esta columna ni en el schema.
+    id_veterinario = Column(Integer, ForeignKey('Veterinario.id_veterinario'), nullable=True)
+
     fecha_hora_programada = Column(DateTime, nullable=False)
     estado_cita = Column(SQLEnum(
         'Programada', 

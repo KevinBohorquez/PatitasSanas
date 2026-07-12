@@ -312,6 +312,7 @@ class CitaCreate(BaseModel):
     id_mascota: int
     fecha_hora_programada: datetime
     id_servicio_solicitado: Optional[int] = None
+    id_veterinario: Optional[int] = None  # SC-016 / F4: veterinario asignado por el recepcionista
     requiere_ayuno: Optional[bool] = None
     observaciones: Optional[str] = None
     
@@ -347,6 +348,7 @@ class CitaResponse(BaseResponse):
     id_cita: int
     id_mascota: int
     id_servicio_solicitado: Optional[int]
+    id_veterinario: Optional[int]  # SC-016 / F4
     fecha_hora_programada: datetime
     estado_cita: str
     requiere_ayuno: Optional[bool]

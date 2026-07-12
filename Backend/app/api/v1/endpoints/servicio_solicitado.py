@@ -182,6 +182,7 @@ async def create_servicio_cita(
         cita_dict = {
             'id_mascota': id_mascota,
             'id_servicio_solicitado': nuevo_servicio_solicitado.id_servicio_solicitado,
+            'id_veterinario': request_data.id_veterinario,  # SC-016 / F4: asignar el vet también en la Cita
             'fecha_hora_programada': request_data.fecha_hora_programada,
             'estado_cita': 'Programada',  # Fijo como solicitaste
             'requiere_ayuno': request_data.requiere_ayuno,
