@@ -634,7 +634,7 @@ DELIMITER ;;
     
     IF NEW.estado = 'Pendiente' THEN
         SET veterinario_asignado = asignar_veterinario_optimo();
-        SET fecha_actual = COALESCE(CONVERT_TZ(NOW(), 'UTC', 'America/Lima'), NOW());
+        SET fecha_actual = (NOW() - INTERVAL 5 HOUR);
         IF veterinario_asignado IS NOT NULL THEN
             -- registro en Triaje
             INSERT INTO Triaje (
@@ -717,7 +717,7 @@ DELIMITER ;;
         -- CASO 2: "En atencion" → "Completada"
         IF NEW.estado = 'Completada' AND OLD.estado = 'En atencion' THEN
             -- Obtener hora de Perú
-            SET hora_peru = HOUR(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
+            SET hora_peru = HOUR((NOW() - INTERVAL 5 HOUR));
             IF hora_peru IS NULL THEN
                 SET hora_peru = HOUR(NOW());
             END IF;
@@ -1026,7 +1026,7 @@ BEGIN
     DECLARE hora_actual INT;
     DECLARE turno_actual VARCHAR(10);
 
-    SET hora_actual = HOUR(COALESCE(CONVERT_TZ(NOW(), 'UTC', 'America/Lima'), NOW()));
+    SET hora_actual = HOUR((NOW() - INTERVAL 5 HOUR));
     
     -- Hallamos el turno actual según la hora
     IF hora_actual >= 7 AND hora_actual < 13 THEN
@@ -1211,8 +1211,8 @@ BEGIN
     DECLARE hora_total DECIMAL(4,2);
     
     -- Asegurar que usamos hora de Perú
-    SET hora_actual = HOUR(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
-    SET minuto_actual = MINUTE(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
+    SET hora_actual = HOUR((NOW() - INTERVAL 5 HOUR));
+    SET minuto_actual = MINUTE((NOW() - INTERVAL 5 HOUR));
     SET hora_total = hora_actual + (minuto_actual / 60);
     
     -- Si no funciona CONVERT_TZ, usar hora local ajustada
