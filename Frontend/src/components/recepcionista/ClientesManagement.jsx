@@ -9,6 +9,7 @@ import { confirm } from '../../utils/confirm';
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
@@ -68,6 +69,7 @@ const ClientesManagement = () => {
     }
 
     setFilteredClientes(filtered);
+    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
   };
 
   // Función para validar campos en tiempo real
@@ -157,7 +159,9 @@ const ClientesManagement = () => {
   const fetchClientes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/clientes/`, {
+      // SC-019 / F25: pedir hasta el máximo del backend para no truncar el listado
+      // a la primera página (se pagina en el cliente sobre los resultados filtrados).
+      const response = await fetch(`${BASE_URL}/clientes/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -386,6 +390,14 @@ const ClientesManagement = () => {
     return <Loader message="Cargando clientes" />;
   }
 
+  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
+  const ITEMS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(filteredClientes.length / ITEMS_POR_PAGINA));
+  const clientesPagina = filteredClientes.slice(
+    (currentPage - 1) * ITEMS_POR_PAGINA,
+    currentPage * ITEMS_POR_PAGINA
+  );
+
   return (
     <div className="clientes-management">
       <div className="section-header">
@@ -445,7 +457,7 @@ const ClientesManagement = () => {
 
         <Table
           columns={columns}
-          data={filteredClientes}
+          data={clientesPagina}
           actions={actions}
           emptyMessage={
             searchTerm || statusFilter !== 'todos'
@@ -453,6 +465,29 @@ const ClientesManagement = () => {
               : "No hay clientes registrados"
           }
         />
+
+        {totalPaginas > 1 && (
+          <div
+            className="pagination-controls"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}
+          >
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPaginas}</span>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.min(totalPaginas, p + 1))}
+              disabled={currentPage === totalPaginas}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal
@@ -670,6 +705,7 @@ import './ClientesManagement.css';
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add'); 
@@ -726,6 +762,7 @@ const ClientesManagement = () => {
     }
 
     setFilteredClientes(filtered);
+    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
   };
 
   // Obtener todos los clientes
@@ -942,6 +979,14 @@ const ClientesManagement = () => {
   if (loading && clientes.length === 0) {
     return <Loader message="Cargando clientes" />;
   }
+
+  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
+  const ITEMS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(filteredClientes.length / ITEMS_POR_PAGINA));
+  const clientesPagina = filteredClientes.slice(
+    (currentPage - 1) * ITEMS_POR_PAGINA,
+    currentPage * ITEMS_POR_PAGINA
+  );
 
   return (
     <div className="clientes-management">
@@ -1201,6 +1246,7 @@ import './ClientesManagement.css';
 const ClientesManagement = () => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add'); 
@@ -1257,6 +1303,7 @@ const ClientesManagement = () => {
     }
 
     setFilteredClientes(filtered);
+    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
   };
 
   // Función para obtener todos los clientes
@@ -1473,6 +1520,14 @@ const ClientesManagement = () => {
   if (loading && clientes.length === 0) {
     return <Loader message="Cargando clientes" />;
   }
+
+  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
+  const ITEMS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(filteredClientes.length / ITEMS_POR_PAGINA));
+  const clientesPagina = filteredClientes.slice(
+    (currentPage - 1) * ITEMS_POR_PAGINA,
+    currentPage * ITEMS_POR_PAGINA
+  );
 
   return (
     <div className="clientes-management">
