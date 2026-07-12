@@ -954,6 +954,8 @@ async def get_historial_clinico_mascota(
             for e in eventos
         ]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -986,6 +988,8 @@ async def get_cita_by_id(cita_id: int, db: Session = Depends(get_db)):
             "nombre_servicio": cita_obj.nombre_servicio  # Nombre del servicio asociado
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -1019,6 +1023,8 @@ async def get_cita_by_id(cita_id: int, db: Session = Depends(get_db)):
             "veterinario": f"{cita.veterinario_nombre} {cita.veterinario_apellido}"
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -1037,6 +1043,8 @@ async def get_mascota_from_cita(cita_id: int, db: Session = Depends(get_db)):
             "nombre_mascota": result.nombre
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -1152,6 +1160,8 @@ async def get_diagnosticos_by_consulta(
         # Retornar la lista de diagnósticos
         return diagnosticos
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -1205,6 +1215,8 @@ async def get_tratamiento_patologia_by_diagnostico(
             for t, p, d in tratamiento_patologia_diagnostico
         ]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,

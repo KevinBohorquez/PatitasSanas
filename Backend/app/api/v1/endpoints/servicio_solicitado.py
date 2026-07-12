@@ -89,6 +89,8 @@ async def update_servicio_solicitado(id_servicio_solicitado: int, servicio_solic
         db.refresh(servicio)
 
         return servicio
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al actualizar servicio solicitado: {str(e)}")
 
