@@ -184,13 +184,19 @@ async def delete_cita(
             detail="Cita no encontrada"
         )
 
-    # SC-039 / F20: no borrar una cita con Resultado_servicio. La cascada del ORM lo
-    # eliminaba en silencio, perdiendo el registro clínico registrado por el veterinario.
-    tiene_resultado = db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first()
-    if tiene_resultado:
+    # SC-039 / SC-044 (F20 / F28): no borrar una cita con dependientes. La cascada del
+    # ORM eliminaba el Resultado_servicio en silencio (pérdida del registro clínico), y
+    # el Movimiento_Financiero (FK NO ACTION) hacía fallar el borrado con 500.
+    from app.models.movimiento_financiero import MovimientoFinanciero
+    dependientes = []
+    if db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first():
+        dependientes.append("un resultado de servicio")
+    if db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_cita == cita_id).first():
+        dependientes.append("un movimiento financiero")
+    if dependientes:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="No se puede eliminar la cita: tiene un resultado de servicio asociado.",
+            detail=f"No se puede eliminar la cita: tiene {' y '.join(dependientes)} asociado(s).",
         )
 
     cita.remove(db, id=cita_id)
