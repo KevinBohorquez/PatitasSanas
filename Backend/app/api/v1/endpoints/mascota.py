@@ -35,21 +35,16 @@ async def create_mascota(
             detail="Cliente no existe"
         )
 
-    # Verificar que la raza existe
-    try:
-        raza_exists = db.execute(
-            "SELECT COUNT(*) as count FROM Raza WHERE id_raza = :id_raza",
-            {"id_raza": mascota_data.id_raza}
-        ).fetchone()
-
-        if not raza_exists or raza_exists.count == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Raza no existe"
-            )
-    except Exception:
-        # Si no existe tabla Raza, continuar
-        pass
+    # Verificar que la raza existe (SC-037 / F18: debe responder 400, no 500).
+    # Antes se usaba SQL crudo dentro de un try/except que tragaba tanto un posible
+    # error de consulta como el propio HTTPException(400), dejando la validación
+    # muerta: con una raza inexistente la FK fallaba después y devolvía un 500.
+    raza_obj = db.query(Raza).filter(Raza.id_raza == mascota_data.id_raza).first()
+    if not raza_obj:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Raza no existe"
+        )
 
     # Crear la mascota
     nueva_mascota = mascota.create(db, obj_in=mascota_data)
