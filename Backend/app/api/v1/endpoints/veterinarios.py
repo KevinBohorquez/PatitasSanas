@@ -1,6 +1,7 @@
 # app/api/v1/endpoints/veterinarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import case
 from typing import Optional
 
 from app.config.database import get_db
@@ -74,20 +75,36 @@ async def get_veterinarios_disponibles(
         especialidad_id: Optional[int] = Query(None, description="Filtrar por ID de especialidad")
 ):
     """
-    Obtener veterinarios disponibles (disposicion = 'Libre')
+    Obtener veterinarios ASIGNABLES para una cita (SC-017 / F5).
+
+    Antes filtraba disposicion='Libre', lo que dejaba la lista frecuentemente
+    vacía (hueco de turnos 23:00-07:00, CONVERT_TZ NULL, etc.). Ahora devuelve
+    todos los veterinarios ACTIVOS ordenados por disposición
+    (Libre -> Ocupado -> Fuera de turno), para que la recepcionista siempre tenga
+    a quién asignar y vea el estado de cada uno.
 
     IMPORTANTE: debe declararse ANTES de "/{veterinario_id}" para que FastAPI
     no intente parsear "disponibles" como un id entero (causaría un 422).
     """
     try:
-        query = db.query(Veterinario).filter(Veterinario.disposicion == "Libre")
+        # Orden por disposición: primero los Libres, luego Ocupados, luego el resto.
+        orden_disposicion = case(
+            (Veterinario.disposicion == "Libre", 0),
+            (Veterinario.disposicion == "Ocupado", 1),
+            else_=2,
+        )
+
+        # Solo veterinarios cuyo usuario está Activo (consistente con SC-036).
+        query = db.query(Veterinario) \
+            .join(Usuario, Usuario.id_usuario == Veterinario.id_usuario) \
+            .filter(Usuario.estado == "Activo")
 
         if turno:
             query = query.filter(Veterinario.turno == turno)
         if especialidad_id:
             query = query.filter(Veterinario.id_especialidad == especialidad_id)
 
-        veterinarios = query.all()
+        veterinarios = query.order_by(orden_disposicion, Veterinario.id_veterinario).all()
 
         return {
             "veterinarios_disponibles": veterinarios,
