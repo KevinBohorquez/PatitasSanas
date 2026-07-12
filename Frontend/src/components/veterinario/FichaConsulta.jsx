@@ -61,18 +61,18 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   // Cargar datos de consulta
   const fetchConsultaData = async (idTriaje) => {
     try {
-      const response = await fetch('/api/v1/consultas/');
-      
+      // SC-040 / F21: obtener la consulta del triaje directamente. Antes se traía
+      // la primera página de /consultas/ (20 por página) y se filtraba en memoria,
+      // lo que fallaba al superar 20 consultas si la del triaje no estaba en esa página.
+      const response = await fetch(`/api/v1/consultas/triaje/${idTriaje}`);
+
       if (response.ok) {
-        const data = await response.json();
-        const consultaEncontrada = data.consultas.find(
-          consulta => consulta.id_triaje === idTriaje
-        );
-        
+        // El endpoint devuelve la consulta del triaje, o null si aún no existe.
+        const consultaEncontrada = await response.json();
+
         if (consultaEncontrada) {
           setConsultaData(consultaEncontrada);
-          console.log('Consulta encontrada:', consultaEncontrada);
-          
+
           setFormData({
             motivoConsulta: consultaEncontrada.motivo_consulta || '',
             diagnosticoPreliminar: consultaEncontrada.diagnostico_preliminar || '',
@@ -82,8 +82,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
             tipoConsulta: consultaEncontrada.tipo_consulta || '',
             esSeguimiento: consultaEncontrada.es_seguimiento || false
           });
-        } else {
-          console.log('No existe consulta para este triaje, creando nueva');
         }
       } else {
         throw new Error('Error al cargar datos de consulta');

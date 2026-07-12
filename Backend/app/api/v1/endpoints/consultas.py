@@ -514,6 +514,26 @@ async def get_consultas(
             detail=f"Error al obtener consultas: {str(e)}"
         )
 
+
+@router.get("/triaje/{id_triaje}")
+async def get_consulta_by_triaje(id_triaje: int, db: Session = Depends(get_db)):
+    """
+    Obtener la consulta asociada a un triaje (SC-040 / F21).
+
+    Reemplaza el patrón del frontend de traer la primera página de /consultas/ y
+    filtrar en memoria (se rompía al superar 20 consultas y no encontrar la del
+    triaje en esa página). Retorna la consulta del triaje, o null (200) si el
+    triaje aún no tiene consulta.
+    """
+    try:
+        return consulta.get_by_triaje(db, triaje_id=id_triaje)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener la consulta del triaje: {str(e)}"
+        )
+
+
 @router.put("/{consulta_id}", response_model=ConsultaResponse)
 async def update_consulta(
         consulta_id: int,
