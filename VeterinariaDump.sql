@@ -249,7 +249,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `before_diagnostico_insert` BEFORE INSERT ON `Diagnostico` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `before_diagnostico_insert` BEFORE INSERT ON `Diagnostico` FOR EACH ROW BEGIN
     -- 1. Insertamos la patología con valores por defecto para los campos opcionales
     INSERT INTO Patologia (nombre_patologia, especie_afecta, gravedad, es_crónica, es_contagiosa)
     VALUES (NULL, 'Ambas', 'Moderada', False, False);  -- Asignamos valores por defecto en lugar de NULL
@@ -627,7 +627,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `crear_triaje_y_consulta_automatico` AFTER INSERT ON `Solicitud_atencion` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `crear_triaje_y_consulta_automatico` AFTER INSERT ON `Solicitud_atencion` FOR EACH ROW BEGIN
     DECLARE veterinario_asignado INT;
     DECLARE triaje_id INT;
     DECLARE fecha_actual DATETIME;
@@ -694,7 +694,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `trigger_veterinario_disponibilidad` AFTER UPDATE ON `Solicitud_atencion` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `trigger_veterinario_disponibilidad` AFTER UPDATE ON `Solicitud_atencion` FOR EACH ROW BEGIN
     DECLARE vet_id INT DEFAULT NULL;
     DECLARE hora_peru INT;
     
@@ -996,7 +996,7 @@ DELIMITER ;;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;;
 /*!50003 SET @saved_time_zone      = @@time_zone */ ;;
 /*!50003 SET time_zone             = 'SYSTEM' */ ;;
-/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`%`*/ /*!50106 EVENT `EventoActualizarTurnos` ON SCHEDULE EVERY 5 MINUTE STARTS '2025-07-08 01:18:24' ON COMPLETION NOT PRESERVE ENABLE DO CALL ActualizarTurnosVeterinarios() */ ;;
+/*!50106 CREATE*/ /*!50106 EVENT `EventoActualizarTurnos` ON SCHEDULE EVERY 5 MINUTE STARTS '2025-07-08 01:18:24' ON COMPLETION NOT PRESERVE ENABLE DO CALL ActualizarTurnosVeterinarios() */ ;;
 /*!50003 SET time_zone             = @saved_time_zone */ ;;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;;
@@ -1018,7 +1018,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` FUNCTION `asignar_veterinario_optimo`() RETURNS int
+CREATE FUNCTION `asignar_veterinario_optimo`() RETURNS int
     READS SQL DATA
     DETERMINISTIC
 BEGIN
@@ -1175,7 +1175,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` PROCEDURE `ActualizarTurnosVeterinarios`()
+CREATE PROCEDURE `ActualizarTurnosVeterinarios`()
 BEGIN
     DECLARE hora_actual INT;
     DECLARE minuto_actual INT;
