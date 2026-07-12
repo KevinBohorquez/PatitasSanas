@@ -70,7 +70,7 @@ async def get_servicio_solicitado_pendiente_por_id(id_servicio_solicitado: int, 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener servicio solicitado: {str(e)}")
 
-@router.put("/id_servicio_solicitado}", response_model=ServicioSolicitadoResponse)
+@router.put("/{id_servicio_solicitado}", response_model=ServicioSolicitadoResponse)
 async def update_servicio_solicitado(id_servicio_solicitado: int, servicio_solicitado: ServicioSolicitadoUpdate, db: Session = Depends(get_db)):
     """
     Actualizar un servicio solicitado
