@@ -511,6 +511,26 @@ async def update_consulta(
         # Actualizar la recepcionista
         consulta_actualizada = consulta.update(db, db_obj=consulta_obj, obj_in=consulta_data)
 
+        # SC-043 / F26: registrar el evento de consulta en el historial clínico. El PUT
+        # se llama en cada guardado, así que se agrega una sola vez por consulta. El
+        # historial es complementario: si falla, no debe romper el guardado.
+        try:
+            if not historial_clinico.get_by_consulta(db, consulta_id=consulta_id):
+                triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+                solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud) if triaje_obj else None
+                if solicitud_obj:
+                    historial_clinico.add_evento_consulta(
+                        db,
+                        mascota_id=solicitud_obj.id_mascota,
+                        consulta_id=consulta_id,
+                        veterinario_id=consulta_obj.id_veterinario,
+                        descripcion=consulta_actualizada.motivo_consulta
+                        or consulta_actualizada.tipo_consulta
+                        or "Consulta médica",
+                    )
+        except Exception:
+            pass
+
         return consulta_actualizada
 
     except HTTPException:
@@ -1297,6 +1317,23 @@ async def create_diagnostico(
 
         # Crear el diagnóstico usando el método CRUD
         nuevo_diagnostico = diagnostico.create(db, obj_in=diagnostico_dict)
+
+        # SC-043 / F26: registrar el diagnóstico en el historial clínico (este es el
+        # endpoint que usa la UI del veterinario). Complementario: si falla, no rompe
+        # la creación del diagnóstico.
+        try:
+            triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+            solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud) if triaje_obj else None
+            if solicitud_obj:
+                historial_clinico.add_evento_diagnostico(
+                    db,
+                    mascota_id=solicitud_obj.id_mascota,
+                    diagnostico_id=nuevo_diagnostico.id_diagnostico,
+                    veterinario_id=consulta_obj.id_veterinario,
+                    descripcion=nuevo_diagnostico.diagnostico or "Diagnóstico",
+                )
+        except Exception:
+            pass
 
         return {"detail": "Diagnóstico insertado correctamente", "id": nuevo_diagnostico.id_diagnostico}
 
