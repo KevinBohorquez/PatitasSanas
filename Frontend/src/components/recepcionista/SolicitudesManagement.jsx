@@ -11,6 +11,7 @@ const SolicitudesManagement = () => {
   const { user } = useAuth();
   const [solicitudes, setSolicitudes] = useState([]);
   const [filteredSolicitudes, setFilteredSolicitudes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
   const [mascotas, setMascotas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -173,13 +174,16 @@ const SolicitudesManagement = () => {
     }
 
     setFilteredSolicitudes(filtered);
+    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
   };
 
   // Función para obtener todas las solicitudes
   const fetchSolicitudes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/solicitudes/`, {
+      // SC-019 / F25: pedir hasta el máximo del backend (este endpoint usa 'limit')
+      // para no truncar el listado; se pagina en el cliente sobre lo filtrado.
+      const response = await fetch(`${BASE_URL}/solicitudes/?limit=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -521,6 +525,14 @@ const SolicitudesManagement = () => {
     }
   ];
 
+  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
+  const ITEMS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(filteredSolicitudes.length / ITEMS_POR_PAGINA));
+  const solicitudesPagina = filteredSolicitudes.slice(
+    (currentPage - 1) * ITEMS_POR_PAGINA,
+    currentPage * ITEMS_POR_PAGINA
+  );
+
   return (
     <div className="solicitudes-management">
       <div className="section-header">
@@ -579,12 +591,35 @@ const SolicitudesManagement = () => {
         {loading ? (
           <Loader message="Cargando solicitudes" />
         ) : (
-          <Table 
+          <Table
             columns={columns}
-            data={filteredSolicitudes}
+            data={solicitudesPagina}
             actions={actions}
             emptyMessage="No hay solicitudes registradas"
           />
+        )}
+
+        {!loading && totalPaginas > 1 && (
+          <div
+            className="pagination-controls"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}
+          >
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPaginas}</span>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.min(totalPaginas, p + 1))}
+              disabled={currentPage === totalPaginas}
+            >
+              Siguiente
+            </button>
+          </div>
         )}
       </div>
 
