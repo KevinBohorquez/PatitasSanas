@@ -1,6 +1,6 @@
 # app/crud/catalogo_crud.py (VERSIÓN COMPLETA)
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, case
 from typing import List, Optional, Tuple, Dict, Any
 from app.crud.base_crud import CRUDBase
 from app.models.cliente_mascota import ClienteMascota
@@ -163,8 +163,7 @@ class CRUDEspecialidad(CRUDBase[Especialidad, EspecialidadCreate, None]):
             Especialidad.descripcion,
             func.count(Veterinario.id_veterinario).label('total_veterinarios'),
             func.sum(
-                func.case(
-                    [(Veterinario.disposicion == 'Libre', 1)], 
+                case((Veterinario.disposicion == 'Libre', 1), 
                     else_=0
                 )
             ).label('veterinarios_disponibles')
@@ -229,8 +228,7 @@ class CRUDTipoServicio(CRUDBase[TipoServicio, TipoServicioCreate, None]):
             TipoServicio.descripcion,
             func.count(Servicio.id_servicio).label('total_servicios'),
             func.sum(
-                func.case(
-                    [(Servicio.activo == True, 1)], 
+                case((Servicio.activo == True, 1), 
                     else_=0
                 )
             ).label('servicios_activos')

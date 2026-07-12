@@ -1,6 +1,6 @@
 # app/crud/reportes_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_, or_
+from sqlalchemy import func, desc, and_, or_, case
 from typing import Dict, Any
 from datetime import date, timedelta
 from app.models.clientes import Cliente
@@ -97,7 +97,7 @@ class CRUDReportes:
         por_turno = db.query(
             Veterinario.turno,
             func.count(Veterinario.id_veterinario).label('total'),
-            func.sum(func.case([(Veterinario.disposicion == 'Libre', 1)], else_=0)).label('disponibles')
+            func.sum(case((Veterinario.disposicion == 'Libre', 1), else_=0)).label('disponibles')
         ).group_by(Veterinario.turno).all()
         
         return {
