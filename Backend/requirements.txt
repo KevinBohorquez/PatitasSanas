@@ -38,3 +38,7 @@ reportlab==4.1.0
 # Background Jobs & Emails
 apscheduler==3.10.4
 fastapi-mail==1.4.1
+
+# SC-020 / F27: subida de adjuntos a Google Drive
+google-api-python-client==2.108.0
+google-auth==2.25.2
