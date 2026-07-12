@@ -217,22 +217,17 @@ async def update_mascota(
             detail="Mascota no encontrada"
         )
 
-    # Validar raza si se está actualizando
+    # Validar raza si se está actualizando (SC-037 / F18: mismo patrón que create_mascota,
+    # debe responder 400, no 500). Antes se usaba SQL crudo dentro de un try/except que
+    # tragaba tanto un posible error de consulta como el propio HTTPException(400).
     update_data = mascota_data.dict(exclude_unset=True)
     if "id_raza" in update_data:
-        try:
-            raza_exists = db.execute(
-                "SELECT COUNT(*) as count FROM Raza WHERE id_raza = :id_raza",
-                {"id_raza": update_data["id_raza"]}
-            ).fetchone()
-
-            if not raza_exists or raza_exists.count == 0:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Raza no existe"
-                )
-        except Exception:
-            pass
+        raza_obj = db.query(Raza).filter(Raza.id_raza == update_data["id_raza"]).first()
+        if not raza_obj:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Raza no existe"
+            )
 
     return mascota.update(db, db_obj=mascota_obj, obj_in=mascota_data)
 
