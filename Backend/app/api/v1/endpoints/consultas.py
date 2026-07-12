@@ -927,16 +927,20 @@ async def get_historial_clinico_mascota(
     Obtener historial clínico de una mascota y sus consultas
     """
     try:
-        # Consultar las consultas relacionadas con la mascota, pasando por Solicitud_atencion, Triaje y Consulta
-        eventos = db.query(Consulta).join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Consulta.id_triaje) \
+        # Consultar las consultas relacionadas con la mascota, pasando por la cadena
+        # correcta: Consulta -> Triaje -> Solicitud_atencion -> Mascota.
+        # (Antes se cruzaba SolicitudAtencion.id_solicitud == Consulta.id_triaje, lo que
+        # comparaba un id de solicitud con un id de triaje y solo coincidía por casualidad
+        # en los registros donde ambos ids eran iguales.)
+        eventos = db.query(Consulta) \
             .join(Triaje, Triaje.id_triaje == Consulta.id_triaje) \
-            .join(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota) \
-            .filter(Mascota.id_mascota == mascota_id) \
+            .join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Triaje.id_solicitud) \
+            .filter(SolicitudAtencion.id_mascota == mascota_id) \
+            .order_by(Consulta.fecha_consulta.desc()) \
             .limit(limit).all()
 
-        if not eventos:
-            raise HTTPException(status_code=404, detail="No se encontraron consultas para esta mascota")
-
+        # Si la mascota no tiene consultas, devolver lista vacía (HTTP 200) en lugar
+        # de 404, para que el front muestre un historial vacío y no un error.
         # Mapear los eventos para devolverlos en el formato adecuado
         return [
             {
