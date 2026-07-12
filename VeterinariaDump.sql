@@ -1157,7 +1157,36 @@ BEGIN
             v.id_veterinario ASC
         LIMIT 1;
     END IF;
-    
+
+    -- Caso 6: ULTIMO RECURSO ABSOLUTO - cualquier veterinario existente.
+    -- Garantiza que toda solicitud reciba un triaje y sea visible para algun
+    -- veterinario, aunque ningun caso anterior calce (p. ej. solo hay Medicos
+    -- Generales fuera de turno). Prioriza: turno actual, luego Libre/Ocupado,
+    -- luego Medico General, y finalmente menor carga de triajes pendientes.
+    IF veterinario_id IS NULL THEN
+        SELECT v.id_veterinario INTO veterinario_id
+        FROM Veterinario v
+        LEFT JOIN (
+            SELECT
+                t.id_veterinario,
+                COUNT(t.id_triaje) as triajes_pendientes
+            FROM Triaje t
+            WHERE t.id_triaje NOT IN (
+                SELECT DISTINCT c.id_triaje
+                FROM Consulta c
+                WHERE c.id_triaje IS NOT NULL
+            )
+            GROUP BY t.id_veterinario
+        ) tp ON v.id_veterinario = tp.id_veterinario
+        ORDER BY
+            CASE WHEN v.turno = turno_actual THEN 0 ELSE 1 END,
+            CASE v.disposicion WHEN 'Libre' THEN 0 WHEN 'Ocupado' THEN 1 ELSE 2 END,
+            CASE WHEN v.tipo_veterinario = 'Medico General' THEN 0 ELSE 1 END,
+            COALESCE(tp.triajes_pendientes, 0) ASC,
+            v.id_veterinario ASC
+        LIMIT 1;
+    END IF;
+
     RETURN veterinario_id;
 END ;;
 DELIMITER ;
