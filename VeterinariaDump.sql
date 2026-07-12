@@ -1056,6 +1056,7 @@ BEGIN
         )
         GROUP BY t.id_veterinario
     ) tp ON v.id_veterinario = tp.id_veterinario
+    JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
     WHERE v.tipo_veterinario = 'Medico General'
         AND v.turno = turno_actual
         AND v.disposicion = 'Libre'
@@ -1078,6 +1079,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Medico General'
             AND v.turno = turno_actual
             AND v.disposicion = 'Ocupado'
@@ -1101,6 +1103,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.turno = turno_actual
             AND v.disposicion = 'Libre'
@@ -1124,6 +1127,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.turno = turno_actual
             AND v.disposicion = 'Ocupado'
@@ -1147,6 +1151,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.disposicion = 'Fuera de turno'
         ORDER BY 
