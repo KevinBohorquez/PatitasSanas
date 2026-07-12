@@ -171,6 +171,17 @@ async def delete_solicitud(
             detail="Solicitud no encontrada"
         )
 
+    # SC-038 / F19: no permitir borrar una solicitud con triaje/consulta asociados.
+    # El trigger crea un triaje automáticamente al insertar la solicitud y la FK es
+    # NO ACTION, por lo que el borrado directo fallaba con 500. Se devuelve un 409
+    # claro y se dirige a 'Cancelar' (estado Cancelada) para no perder historia clínica.
+    tiene_triaje = db.query(Triaje).filter(Triaje.id_solicitud == solicitud_id).first()
+    if tiene_triaje:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No se puede eliminar una solicitud con triaje/consulta asociados. Cámbiela a 'Cancelada' en su lugar.",
+        )
+
     solicitud_atencion.remove(db, id=solicitud_id)
     return {"message": "Solicitud eliminada correctamente", "success": True}
 
