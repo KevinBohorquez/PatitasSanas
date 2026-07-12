@@ -46,8 +46,9 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         setTriageData(triageResult);
         console.log('Triaje cargado para consulta:', triageResult);
         
-        await fetchConsultaData(triageResult.id_triaje);
-        await fetchDiagnosticos(triageResult.id_triaje);
+        const consulta = await fetchConsultaData(triageResult.id_triaje);
+        // SC-041 / F22: los diagnósticos se piden por id_consulta, no por id_triaje.
+        await fetchDiagnosticos(consulta?.id_consulta);
       } else {
         throw new Error('Error al cargar datos de triaje');
       }
@@ -83,6 +84,9 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
             esSeguimiento: consultaEncontrada.es_seguimiento || false
           });
         }
+
+        // SC-041 / F22: exponer la consulta cargada para usar su id_consulta.
+        return consultaEncontrada;
       } else {
         throw new Error('Error al cargar datos de consulta');
       }
@@ -95,9 +99,16 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   };
 
   // Cargar los diagnósticos de la consulta
-  const fetchDiagnosticos = async (idTriaje) => {
+  const fetchDiagnosticos = async (idConsulta) => {
+    // SC-041 / F22: el endpoint filtra por id_consulta. Antes se le pasaba id_triaje,
+    // que coincidía por casualidad porque id_consulta == id_triaje en los datos
+    // actuales (el trigger los crea en lockstep); si divergen, se mostrarían mal.
+    if (!idConsulta) {
+      setDiagnosticos([]);
+      return;
+    }
     try {
-      const response = await fetch(`/api/v1/consultas/diagnosticos/${idTriaje}`);
+      const response = await fetch(`/api/v1/consultas/diagnosticos/${idConsulta}`);
       
       if (response.ok) {
         const diagnosticosData = await response.json();
@@ -247,9 +258,9 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       console.log('Diagnóstico añadido exitosamente:', result);
 
       toast.success(`Diagnóstico añadido correctamente. ID: ${result.id}`);
-
-      if (triageData?.id_triaje) {
-        await fetchDiagnosticos(triageData.id_triaje);
+      
+      if (consultaData?.id_consulta) {
+        await fetchDiagnosticos(consultaData.id_consulta);
       }
 
     } catch (error) {
@@ -458,8 +469,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           diagnosticoId={diagnosticoId}
           onSave={async () => {
             setShowModificarDiagnostico(false);
-            if (triageData?.id_triaje) {
-              await fetchDiagnosticos(triageData.id_triaje);
+            if (consultaData?.id_consulta) {
+              await fetchDiagnosticos(consultaData.id_consulta);
             }
           }}
           onCancel={() => setShowModificarDiagnostico(false)}
