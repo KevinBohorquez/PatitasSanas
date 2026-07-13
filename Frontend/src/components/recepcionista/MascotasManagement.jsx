@@ -126,7 +126,9 @@ const MascotasManagement = () => {
   // Obtener todos los clientes
   const fetchClientes = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/clientes/`, {
+      // SC-059 / F43: pedir todos los clientes (el default del backend pagina a
+      // 20, dejando fuera del dropdown de "dueño" a los clientes recién creados).
+      const response = await fetch(`${BASE_URL}/clientes/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
