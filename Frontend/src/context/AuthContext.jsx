@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   // Verificar si hay usuario
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = sessionStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -75,9 +75,9 @@ export const AuthProvider = ({ children }) => {
           permisos: data.permisos || {},
           session_info: sessionData
         };
-        // Guardar en estado y localStorage
+        // Guardar en estado y sessionStorage
         setUser(userSession);
-        localStorage.setItem('currentUser', JSON.stringify(userSession));
+        sessionStorage.setItem('currentUser', JSON.stringify(userSession));
         
         return { 
           success: true, 
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       // Limpiar estado local siempre
       setUser(null);
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   };
 
@@ -164,9 +164,9 @@ export const AuthProvider = ({ children }) => {
 
   const BASE_URL = '/api/v1';
 
-  // Verificar si hay usuario en localStorage al cargar
+  // Verificar si hay usuario en sessionStorage al cargar
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = sessionStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -204,9 +204,9 @@ export const AuthProvider = ({ children }) => {
           token: data.access_token
         };
         
-        // Guardar en estado y localStorage
+        // Guardar en estado y sessionStorage
         setUser(userSession);
-        localStorage.setItem('currentUser', JSON.stringify(userSession));
+        sessionStorage.setItem('currentUser', JSON.stringify(userSession));
         
         return { 
           success: true, 
@@ -250,7 +250,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       // Limpiar estado local siempre
       setUser(null);
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   };
 
@@ -292,9 +292,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar si hay usuario en localStorage al cargar
+  // Verificar si hay usuario en sessionStorage al cargar
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = sessionStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -310,7 +310,7 @@ export const AuthProvider = ({ children }) => {
       };
       
       setUser(userSession);
-      localStorage.setItem('currentUser', JSON.stringify(userSession));
+      sessionStorage.setItem('currentUser', JSON.stringify(userSession));
       return { success: true, user: userSession };
     } catch (error) {
       return { success: false, message: 'Error al iniciar sesión' };
@@ -319,7 +319,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
   };
 
   const hasRole = (role) => {
