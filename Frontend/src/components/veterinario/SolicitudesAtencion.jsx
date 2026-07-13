@@ -52,7 +52,10 @@ const SolicitudesAtencion = () => {
   // Función para obtener datos de mascota por ID
   const fetchMascota = async (mascotaId) => {
     try {
-      const response = await fetch(`/api/v1/mascotas/${mascotaId}`);
+      // SC-060 / F43: se usa /details (no /{id}) porque el endpoint simple NO
+      // devuelve el cliente. Sin él, más abajo caíamos a un fallback erróneo que
+      // usaba el id de la mascota como si fuera id de cliente (dueño equivocado).
+      const response = await fetch(`/api/v1/mascotas/${mascotaId}/details`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -96,7 +99,11 @@ const SolicitudesAtencion = () => {
         const solicitudesConDatos = await Promise.all(
           data.map(async (solicitud) => {
             const mascota = await fetchMascota(solicitud.id_mascota);
-            const cliente = mascota ? await fetchCliente(mascota.id_cliente || solicitud.id_mascota) : null;
+            // SC-060 / F43: el id del dueño viene anidado en mascota.cliente.id_cliente.
+            // Ya NO se usa solicitud.id_mascota como fallback (era un id de mascota, no
+            // de cliente, y mostraba un dueño ajeno).
+            const idCliente = mascota?.cliente?.id_cliente;
+            const cliente = idCliente ? await fetchCliente(idCliente) : null;
 
             return {
               id: solicitud.id_solicitud,
