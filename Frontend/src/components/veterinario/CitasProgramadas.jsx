@@ -18,9 +18,10 @@ const CitasProgramadas = () => {
     try {
       setLoading(true);
 
-      // ✅ Aquí llamas a tu endpoint nuevo
+      // SC-016 / F4: listar por Cita.id_veterinario (incluye las citas creadas
+      // por el recepcionista, que antes no aparecían por depender de Resultado_servicio).
       const response = await fetch(
-        `/api/v1/veterinarios/resultados-citas/${user.id}`
+        `/api/v1/veterinarios/citas-programadas/${user.id}`
       );
       if (!response.ok) {
         throw new Error('Error al cargar citas');

@@ -70,7 +70,7 @@ async def get_servicio_solicitado_pendiente_por_id(id_servicio_solicitado: int, 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener servicio solicitado: {str(e)}")
 
-@router.put("/id_servicio_solicitado}", response_model=ServicioSolicitadoResponse)
+@router.put("/{id_servicio_solicitado}", response_model=ServicioSolicitadoResponse)
 async def update_servicio_solicitado(id_servicio_solicitado: int, servicio_solicitado: ServicioSolicitadoUpdate, db: Session = Depends(get_db)):
     """
     Actualizar un servicio solicitado
@@ -89,6 +89,8 @@ async def update_servicio_solicitado(id_servicio_solicitado: int, servicio_solic
         db.refresh(servicio)
 
         return servicio
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al actualizar servicio solicitado: {str(e)}")
 
@@ -182,6 +184,7 @@ async def create_servicio_cita(
         cita_dict = {
             'id_mascota': id_mascota,
             'id_servicio_solicitado': nuevo_servicio_solicitado.id_servicio_solicitado,
+            'id_veterinario': request_data.id_veterinario,  # SC-016 / F4: asignar el vet también en la Cita
             'fecha_hora_programada': request_data.fecha_hora_programada,
             'estado_cita': 'Programada',  # Fijo como solicitaste
             'requiere_ayuno': request_data.requiere_ayuno,
@@ -192,6 +195,9 @@ async def create_servicio_cita(
         nueva_cita = Cita(**cita_dict)
         db.add(nueva_cita)
         db.flush()  # Para obtener el ID de la cita sin hacer commit
+
+        # SC-042 / F24: al crear la cita, el examen avanza de 'Solicitado' a 'Citado'.
+        nuevo_servicio_solicitado.estado_examen = 'Citado'
 
         # Crear el diccionario para Resultado_servicio
         resultado_servicio_dict = {

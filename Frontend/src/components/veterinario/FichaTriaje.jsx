@@ -1,6 +1,7 @@
 // components/veterinario/FichaTriaje.jsx
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 
@@ -56,7 +57,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       } else if (response.status === 404) {
         // No existe triaje aún, mantener formulario vacío
-        console.log('No existe triaje para esta solicitud, creando nuevo');
       } else {
         throw new Error('Error al cargar datos de triaje');
       }
@@ -109,7 +109,10 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       // Preparar datos para enviar a la API
       const triageDataToSend = {
         id_solicitud: solicitud.id, // SIEMPRE incluir id_solicitud
-        id_veterinario: 1, // Aquí deberías obtener el ID del veterinario logueado
+        // Conservar el veterinario ya asignado por el trigger (auto-asignación).
+        // Antes estaba fijo en 1, lo que reasignaba el triaje al veterinario 1 en
+        // cada actualización y hacía que la solicitud desapareciera del veterinario real.
+        id_veterinario: triageData?.id_veterinario || 1,
         peso_mascota: parseFloat(formData.peso) || 0,
         latido_por_minuto: parseInt(formData.latidosPm) || 0,
         talla: parseFloat(formData.talla) || 0,
@@ -123,17 +126,13 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         condicion_corporal: formData.condicionCorporal
       };
 
-      console.log('Datos a enviar:', triageDataToSend);
-      console.log('¿Existe triaje?', !!triageData);
       if (triageData) {
-        console.log('ID del triaje:', triageData.id_triaje);
       }
 
       let response;
       
       if (triageData) {
         // Actualizar triaje existente
-        console.log('Actualizando triaje existente...');
         response = await fetch(`/api/v1/triaje/triaje/${triageData.id_triaje}`, {
           method: 'PUT',
           headers: {
@@ -143,7 +142,6 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       } else {
         // Crear nuevo triaje
-        console.log('Creando nuevo triaje...');
         response = await fetch('/api/v1/triaje/', {
           method: 'POST',
           headers: {
@@ -153,20 +151,18 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       }
 
-      console.log('Status de respuesta:', response.status);
       
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Error del servidor:', errorData);
-        throw new Error(`Error ${response.status}: ${errorData}`);
+        const errorBody = await response.json().catch(() => null);
+        console.error('Error del servidor:', errorBody);
+        throw new Error(formatApiError(errorBody, 'No se pudieron guardar los datos del triaje'));
       }
 
       const result = await response.json();
-      console.log('Triaje guardado exitosamente:', result);
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);
-      toast.error(`Error al guardar los datos del triaje: ${error.message}`);
+      toast.error(error.message || 'No se pudieron guardar los datos del triaje');
     }
   };
 

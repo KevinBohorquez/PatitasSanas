@@ -8,6 +8,7 @@ import FichaConsulta from './FichaConsulta';
 import { useAuth } from '../../context/AuthContext';
 import './SolicitudesAtencion.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 
 const SolicitudesAtencion = () => {
   const { user } = useAuth(); // Obtener usuario del contexto
@@ -23,7 +24,6 @@ const SolicitudesAtencion = () => {
   // Función para actualizar la disposición del veterinario
   const updateVeterinarioDisposicion = async (idUsuario) => {
     try {
-      console.log('🔄 Actualizando disposición para usuario ID:', idUsuario);
       
       const response = await fetch(
         `/api/v1/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
@@ -38,12 +38,10 @@ const SolicitudesAtencion = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+        throw new Error(formatApiError(errorData, 'No se pudo actualizar la disposición del veterinario'));
       }
 
       const data = await response.json();
-      console.log('✅ Disposición actualizada exitosamente:', data);
-      console.log(`📍 Veterinario ${data.nombre} ${data.apellido_paterno} ahora está: ${data.disposicion}`);
       return data;
     } catch (error) {
       console.error('❌ Error al actualizar disposición:', error);
@@ -54,7 +52,10 @@ const SolicitudesAtencion = () => {
   // Función para obtener datos de mascota por ID
   const fetchMascota = async (mascotaId) => {
     try {
-      const response = await fetch(`/api/v1/mascotas/${mascotaId}`);
+      // SC-060 / F43: se usa /details (no /{id}) porque el endpoint simple NO
+      // devuelve el cliente. Sin él, más abajo caíamos a un fallback erróneo que
+      // usaba el id de la mascota como si fuera id de cliente (dueño equivocado).
+      const response = await fetch(`/api/v1/mascotas/${mascotaId}/details`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -98,7 +99,11 @@ const SolicitudesAtencion = () => {
         const solicitudesConDatos = await Promise.all(
           data.map(async (solicitud) => {
             const mascota = await fetchMascota(solicitud.id_mascota);
-            const cliente = mascota ? await fetchCliente(mascota.id_cliente || solicitud.id_mascota) : null;
+            // SC-060 / F43: el id del dueño viene anidado en mascota.cliente.id_cliente.
+            // Ya NO se usa solicitud.id_mascota como fallback (era un id de mascota, no
+            // de cliente, y mostraba un dueño ajeno).
+            const idCliente = mascota?.cliente?.id_cliente;
+            const cliente = idCliente ? await fetchCliente(idCliente) : null;
 
             return {
               id: solicitud.id_solicitud,
@@ -172,8 +177,6 @@ const SolicitudesAtencion = () => {
     
     // Mostrar información del usuario en consola para debug
     if (user) {
-      console.log('👤 Usuario logueado:', user);
-      console.log('🆔 ID de usuario para endpoint:', user.id);
     }
   }, [user]);
 
@@ -184,13 +187,10 @@ const SolicitudesAtencion = () => {
 
   // Función modificada para manejar la atención
   const handleAtender = async (solicitud) => {
-  console.log('🎯 Iniciando proceso de atención para solicitud:', solicitud.id);
 
   // Extraer el id_consulta si existe
   if (solicitud._original && solicitud._original.id_consulta) {
-    console.log('📝 Esta solicitud tiene consulta_id:', solicitud._original.id_consulta);
   } else {
-    console.log('📝 Esta solicitud NO tiene un consulta_id asociado.');
   }
 
   if (!user || !user.id) {
@@ -201,13 +201,11 @@ const SolicitudesAtencion = () => {
 
   try {
     setProcesandoAtencion(true);
-    console.log('⏳ Procesando atención...');
 
     // Primero actualizar la disposición del veterinario a "Ocupado"
     await updateVeterinarioDisposicion(user.id);
 
     // Si todo sale bien, proceder con el triaje
-    console.log('✅ Abriendo modal de triaje...');
     setSelectedSolicitud(solicitud);
     setShowTriaje(true);
 
@@ -224,19 +222,33 @@ const SolicitudesAtencion = () => {
     setShowConsulta(true);
   };
 
-  const handleConsultaComplete = () => {
+  const handleConsultaComplete = async (consultaId) => {
     setShowConsulta(false);
     setSelectedSolicitud(null);
-    // Actualizar estado de la solicitud
-    setSolicitudes(prev =>
-      prev.map(s =>
-        s.id === selectedSolicitud.id
-          ? { ...s, estado: 'Atendida' }
-          : s
-      )
-    );
-    // Opcionalmente, actualizar en la API también
-    // updateSolicitudEstado(selectedSolicitud.id, 'En atencion');
+
+    // SC-056 / F41: al terminar la consulta se FINALIZA la atención en el backend:
+    // la solicitud pasa a "Completada" y el trigger libera al veterinario ("Libre").
+    // Antes solo se marcaba "Atendida" en el estado local (sin persistir), por lo que
+    // recepción no veía el cambio y se perdía al recargar.
+    try {
+      if (consultaId) {
+        const resp = await fetch(`/api/v1/consultas/${consultaId}/finalizar`, {
+          method: 'PATCH'
+        });
+        if (resp.ok) {
+          toast.success('Atención finalizada.');
+        } else {
+          const errBody = await resp.json().catch(() => null);
+          toast.error(formatApiError(errBody, 'No se pudo finalizar la atención'));
+        }
+      }
+    } catch (error) {
+      console.error('Error al finalizar la atención:', error);
+      toast.error('No se pudo finalizar la atención');
+    }
+
+    // Recargar los estados reales desde el backend (evita estados optimistas incorrectos).
+    fetchSolicitudes();
   };
 
   const solicitudesFiltradas = solicitudes.filter(s =>

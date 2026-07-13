@@ -109,7 +109,7 @@ async def create_usuario_with_profile(
             "tipo_usuario": nuevo_usuario.tipo_usuario,
             "estado": nuevo_usuario.estado,
             "fecha_creacion": nuevo_usuario.fecha_creacion,
-            "perfil": usuario_completo["perfil"] if usuario_completo else None,
+            "perfil": {k: v for k, v in usuario_completo["perfil"].__dict__.items() if not k.startswith("_")} if usuario_completo and usuario_completo["perfil"] else None,
             "nombre_completo": f"{usuario_completo['perfil'].nombre} {usuario_completo['perfil'].apellido_paterno}" if usuario_completo and
                                                                                                                        usuario_completo[
                                                                                                                            "perfil"] else None,

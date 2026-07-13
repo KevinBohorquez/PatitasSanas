@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
@@ -104,8 +105,6 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
         observaciones: formData.observaciones || null
       };
 
-      console.log('Enviando datos del servicio:', payload);
-      console.log('Consulta ID:', consultaId);
 
       // Usar el consultaId correctamente en la URL
       const response = await fetch(
@@ -120,18 +119,17 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error ${response.status}: ${errorText}`);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(formatApiError(errorBody, 'No se pudo crear el servicio'));
       }
 
       const result = await response.json();
-      console.log('Servicio solicitado y cita creados correctamente:', result);
-      
+
       toast.success('Servicio creado correctamente');
       onSave();
     } catch (error) {
       console.error('Error al crear servicio:', error);
-      toast.error(`Error al crear el servicio: ${error.message}`);
+      toast.error(error.message || 'No se pudo crear el servicio');
     } finally {
       setSaving(false);
     }

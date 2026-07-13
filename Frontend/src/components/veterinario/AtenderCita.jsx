@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import Loader from '../common/Loader/Loader';
+import { formatApiError } from '../../utils/apiError';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -17,7 +18,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   // Cargar resultado de servicio si existe
   const fetchResultadoServicio = async (citaId) => {
     try {
-      console.log('Cargando resultado para cita ID:', citaId);
       
       const response = await fetch(
         `/api/v1/consultas/resultado_servicio/${citaId}`
@@ -25,7 +25,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       
       if (!response.ok) {
         if (response.status === 404) {
-          console.log('No hay resultado previo, usando valores por defecto');
           setFormData({
             resultado: '',
             interpretacion: '',
@@ -39,7 +38,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       }
       
       const data = await response.json();
-      console.log('Resultado cargado:', data);
       
       setFormData({
         resultado: data.resultado || '',
@@ -58,7 +56,6 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   };
 
   useEffect(() => {
-    console.log('Cita recibida:', cita);
     
     if (cita && cita.id) {
       fetchResultadoServicio(cita.id);
@@ -77,9 +74,12 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   };
 
   const handleFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    // SC-020 / F27: conservar el File real para subirlo a Drive al guardar.
     setFormData({
       ...formData,
-      archivoAdjunto: e.target.files[0] ? e.target.files[0].name : null
+      archivoAdjunto: file ? file.name : null,
+      archivoAdjuntoFile: file
     });
   };
 
@@ -101,21 +101,37 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       return;
     }
     
-    const updatedData = {
-      id_cita: cita.id,
-      id_veterinario: cita.id_veterinario || 4, // fallback
-      resultado: formData.resultado.trim(),
-      interpretacion: formData.interpretacion.trim() || null,
-      archivo_adjunto: formData.archivoAdjunto || null,
-      fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`
-    };
-
-    console.log('=== DATOS A ENVIAR (PUT) ===', updatedData);
-
     try {
       setLoading(true);
       setError(null);
-      
+
+      // SC-020 / F27: si se seleccionó un archivo, subirlo a Google Drive y usar el
+      // enlace devuelto como archivo_adjunto (antes solo se guardaba el nombre).
+      let archivoLink = formData.archivoAdjunto || null;
+      if (formData.archivoAdjuntoFile) {
+        const fd = new FormData();
+        fd.append('archivo', formData.archivoAdjuntoFile);
+        const upRes = await fetch(
+          `/api/v1/consultas/resultado_servicio/${cita.id}/adjunto`,
+          { method: 'POST', body: fd }
+        );
+        if (!upRes.ok) {
+          const upErr = await upRes.json().catch(() => null);
+          throw new Error((upErr && upErr.detail) || 'No se pudo subir el archivo adjunto a Drive');
+        }
+        const upData = await upRes.json();
+        archivoLink = upData.archivo_adjunto;
+      }
+
+      const updatedData = {
+        id_cita: cita.id,
+        id_veterinario: cita.id_veterinario || 4, // fallback
+        resultado: formData.resultado.trim(),
+        interpretacion: formData.interpretacion.trim() || null,
+        archivo_adjunto: archivoLink,
+        fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`
+      };
+
       const response = await fetch(
         `/api/v1/consultas/resultado_servicio/${cita.id}`,
         {
@@ -128,24 +144,11 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       );
 
       if (!response.ok) {
-        let errorMessage = `Error HTTP ${response.status}`;
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) {
-            if (typeof errorData.detail === 'string') {
-              errorMessage = errorData.detail;
-            } else if (Array.isArray(errorData.detail)) {
-              errorMessage = errorData.detail.map(e => e.msg).join(', ');
-            }
-          }
-        } catch {
-          errorMessage = `Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(formatApiError(errorBody, 'No se pudo guardar el resultado de la cita'));
       }
 
       const data = await response.json();
-      console.log('✅ Resultado actualizado exitosamente:', data);
       
       toast.success('Cita atendida exitosamente', { title: 'Cita guardada' });
       onComplete();

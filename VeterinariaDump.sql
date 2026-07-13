@@ -249,7 +249,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `before_diagnostico_insert` BEFORE INSERT ON `Diagnostico` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `before_diagnostico_insert` BEFORE INSERT ON `Diagnostico` FOR EACH ROW BEGIN
     -- 1. Insertamos la patología con valores por defecto para los campos opcionales
     INSERT INTO Patologia (nombre_patologia, especie_afecta, gravedad, es_crónica, es_contagiosa)
     VALUES (NULL, 'Ambas', 'Moderada', False, False);  -- Asignamos valores por defecto en lugar de NULL
@@ -413,7 +413,7 @@ CREATE TABLE `Patologia` (
 
 LOCK TABLES `Patologia` WRITE;
 /*!40000 ALTER TABLE `Patologia` DISABLE KEYS */;
-INSERT INTO `Patologia` VALUES (1,'Parvovirus Canino','Perro','Grave',0,1),(2,'Moquillo Canino','Perro','Grave',0,1),(3,'Leucemia Felina','Gato','Grave',1,1),(4,'Dermatitis Alérgica','Ambas','Moderada',0,0),(5,'Otitis Externa','Ambas','Leve',0,0),(6,'Gastroenteritis','Ambas','Moderada',0,0),(7,'Diabetes Mellitus','Ambas','Grave',1,0),(8,'Insuficiencia Renal','Ambas','Grave',1,0),(9,'Parasitosis Intestinal','Ambas','Leve',0,0),(10,'Fracturas Óseas','Ambas','Grave',0,0),(11,'Displasia de Cadera','Perro','Moderada',1,0),(12,'Hipertiroidismo','Gato','Moderada',1,0),(29,'Malaria','Ambas','Moderada',0,0),(30,'Bebalaria','Ambas','Moderada',0,0),(31,NULL,'Ambas','Moderada',0,0),(32,NULL,'Ambas','Moderada',0,0),(33,'Dolor De Cabeza','Ambas','Moderada',0,0);
+INSERT INTO `Patologia` VALUES (1,'Parvovirus Canino','Perro','Grave',0,1),(2,'Moquillo Canino','Perro','Grave',0,1),(3,'Leucemia Felina','Gato','Grave',1,1),(4,'Dermatitis Alérgica','Ambas','Moderada',0,0),(5,'Otitis Externa','Ambas','Leve',0,0),(6,'Gastroenteritis','Ambas','Moderada',0,0),(7,'Diabetes Mellitus','Ambas','Grave',1,0),(8,'Insuficiencia Renal','Ambas','Grave',1,0),(9,'Parasitosis Intestinal','Ambas','Leve',0,0),(10,'Fracturas Óseas','Ambas','Grave',0,0),(11,'Displasia de Cadera','Perro','Moderada',1,0),(12,'Hipertiroidismo','Gato','Moderada',1,0),(29,'Malaria','Ambas','Moderada',0,0),(30,'Bebalaria','Ambas','Moderada',0,0),(31,'Patología sin nombre 31','Ambas','Moderada',0,0),(32,'Patología sin nombre 32','Ambas','Moderada',0,0),(33,'Dolor De Cabeza','Ambas','Moderada',0,0);
 /*!40000 ALTER TABLE `Patologia` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -458,7 +458,7 @@ CREATE TABLE `Recepcionista` (
   `telefono` char(9) NOT NULL,
   `email` varchar(100) NOT NULL,
   `fecha_ingreso` date DEFAULT NULL,
-  `turno` enum('Mañana','Tarde','Noche') DEFAULT NULL,
+  `turno` enum('Mañana','Tarde','Noche','Madrugada') DEFAULT NULL,
   `genero` char(1) NOT NULL,
   PRIMARY KEY (`id_recepcionista`),
   UNIQUE KEY `id_usuario` (`id_usuario`),
@@ -615,7 +615,7 @@ CREATE TABLE `Solicitud_atencion` (
 
 LOCK TABLES `Solicitud_atencion` WRITE;
 /*!40000 ALTER TABLE `Solicitud_atencion` DISABLE KEYS */;
-INSERT INTO `Solicitud_atencion` VALUES (1,1,1,'2025-05-15 09:00:00','Consulta normal','Completada'),(2,2,1,'2025-05-20 10:30:00','Consulta normal','Completada'),(3,3,2,'2025-05-25 14:00:00','Consulta urgente','Completada'),(4,4,1,'2025-05-28 11:00:00','Servicio programado','Completada'),(5,5,3,'2025-05-30 20:30:00','Consulta urgente','Completada'),(6,6,2,'2025-06-03 15:30:00','Consulta normal','Completada'),(7,7,1,'2025-06-05 08:30:00','Consulta normal','Completada'),(8,8,2,'2025-06-06 16:00:00','Consulta normal','En atencion'),(9,9,4,'2025-06-07 09:30:00','Consulta normal','Completada'),(10,9,1,'2025-06-08 11:00:00','Servicio programado','Completada'),(11,11,1,'2025-06-08 14:00:00','Consulta urgente','Pendiente'),(16,14,2,'2025-07-07 12:40:18','Consulta normal','Pendiente'),(17,13,2,'2025-07-08 02:56:57','Consulta normal','Pendiente'),(18,16,1,'2025-07-08 05:00:50','Consulta normal','Pendiente');
+INSERT INTO `Solicitud_atencion` VALUES (1,1,1,'2025-05-15 09:00:00','Consulta normal','Completada'),(2,2,1,'2025-05-20 10:30:00','Consulta normal','Completada'),(3,3,2,'2025-05-25 14:00:00','Consulta urgente','Completada'),(4,4,1,'2025-05-28 11:00:00','Servicio programado','Completada'),(5,5,3,'2025-05-30 20:30:00','Consulta urgente','Completada'),(6,6,2,'2025-06-03 15:30:00','Consulta normal','Completada'),(7,7,1,'2025-06-05 08:30:00','Consulta normal','Completada'),(8,8,2,'2025-06-06 16:00:00','Consulta normal','En atencion'),(9,9,4,'2025-06-07 09:30:00','Consulta normal','Completada'),(10,9,1,'2025-06-08 11:00:00','Servicio programado','Completada'),(11,11,1,'2025-06-08 14:00:00','Consulta urgente','Cancelada'),(16,14,2,'2025-07-07 12:40:18','Consulta normal','Cancelada'),(17,13,2,'2025-07-08 02:56:57','Consulta normal','Pendiente'),(18,16,1,'2025-07-08 05:00:50','Consulta normal','Pendiente');
 /*!40000 ALTER TABLE `Solicitud_atencion` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -627,14 +627,14 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `crear_triaje_y_consulta_automatico` AFTER INSERT ON `Solicitud_atencion` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `crear_triaje_y_consulta_automatico` AFTER INSERT ON `Solicitud_atencion` FOR EACH ROW BEGIN
     DECLARE veterinario_asignado INT;
     DECLARE triaje_id INT;
     DECLARE fecha_actual DATETIME;
     
     IF NEW.estado = 'Pendiente' THEN
         SET veterinario_asignado = asignar_veterinario_optimo();
-        SET fecha_actual = COALESCE(CONVERT_TZ(NOW(), 'UTC', 'America/Lima'), NOW());
+        SET fecha_actual = (NOW() - INTERVAL 5 HOUR);
         IF veterinario_asignado IS NOT NULL THEN
             -- registro en Triaje
             INSERT INTO Triaje (
@@ -694,7 +694,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `trigger_veterinario_disponibilidad` AFTER UPDATE ON `Solicitud_atencion` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50003 TRIGGER `trigger_veterinario_disponibilidad` AFTER UPDATE ON `Solicitud_atencion` FOR EACH ROW BEGIN
     DECLARE vet_id INT DEFAULT NULL;
     DECLARE hora_peru INT;
     
@@ -717,7 +717,7 @@ DELIMITER ;;
         -- CASO 2: "En atencion" → "Completada"
         IF NEW.estado = 'Completada' AND OLD.estado = 'En atencion' THEN
             -- Obtener hora de Perú
-            SET hora_peru = HOUR(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
+            SET hora_peru = HOUR((NOW() - INTERVAL 5 HOUR));
             IF hora_peru IS NULL THEN
                 SET hora_peru = HOUR(NOW());
             END IF;
@@ -728,6 +728,7 @@ DELIMITER ;;
                 WHEN (v.turno = 'Mañana' AND hora_peru >= 7 AND hora_peru < 13) 
                      OR (v.turno = 'Tarde' AND hora_peru >= 13 AND hora_peru < 19)
                      OR (v.turno = 'Noche' AND hora_peru >= 19 AND hora_peru < 23)
+                     OR (v.turno = 'Madrugada' AND (hora_peru >= 23 OR hora_peru < 7))
                 THEN 'Libre'
                 ELSE 'Fuera de turno'
             END
@@ -898,7 +899,7 @@ CREATE TABLE `Veterinario` (
   `email` varchar(100) NOT NULL,
   `fecha_ingreso` date NOT NULL,
   `disposicion` enum('Ocupado','Libre','Fuera de turno') DEFAULT 'Libre',
-  `turno` enum('Mañana','Tarde','Noche') NOT NULL,
+  `turno` enum('Mañana','Tarde','Noche','Madrugada') NOT NULL,
   PRIMARY KEY (`id_veterinario`),
   UNIQUE KEY `id_usuario` (`id_usuario`),
   UNIQUE KEY `dni` (`dni`),
@@ -996,7 +997,7 @@ DELIMITER ;;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;;
 /*!50003 SET @saved_time_zone      = @@time_zone */ ;;
 /*!50003 SET time_zone             = 'SYSTEM' */ ;;
-/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`%`*/ /*!50106 EVENT `EventoActualizarTurnos` ON SCHEDULE EVERY 5 MINUTE STARTS '2025-07-08 01:18:24' ON COMPLETION NOT PRESERVE ENABLE DO CALL ActualizarTurnosVeterinarios() */ ;;
+/*!50106 CREATE*/ /*!50106 EVENT `EventoActualizarTurnos` ON SCHEDULE EVERY 5 MINUTE STARTS '2025-07-08 01:18:24' ON COMPLETION NOT PRESERVE ENABLE DO CALL ActualizarTurnosVeterinarios() */ ;;
 /*!50003 SET time_zone             = @saved_time_zone */ ;;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;;
@@ -1018,7 +1019,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` FUNCTION `asignar_veterinario_optimo`() RETURNS int
+CREATE FUNCTION `asignar_veterinario_optimo`() RETURNS int
     READS SQL DATA
     DETERMINISTIC
 BEGIN
@@ -1026,7 +1027,7 @@ BEGIN
     DECLARE hora_actual INT;
     DECLARE turno_actual VARCHAR(10);
 
-    SET hora_actual = HOUR(COALESCE(CONVERT_TZ(NOW(), 'UTC', 'America/Lima'), NOW()));
+    SET hora_actual = HOUR((NOW() - INTERVAL 5 HOUR));
     
     -- Hallamos el turno actual según la hora
     IF hora_actual >= 7 AND hora_actual < 13 THEN
@@ -1036,8 +1037,8 @@ BEGIN
     ELSEIF hora_actual >= 19 AND hora_actual < 23 THEN
         SET turno_actual = 'Noche';
     ELSE
-	-- Por defecto agarra el turno mañana 
-        SET turno_actual = 'Mañana';
+        -- Franja 23:00-07:00: turno Madrugada (SC-026 / F7).
+        SET turno_actual = 'Madrugada';
     END IF;
     
     -- Caso 1: Médicos GENERALES LIBRES en turno actual
@@ -1055,6 +1056,7 @@ BEGIN
         )
         GROUP BY t.id_veterinario
     ) tp ON v.id_veterinario = tp.id_veterinario
+    JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
     WHERE v.tipo_veterinario = 'Medico General'
         AND v.turno = turno_actual
         AND v.disposicion = 'Libre'
@@ -1077,6 +1079,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Medico General'
             AND v.turno = turno_actual
             AND v.disposicion = 'Ocupado'
@@ -1100,6 +1103,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.turno = turno_actual
             AND v.disposicion = 'Libre'
@@ -1123,6 +1127,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.turno = turno_actual
             AND v.disposicion = 'Ocupado'
@@ -1146,6 +1151,7 @@ BEGIN
             )
             GROUP BY t.id_veterinario
         ) tp ON v.id_veterinario = tp.id_veterinario
+        JOIN usuarios u ON u.id_usuario = v.id_usuario AND u.estado = 'Activo'
         WHERE v.tipo_veterinario = 'Especializado'
             AND v.disposicion = 'Fuera de turno'
         ORDER BY 
@@ -1157,7 +1163,36 @@ BEGIN
             v.id_veterinario ASC
         LIMIT 1;
     END IF;
-    
+
+    -- Caso 6: ULTIMO RECURSO ABSOLUTO - cualquier veterinario existente.
+    -- Garantiza que toda solicitud reciba un triaje y sea visible para algun
+    -- veterinario, aunque ningun caso anterior calce (p. ej. solo hay Medicos
+    -- Generales fuera de turno). Prioriza: turno actual, luego Libre/Ocupado,
+    -- luego Medico General, y finalmente menor carga de triajes pendientes.
+    IF veterinario_id IS NULL THEN
+        SELECT v.id_veterinario INTO veterinario_id
+        FROM Veterinario v
+        LEFT JOIN (
+            SELECT
+                t.id_veterinario,
+                COUNT(t.id_triaje) as triajes_pendientes
+            FROM Triaje t
+            WHERE t.id_triaje NOT IN (
+                SELECT DISTINCT c.id_triaje
+                FROM Consulta c
+                WHERE c.id_triaje IS NOT NULL
+            )
+            GROUP BY t.id_veterinario
+        ) tp ON v.id_veterinario = tp.id_veterinario
+        ORDER BY
+            CASE WHEN v.turno = turno_actual THEN 0 ELSE 1 END,
+            CASE v.disposicion WHEN 'Libre' THEN 0 WHEN 'Ocupado' THEN 1 ELSE 2 END,
+            CASE WHEN v.tipo_veterinario = 'Medico General' THEN 0 ELSE 1 END,
+            COALESCE(tp.triajes_pendientes, 0) ASC,
+            v.id_veterinario ASC
+        LIMIT 1;
+    END IF;
+
     RETURN veterinario_id;
 END ;;
 DELIMITER ;
@@ -1175,15 +1210,15 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`%` PROCEDURE `ActualizarTurnosVeterinarios`()
+CREATE PROCEDURE `ActualizarTurnosVeterinarios`()
 BEGIN
     DECLARE hora_actual INT;
     DECLARE minuto_actual INT;
     DECLARE hora_total DECIMAL(4,2);
     
     -- Asegurar que usamos hora de Perú
-    SET hora_actual = HOUR(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
-    SET minuto_actual = MINUTE(CONVERT_TZ(NOW(), @@session.time_zone, 'America/Lima'));
+    SET hora_actual = HOUR((NOW() - INTERVAL 5 HOUR));
+    SET minuto_actual = MINUTE((NOW() - INTERVAL 5 HOUR));
     SET hora_total = hora_actual + (minuto_actual / 60);
     
     -- Si no funciona CONVERT_TZ, usar hora local ajustada
@@ -1201,6 +1236,7 @@ BEGIN
         (turno = 'Mañana' AND (hora_total < 7 OR hora_total >= 13))
         OR (turno = 'Tarde' AND (hora_total < 13 OR hora_total >= 19))
         OR (turno = 'Noche' AND (hora_total < 19 OR hora_total >= 23))
+        OR (turno = 'Madrugada' AND (hora_total >= 7 AND hora_total < 23))
     );
     
     -- Cambiar a "Libre" veterinarios que están "Fuera de turno" pero ya en horario
@@ -1211,6 +1247,7 @@ BEGIN
         (turno = 'Mañana' AND hora_total >= 7 AND hora_total < 13)
         OR (turno = 'Tarde' AND hora_total >= 13 AND hora_total < 19)
         OR (turno = 'Noche' AND hora_total >= 19 AND hora_total < 23)
+        OR (turno = 'Madrugada' AND (hora_total >= 23 OR hora_total < 7))
     );
 END ;;
 DELIMITER ;

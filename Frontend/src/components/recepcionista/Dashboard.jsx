@@ -136,7 +136,6 @@ const Dashboard = () => {
           return fechaCita === fechaHoyFormateada;
         }).length;
 
-        console.log(`Número de citas para hoy (${fechaHoyFormateada}):`, CitasHoyCount);
       } else {
         console.error('Error al obtener las citas:', CitasResponse.status);
       }

@@ -13,7 +13,7 @@ class RazaCreate(BaseModel):
     def validate_nombre_raza(cls, v):
         if len(v.strip()) < 2:
             raise ValueError('Nombre de raza debe tener al menos 2 caracteres')
-        return v.strip().title()
+        return v.strip()
 
 
 class RazaResponse(BaseResponse):
@@ -53,7 +53,7 @@ class EspecialidadCreate(BaseModel):
     def validate_descripcion(cls, v):
         if len(v.strip()) < 3:
             raise ValueError('Descripción debe tener al menos 3 caracteres')
-        return v.strip().title()
+        return v.strip()
 
 
 class EspecialidadResponse(BaseResponse):
@@ -72,7 +72,7 @@ class TipoServicioCreate(BaseModel):
     def validate_descripcion(cls, v):
         if len(v.strip()) < 3:
             raise ValueError('Descripción debe tener al menos 3 caracteres')
-        return v.strip().title()
+        return v.strip()
 
 
 class TipoServicioResponse(BaseResponse):
@@ -94,7 +94,7 @@ class ServicioCreate(BaseModel):
     def validate_nombre_servicio(cls, v):
         if len(v.strip()) < 3:
             raise ValueError('Nombre del servicio debe tener al menos 3 caracteres')
-        return v.strip().title()
+        return v.strip()
     
     @validator('precio')
     def validate_precio(cls, v):
@@ -139,7 +139,7 @@ class PatologiaCreate(BaseModel):
     def validate_nombre_patologia(cls, v):
         if len(v.strip()) < 3:
             raise ValueError('Nombre de patologia debe tener al menos 3 caracteres')
-        return v.strip().title()
+        return v.strip()
     
     @validator('especie_afecta')
     def validate_especie_afecta(cls, v):
@@ -176,7 +176,7 @@ class PatologiaUpdate(BaseModel):
     def validate_nombre_patologia(cls, v):
         if v is not None and len(v.strip()) < 3:
             raise ValueError('Nombre de patologia debe tener al menos 3 caracteres')
-        return v.strip().title() if v else v
+        return v.strip() if v else v
 
     @validator('especie_afecta')
     def validate_especie_afecta(cls, v):

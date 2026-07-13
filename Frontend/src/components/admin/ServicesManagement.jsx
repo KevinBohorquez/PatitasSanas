@@ -51,15 +51,12 @@ const ServicesManagement = () => {
   // Obtener tipos de servicio
   const fetchTiposServicio = async () => {
     try {
-      console.log('🔗 Intentando conectar a:', TIPOS_SERVICIO_URL);
       const response = await fetch(`${TIPOS_SERVICIO_URL}/`);
-      console.log('📡 Respuesta recibida:', response.status, response.statusText);
       
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('✅ Tipos de servicio obtenidos:', data);
       setTiposServicio(data.tipos_servicio || data || []);
     } catch (error) {
       console.error('❌ Error detallado al obtener tipos de servicio:', error);
@@ -73,7 +70,6 @@ const ServicesManagement = () => {
   const fetchServicios = async () => {
     setLoading(true);
     try {
-      console.log('🔗 Conectando a servicios:', SERVICIOS_URL);
       
       const response = await fetch(`${SERVICIOS_URL}/`, {
         method: 'GET',
@@ -83,19 +79,12 @@ const ServicesManagement = () => {
         }
       });
       
-      console.log('📡 Respuesta de servicios:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        url: response.url
-      });
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('✅ Datos de servicios obtenidos:', data);
       setServicios(data.servicios || data || []);
       setError(null);
     } catch (error) {
@@ -128,7 +117,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando servicio:', error);
@@ -153,7 +141,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando servicio:', error);
@@ -631,15 +618,12 @@ const ServicesManagement = () => {
   // Obtener tipos de servicio
   const fetchTiposServicio = async () => {
     try {
-      console.log('🔗 Intentando conectar a:', TIPOS_SERVICIO_URL);
       const response = await fetch(TIPOS_SERVICIO_URL);
-      console.log('📡 Respuesta recibida:', response.status, response.statusText);
       
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('✅ Tipos de servicio obtenidos:', data);
       setTiposServicio(data.tipos_servicio || data || []);
     } catch (error) {
       console.error('❌ Error detallado al obtener tipos de servicio:', error);
@@ -653,7 +637,6 @@ const ServicesManagement = () => {
   const fetchServicios = async () => {
     setLoading(true);
     try {
-      console.log('🔗 Intentando conectar a servicios:', SERVICIOS_URL);
       
       const response = await fetch(SERVICIOS_URL, {
         method: 'GET',
@@ -663,19 +646,12 @@ const ServicesManagement = () => {
         }
       });
       
-      console.log('📡 Respuesta de servicios:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        url: response.url
-      });
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('✅ Datos de servicios obtenidos:', data);
       setServicios(data.servicios || data || []);
       setError(null);
     } catch (error) {
@@ -687,7 +663,6 @@ const ServicesManagement = () => {
       
       // Si falla el proxy, intentar con URL directa
       if (SERVICIOS_URL.startsWith('/api') && !error.message.includes('HTTP Error')) {
-        console.log('🔄 Reintentando servicios con URL directa...');
         await fetchServiciosDirecto();
       } else {
         setError('Error al cargar servicios: ' + error.message);
@@ -701,7 +676,6 @@ const ServicesManagement = () => {
   const fetchServiciosDirecto = async () => {
     try {
       const directUrl = '/api/v1/catalogos/servicios';
-      console.log('🔗 Intentando conexión directa a servicios:', directUrl);
       
       const response = await fetch(directUrl);
       
@@ -710,7 +684,6 @@ const ServicesManagement = () => {
       }
       
       const data = await response.json();
-      console.log('✅ Servicios obtenidos con URL directa:', data);
       setServicios(data.servicios || data || []);
       setError(null);
     } catch (error) {
@@ -736,7 +709,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando servicio:', error);
@@ -761,7 +733,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando servicio:', error);
@@ -1376,7 +1347,6 @@ const ServicesManagement = () => {
         throw new Error(`Error: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Tipos de servicio:', data);
       setTiposServicio(data.tipos_servicio || data || []);
     } catch (error) {
       console.error('Error al obtener tipos de servicio:', error);
@@ -1393,7 +1363,6 @@ const ServicesManagement = () => {
         throw new Error(`Error: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Servicios:', data);
       setServicios(data.servicios || data || []);
       setError(null);
     } catch (error) {
@@ -1421,7 +1390,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio creado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error creando servicio:', error);
@@ -1446,7 +1414,6 @@ const ServicesManagement = () => {
       }
 
       const data = await response.json();
-      console.log('Servicio actualizado:', data);
       return { success: true, data };
     } catch (error) {
       console.error('Error actualizando servicio:', error);

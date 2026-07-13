@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
@@ -99,7 +100,6 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
         eficacia_tratamiento: formData.eficaciaTratamiento
       };
 
-      console.log('Enviando datos:', payload);
 
       const response = await fetch(
         `/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
@@ -114,22 +114,14 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Diagnóstico actualizado correctamente:', result);
         toast.success('Diagnóstico actualizado correctamente');
         
         // Llamar a onSave para cerrar modal y refrescar datos
         onSave();
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => null);
         console.error('Error del servidor:', errorData);
-        
-        // Mostrar errores de validación específicos
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errorMessages = errorData.detail.map(err => err.msg).join('\n');
-          toast.error(`Errores de validación:\n${errorMessages}`);
-        } else {
-          toast.error(`Error al actualizar: ${errorData.detail || 'Error desconocido'}`);
-        }
+        toast.error(formatApiError(errorData, 'No se pudo actualizar el diagnóstico'));
       }
     } catch (error) {
       console.error('Error de red:', error);

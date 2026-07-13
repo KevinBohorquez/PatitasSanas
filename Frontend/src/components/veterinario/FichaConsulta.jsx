@@ -5,6 +5,7 @@ import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 
 
@@ -43,10 +44,10 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       if (response.ok) {
         const triageResult = await response.json();
         setTriageData(triageResult);
-        console.log('Triaje cargado para consulta:', triageResult);
         
-        await fetchConsultaData(triageResult.id_triaje);
-        await fetchDiagnosticos(triageResult.id_triaje);
+        const consulta = await fetchConsultaData(triageResult.id_triaje);
+        // SC-041 / F22: los diagnósticos se piden por id_consulta, no por id_triaje.
+        await fetchDiagnosticos(consulta?.id_consulta);
       } else {
         throw new Error('Error al cargar datos de triaje');
       }
@@ -60,18 +61,18 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   // Cargar datos de consulta
   const fetchConsultaData = async (idTriaje) => {
     try {
-      const response = await fetch('/api/v1/consultas/');
-      
+      // SC-040 / F21: obtener la consulta del triaje directamente. Antes se traía
+      // la primera página de /consultas/ (20 por página) y se filtraba en memoria,
+      // lo que fallaba al superar 20 consultas si la del triaje no estaba en esa página.
+      const response = await fetch(`/api/v1/consultas/triaje/${idTriaje}`);
+
       if (response.ok) {
-        const data = await response.json();
-        const consultaEncontrada = data.consultas.find(
-          consulta => consulta.id_triaje === idTriaje
-        );
-        
+        // El endpoint devuelve la consulta del triaje, o null si aún no existe.
+        const consultaEncontrada = await response.json();
+
         if (consultaEncontrada) {
           setConsultaData(consultaEncontrada);
-          console.log('Consulta encontrada:', consultaEncontrada);
-          
+
           setFormData({
             motivoConsulta: consultaEncontrada.motivo_consulta || '',
             diagnosticoPreliminar: consultaEncontrada.diagnostico_preliminar || '',
@@ -81,9 +82,10 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
             tipoConsulta: consultaEncontrada.tipo_consulta || '',
             esSeguimiento: consultaEncontrada.es_seguimiento || false
           });
-        } else {
-          console.log('No existe consulta para este triaje, creando nueva');
         }
+
+        // SC-041 / F22: exponer la consulta cargada para usar su id_consulta.
+        return consultaEncontrada;
       } else {
         throw new Error('Error al cargar datos de consulta');
       }
@@ -96,16 +98,21 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   };
 
   // Cargar los diagnósticos de la consulta
-  const fetchDiagnosticos = async (idTriaje) => {
+  const fetchDiagnosticos = async (idConsulta) => {
+    // SC-041 / F22: el endpoint filtra por id_consulta. Antes se le pasaba id_triaje,
+    // que coincidía por casualidad porque id_consulta == id_triaje en los datos
+    // actuales (el trigger los crea en lockstep); si divergen, se mostrarían mal.
+    if (!idConsulta) {
+      setDiagnosticos([]);
+      return;
+    }
     try {
-      const response = await fetch(`/api/v1/consultas/diagnosticos/${idTriaje}`);
+      const response = await fetch(`/api/v1/consultas/diagnosticos/${idConsulta}`);
       
       if (response.ok) {
         const diagnosticosData = await response.json();
         setDiagnosticos(diagnosticosData);
-        console.log('Diagnósticos cargados:', diagnosticosData);
       } else {
-        console.log('No se encontraron diagnósticos para esta consulta');
         setDiagnosticos([]);
       }
     } catch (error) {
@@ -141,7 +148,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         }
 
         const result = await response.json();
-        console.log('Disposición actualizada:', result);
       } catch (error) {
         console.error('Error al actualizar disposición:', error);
         toast.error(`Error al actualizar disposición del veterinario: ${error.message}`);
@@ -175,7 +181,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         es_seguimiento: formData.esSeguimiento
       };
 
-      console.log('Datos de consulta preparados para enviar:', payload);
 
       try {
         let response;
@@ -194,22 +199,23 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         }
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Error ${response.status}: ${errorText}`);
+          const errorBody = await response.json().catch(() => null);
+          throw new Error(formatApiError(errorBody, 'No se pudo guardar la consulta'));
         }
 
         const result = await response.json();
-        console.log('Consulta actualizada correctamente:', result);
 
         // 🚀 Aquí actualizas la disposición:
         await actualizarDisposicion();
 
         toast.success('Consulta actualizada correctamente.');
-        onComplete();
+        // SC-056 / F41: pasar el id_consulta para que el contenedor pueda
+        // finalizar la atención (persistir "Completada" y liberar al vet).
+        onComplete(consultaData?.id_consulta);
 
       } catch (error) {
         console.error('Error al guardar consulta:', error);
-        toast.error(`Error al guardar la consulta: ${error.message}`);
+        toast.error(error.message || 'No se pudo guardar la consulta');
       }
     };
 
@@ -227,7 +233,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
     }
 
     try {
-      console.log('Añadiendo diagnóstico para consulta:', consultaData.id_consulta);
       
       const response = await fetch(
         `/api/v1/consultas/diagnostico/${consultaData.id_consulta}`,
@@ -240,22 +245,21 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error ${response.status}: ${errorText}`);
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(formatApiError(errorBody, 'No se pudo añadir el diagnóstico'));
       }
 
       const result = await response.json();
-      console.log('Diagnóstico añadido exitosamente:', result);
-      
+
       toast.success(`Diagnóstico añadido correctamente. ID: ${result.id}`);
       
-      if (triageData?.id_triaje) {
-        await fetchDiagnosticos(triageData.id_triaje);
+      if (consultaData?.id_consulta) {
+        await fetchDiagnosticos(consultaData.id_consulta);
       }
-      
+
     } catch (error) {
       console.error('Error al añadir diagnóstico:', error);
-      toast.error(`Error al añadir diagnóstico: ${error.message}`);
+      toast.error(error.message || 'No se pudo añadir el diagnóstico');
     }
   };
 
@@ -266,7 +270,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       return;
     }
 
-    console.log('Abriendo modal de servicio para consulta ID:', consultaData.id_consulta);
     setShowModificarServicio(true);
   };
 
@@ -459,8 +462,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           diagnosticoId={diagnosticoId}
           onSave={async () => {
             setShowModificarDiagnostico(false);
-            if (triageData?.id_triaje) {
-              await fetchDiagnosticos(triageData.id_triaje);
+            if (consultaData?.id_consulta) {
+              await fetchDiagnosticos(consultaData.id_consulta);
             }
           }}
           onCancel={() => setShowModificarDiagnostico(false)}

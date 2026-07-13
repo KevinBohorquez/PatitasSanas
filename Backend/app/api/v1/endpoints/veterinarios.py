@@ -1,6 +1,7 @@
 # app/api/v1/endpoints/veterinarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import case
 from typing import Optional
 
 from app.config.database import get_db
@@ -38,7 +39,7 @@ async def get_veterinarios(
 
         # Aplicar filtros opcionales
         if especialidad:
-            query = query.join(Veterinario.especialidad).filter(Especialidad.nombre.ilike(f"%{especialidad}%"))
+            query = query.join(Veterinario.especialidad).filter(Especialidad.descripcion.ilike(f"%{especialidad}%"))
         if tipo_veterinario:
             query = query.filter(Veterinario.tipo_veterinario == tipo_veterinario)
         if disposicion:
@@ -74,20 +75,36 @@ async def get_veterinarios_disponibles(
         especialidad_id: Optional[int] = Query(None, description="Filtrar por ID de especialidad")
 ):
     """
-    Obtener veterinarios disponibles (disposicion = 'Libre')
+    Obtener veterinarios ASIGNABLES para una cita (SC-017 / F5).
+
+    Antes filtraba disposicion='Libre', lo que dejaba la lista frecuentemente
+    vacía (hueco de turnos 23:00-07:00, CONVERT_TZ NULL, etc.). Ahora devuelve
+    todos los veterinarios ACTIVOS ordenados por disposición
+    (Libre -> Ocupado -> Fuera de turno), para que la recepcionista siempre tenga
+    a quién asignar y vea el estado de cada uno.
 
     IMPORTANTE: debe declararse ANTES de "/{veterinario_id}" para que FastAPI
     no intente parsear "disponibles" como un id entero (causaría un 422).
     """
     try:
-        query = db.query(Veterinario).filter(Veterinario.disposicion == "Libre")
+        # Orden por disposición: primero los Libres, luego Ocupados, luego el resto.
+        orden_disposicion = case(
+            (Veterinario.disposicion == "Libre", 0),
+            (Veterinario.disposicion == "Ocupado", 1),
+            else_=2,
+        )
+
+        # Solo veterinarios cuyo usuario está Activo (consistente con SC-036).
+        query = db.query(Veterinario) \
+            .join(Usuario, Usuario.id_usuario == Veterinario.id_usuario) \
+            .filter(Usuario.estado == "Activo")
 
         if turno:
             query = query.filter(Veterinario.turno == turno)
         if especialidad_id:
             query = query.filter(Veterinario.id_especialidad == especialidad_id)
 
-        veterinarios = query.all()
+        veterinarios = query.order_by(orden_disposicion, Veterinario.id_veterinario).all()
 
         return {
             "veterinarios_disponibles": veterinarios,
@@ -252,7 +269,7 @@ async def get_veterinarios_by_especialidad(
         return {
             "especialidad": {
                 "id": especialidad_obj.id_especialidad,
-                "nombre": especialidad_obj.nombre
+                "nombre": especialidad_obj.descripcion
             },
             "veterinarios": veterinarios,
             "total": total,
@@ -461,12 +478,14 @@ async def update_veterinario_disposicion(
         )
 
 @router.put("/veterinario/usuario/{id_usuario}/disposicionLibre", response_model=VeterinarioResponse)
-async def update_veterinario_disposicion(
+async def update_veterinario_disposicion_libre(
         id_usuario: int,
         db: Session = Depends(get_db)
 ):
     """
-    Actualizar la disposición de un veterinario a 'Ocupado'
+    Actualizar la disposición de un veterinario a 'Libre'.
+    (SC-033 / F14: nombre de función único —antes duplicaba
+    update_veterinario_disposicion— y docstring corregido, decía 'Ocupado'.)
     """
     try:
         # Buscar al veterinario usando el id_usuario
@@ -527,4 +546,42 @@ def get_resultados_y_citas(id_usuario: int, db: Session = Depends(get_db)):
             },
         }
         for r in resultados
+    ]
+
+
+@router.get("/citas-programadas/{id_usuario}")
+def get_citas_programadas(id_usuario: int, db: Session = Depends(get_db)):
+    """
+    Citas PROGRAMADAS asignadas al veterinario, resueltas por Cita.id_veterinario
+    (SC-016 / F4). A diferencia de /resultados-citas (que dependía de
+    Resultado_servicio), incluye las citas creadas por el recepcionista que antes
+    no llegaban al veterinario.
+    """
+    veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+    if not veterinario:
+        raise HTTPException(status_code=404, detail="Veterinario no encontrado")
+
+    citas = (
+        db.query(Cita)
+        .filter(
+            Cita.id_veterinario == veterinario.id_veterinario,
+            Cita.estado_cita == "Programada",
+        )
+        .order_by(Cita.fecha_hora_programada.asc())
+        .all()
+    )
+
+    # Mismo envoltorio { "cita": {...} } que /resultados-citas para reutilizar el
+    # render del frontend (que pide mascota/servicio/veterinario por id_cita).
+    return [
+        {
+            "cita": {
+                "id_cita": c.id_cita,
+                "fecha_hora_programada": c.fecha_hora_programada,
+                "estado_cita": c.estado_cita,
+                "requiere_ayuno": c.requiere_ayuno,
+                "observaciones": c.observaciones,
+            }
+        }
+        for c in citas
     ]

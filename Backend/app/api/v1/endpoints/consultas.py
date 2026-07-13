@@ -1,5 +1,5 @@
 # app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import List, Optional
@@ -57,6 +57,16 @@ async def create_cita(
                 raise HTTPException(
                     status_code=400,
                     detail="Servicio solicitado no encontrado"
+                )
+
+        # Verificar que el veterinario asignado existe (SC-016 / F4).
+        # El campo es opcional: si no se envía, la cita queda sin asignar.
+        if cita_data.id_veterinario:
+            vet_obj = veterinario.get(db, cita_data.id_veterinario)
+            if not vet_obj:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Veterinario no encontrado"
                 )
 
         # Crear la cita
@@ -182,6 +192,21 @@ async def delete_cita(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cita no encontrada"
+        )
+
+    # SC-039 / SC-044 (F20 / F28): no borrar una cita con dependientes. La cascada del
+    # ORM eliminaba el Resultado_servicio en silencio (pérdida del registro clínico), y
+    # el Movimiento_Financiero (FK NO ACTION) hacía fallar el borrado con 500.
+    from app.models.movimiento_financiero import MovimientoFinanciero
+    dependientes = []
+    if db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first():
+        dependientes.append("un resultado de servicio")
+    if db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_cita == cita_id).first():
+        dependientes.append("un movimiento financiero")
+    if dependientes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"No se puede eliminar la cita: tiene {' y '.join(dependientes)} asociado(s).",
         )
 
     cita.remove(db, id=cita_id)
@@ -489,6 +514,26 @@ async def get_consultas(
             detail=f"Error al obtener consultas: {str(e)}"
         )
 
+
+@router.get("/triaje/{id_triaje}")
+async def get_consulta_by_triaje(id_triaje: int, db: Session = Depends(get_db)):
+    """
+    Obtener la consulta asociada a un triaje (SC-040 / F21).
+
+    Reemplaza el patrón del frontend de traer la primera página de /consultas/ y
+    filtrar en memoria (se rompía al superar 20 consultas y no encontrar la del
+    triaje en esa página). Retorna la consulta del triaje, o null (200) si el
+    triaje aún no tiene consulta.
+    """
+    try:
+        return consulta.get_by_triaje(db, triaje_id=id_triaje)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener la consulta del triaje: {str(e)}"
+        )
+
+
 @router.put("/{consulta_id}", response_model=ConsultaResponse)
 async def update_consulta(
         consulta_id: int,
@@ -510,6 +555,40 @@ async def update_consulta(
 
         # Actualizar la recepcionista
         consulta_actualizada = consulta.update(db, db_obj=consulta_obj, obj_in=consulta_data)
+
+        # SC-043 / F26: registrar el evento de consulta en el historial clínico. El PUT
+        # se llama en cada guardado, así que se agrega una sola vez por consulta. El
+        # historial es complementario: si falla, no debe romper el guardado.
+        try:
+            if not historial_clinico.get_by_consulta(db, consulta_id=consulta_id):
+                triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+                solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud) if triaje_obj else None
+                if solicitud_obj:
+                    historial_clinico.add_evento_consulta(
+                        db,
+                        mascota_id=solicitud_obj.id_mascota,
+                        consulta_id=consulta_id,
+                        veterinario_id=consulta_obj.id_veterinario,
+                        descripcion=consulta_actualizada.motivo_consulta
+                        or consulta_actualizada.tipo_consulta
+                        or "Consulta médica",
+                    )
+        except Exception:
+            pass
+
+        # SC-018 / F23: al guardar la consulta, la solicitud avanza a "En atencion"
+        # (solo desde "Pendiente"/"En triaje"). Con esto el trigger de liberación del
+        # veterinario (En atencion -> Completada) ya se dispara al finalizar.
+        try:
+            triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+            if triaje_obj:
+                solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud)
+                if solicitud_obj and solicitud_obj.estado in ("Pendiente", "En triaje"):
+                    solicitud_atencion.cambiar_estado(
+                        db, solicitud_id=triaje_obj.id_solicitud, nuevo_estado="En atencion"
+                    )
+        except Exception:
+            pass
 
         return consulta_actualizada
 
@@ -903,16 +982,20 @@ async def get_historial_clinico_mascota(
     Obtener historial clínico de una mascota y sus consultas
     """
     try:
-        # Consultar las consultas relacionadas con la mascota, pasando por Solicitud_atencion, Triaje y Consulta
-        eventos = db.query(Consulta).join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Consulta.id_triaje) \
+        # Consultar las consultas relacionadas con la mascota, pasando por la cadena
+        # correcta: Consulta -> Triaje -> Solicitud_atencion -> Mascota.
+        # (Antes se cruzaba SolicitudAtencion.id_solicitud == Consulta.id_triaje, lo que
+        # comparaba un id de solicitud con un id de triaje y solo coincidía por casualidad
+        # en los registros donde ambos ids eran iguales.)
+        eventos = db.query(Consulta) \
             .join(Triaje, Triaje.id_triaje == Consulta.id_triaje) \
-            .join(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota) \
-            .filter(Mascota.id_mascota == mascota_id) \
+            .join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Triaje.id_solicitud) \
+            .filter(SolicitudAtencion.id_mascota == mascota_id) \
+            .order_by(Consulta.fecha_consulta.desc()) \
             .limit(limit).all()
 
-        if not eventos:
-            raise HTTPException(status_code=404, detail="No se encontraron consultas para esta mascota")
-
+        # Si la mascota no tiene consultas, devolver lista vacía (HTTP 200) en lugar
+        # de 404, para que el front muestre un historial vacío y no un error.
         # Mapear los eventos para devolverlos en el formato adecuado
         return [
             {
@@ -926,6 +1009,8 @@ async def get_historial_clinico_mascota(
             for e in eventos
         ]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -958,6 +1043,8 @@ async def get_cita_by_id(cita_id: int, db: Session = Depends(get_db)):
             "nombre_servicio": cita_obj.nombre_servicio  # Nombre del servicio asociado
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -991,6 +1078,8 @@ async def get_cita_by_id(cita_id: int, db: Session = Depends(get_db)):
             "veterinario": f"{cita.veterinario_nombre} {cita.veterinario_apellido}"
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -1009,6 +1098,8 @@ async def get_mascota_from_cita(cita_id: int, db: Session = Depends(get_db)):
             "nombre_mascota": result.nombre
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener cita: {str(e)}")
 
@@ -1049,6 +1140,15 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
     from app.crud.consulta_crud import cita as cita_crud
     cita_crud.marcar_atendida(db, cita_id=cita_id)
 
+    # SC-042 / F24: al registrar el resultado, el examen avanza a 'Completado'.
+    cita_obj = db.query(Cita).filter(Cita.id_cita == cita_id).first()
+    if cita_obj and cita_obj.id_servicio_solicitado:
+        ss = db.query(ServicioSolicitado).filter(
+            ServicioSolicitado.id_servicio_solicitado == cita_obj.id_servicio_solicitado
+        ).first()
+        if ss:
+            ss.estado_examen = 'Completado'
+
     db.commit()
     db.refresh(resultado_servicio)
 
@@ -1061,6 +1161,48 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
         archivo_adjunto=resultado_servicio.archivo_adjunto,
         fecha_realizacion=resultado_servicio.fecha_realizacion
     )
+
+
+@router.post("/resultado_servicio/{cita_id}/adjunto")
+async def subir_adjunto_resultado(
+    cita_id: int,
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """
+    Subir el archivo adjunto de un resultado de servicio a Google Drive (SC-020 / F27)
+    y guardar el enlace resultante en archivo_adjunto.
+
+    Requiere configurar GOOGLE_SERVICE_ACCOUNT_JSON (y opcionalmente GDRIVE_FOLDER_ID);
+    si Drive no está configurado, responde 503 con un mensaje claro.
+    """
+    resultado_servicio = db.query(ResultadoServicio).filter(
+        ResultadoServicio.id_cita == cita_id
+    ).first()
+    if not resultado_servicio:
+        raise HTTPException(
+            status_code=404,
+            detail="Resultado del servicio no encontrado para esta cita",
+        )
+
+    from app.services.storage import drive_service
+
+    try:
+        contenido = await archivo.read()
+        enlace = drive_service.subir_archivo(contenido, archivo.filename, archivo.content_type)
+    except RuntimeError as e:
+        # Drive no configurado o falta la librería.
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir el adjunto: {str(e)}")
+
+    resultado_servicio.archivo_adjunto = enlace
+    db.commit()
+    db.refresh(resultado_servicio)
+
+    return {"archivo_adjunto": enlace}
 
 
 @router.get("/diagnosticos/{id_consulta}", response_model=List[DiagnosticoResponse])
@@ -1082,6 +1224,8 @@ async def get_diagnosticos_by_consulta(
         # Retornar la lista de diagnósticos
         return diagnosticos
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -1135,6 +1279,8 @@ async def get_tratamiento_patologia_by_diagnostico(
             for t, p, d in tratamiento_patologia_diagnostico
         ]
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -1297,6 +1443,23 @@ async def create_diagnostico(
 
         # Crear el diagnóstico usando el método CRUD
         nuevo_diagnostico = diagnostico.create(db, obj_in=diagnostico_dict)
+
+        # SC-043 / F26: registrar el diagnóstico en el historial clínico (este es el
+        # endpoint que usa la UI del veterinario). Complementario: si falla, no rompe
+        # la creación del diagnóstico.
+        try:
+            triaje_obj = triaje.get(db, consulta_obj.id_triaje)
+            solicitud_obj = solicitud_atencion.get(db, triaje_obj.id_solicitud) if triaje_obj else None
+            if solicitud_obj:
+                historial_clinico.add_evento_diagnostico(
+                    db,
+                    mascota_id=solicitud_obj.id_mascota,
+                    diagnostico_id=nuevo_diagnostico.id_diagnostico,
+                    veterinario_id=consulta_obj.id_veterinario,
+                    descripcion=nuevo_diagnostico.diagnostico or "Diagnóstico",
+                )
+        except Exception:
+            pass
 
         return {"detail": "Diagnóstico insertado correctamente", "id": nuevo_diagnostico.id_diagnostico}
 

@@ -3,12 +3,14 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './MascotasManagement.css';
 import { toast } from '../../utils/toast';
+import { formatApiError } from '../../utils/apiError';
 import Loader from '../common/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const MascotasManagement = () => {
   const [mascotas, setMascotas] = useState([]);
   const [filteredMascotas, setFilteredMascotas] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
   const [clientes, setClientes] = useState([]);
   const [razas, setRazas] = useState([]);
   const [tiposAnimal, setTiposAnimal] = useState([]);
@@ -82,13 +84,16 @@ const MascotasManagement = () => {
     }
 
     setFilteredMascotas(filtered);
+    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
   };
 
   // Obtener todas las mascotas
   const fetchMascotas = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/`, {
+      // SC-019 / F25: pedir hasta el máximo del backend para no truncar el listado
+      // a la primera página (se pagina en el cliente sobre los resultados filtrados).
+      const response = await fetch(`${BASE_URL}/mascotas/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -106,7 +111,7 @@ const MascotasManagement = () => {
         if (response.status === 404) {
           setMascotas([]);
         } else {
-          toast.error(`Error al cargar las mascotas: ${errorData.detail || response.statusText}`);
+          toast.error(formatApiError(errorData, 'No se pudieron cargar las mascotas'));
         }
       }
     } catch (error) {
@@ -121,7 +126,9 @@ const MascotasManagement = () => {
   // Obtener todos los clientes
   const fetchClientes = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/clientes/`, {
+      // SC-059 / F43: pedir todos los clientes (el default del backend pagina a
+      // 20, dejando fuera del dropdown de "dueño" a los clientes recién creados).
+      const response = await fetch(`${BASE_URL}/clientes/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -153,7 +160,6 @@ const MascotasManagement = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Razas cargadas:', data); 
         setRazas(data || []);
       } else {
         console.error('Error al cargar razas:', response.status);
@@ -282,7 +288,7 @@ const MascotasManagement = () => {
           fetchMascotas(); // Recargar la lista
         } else {
           const errorData = await response.json();
-          toast.error(`Error al eliminar mascota: ${errorData.detail || 'Error desconocido'}`);
+          toast.error(formatApiError(errorData, 'No se pudo eliminar la mascota'));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -400,7 +406,6 @@ const MascotasManagement = () => {
       };
 
       // Agregar campos adicionales
-      console.log('Iniciando proceso de creación de mascota...');
 
       const url = modalType === 'add' 
         ? `${BASE_URL}/mascotas/?cliente_id=${formData.id_cliente}`
@@ -408,10 +413,8 @@ const MascotasManagement = () => {
       
       const method = modalType === 'add' ? 'POST' : 'PUT';
 
-      console.log('URL:', url, 'Method:', method);
 
       // Petición sin imagen
-      console.log('Registrando mascota...');
 
       let response = await fetch(url, {
         method: method,
@@ -424,12 +427,10 @@ const MascotasManagement = () => {
       });
 
       let responseData = await response.json();
-      console.log('Estado de registro:', response.status === 201 ? 'Éxito' : 'Error');
 
       if (response.ok) {
         if (formData.imagen && formData.imagen.trim()) {
           try {
-            console.log('Intentando agregar imagen...');
             mascotaData.imagen = formData.imagen.trim();
             
             const updateUrl = modalType === 'add' 
@@ -447,7 +448,6 @@ const MascotasManagement = () => {
             });
 
             const imageResponseData = await imageResponse.json();
-            console.log('Estado de imagen:', imageResponse.status === 200 ? 'Agregada' : 'Error');
 
             if (imageResponse.ok) {
               toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente con imagen`);
@@ -465,7 +465,7 @@ const MascotasManagement = () => {
         fetchMascotas(); 
       } else {
         console.error('Error del servidor');
-        toast.error(`Error: ${responseData.detail || 'Error desconocido al procesar la solicitud'}`);
+        toast.error(formatApiError(responseData, 'No se pudo guardar la mascota'));
       }
     } catch (error) {
       console.error('Error de conexión');
@@ -582,6 +582,14 @@ const MascotasManagement = () => {
     );
   }
 
+  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
+  const ITEMS_POR_PAGINA = 10;
+  const totalPaginas = Math.max(1, Math.ceil(filteredMascotas.length / ITEMS_POR_PAGINA));
+  const mascotasPagina = filteredMascotas.slice(
+    (currentPage - 1) * ITEMS_POR_PAGINA,
+    currentPage * ITEMS_POR_PAGINA
+  );
+
   return (
     <div className="mascotas-management">
       <div className="section-header">
@@ -636,12 +644,35 @@ const MascotasManagement = () => {
           </div>
         )}
 
-        <Table 
+        <Table
           columns={columns}
-          data={filteredMascotas}
+          data={mascotasPagina}
           actions={actions}
           emptyMessage="No hay mascotas registradas"
         />
+
+        {totalPaginas > 1 && (
+          <div
+            className="pagination-controls"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}
+          >
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPaginas}</span>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.min(totalPaginas, p + 1))}
+              disabled={currentPage === totalPaginas}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal

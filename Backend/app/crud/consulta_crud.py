@@ -450,16 +450,21 @@ class CRUDCita(CRUDBase[Cita, CitaCreate, CitaUpdate]):
                         monto = float(servicio.precio)
                         concepto = f"Ingreso por {servicio.nombre_servicio} - Cita #{cita_id}"
 
-            # Registrar movimiento financiero (ingreso automático)
-            movimiento = MovimientoFinanciero(
-                tipo='Ingreso',
-                categoria='Servicio',
-                monto=monto,
-                concepto=concepto,
-                fecha_movimiento=datetime.now(),
-                id_cita=cita_id
-            )
-            db.add(movimiento)
+            # Registrar movimiento financiero (ingreso automático) SOLO si hay monto.
+            # Si la cita no tiene servicio con precio, el monto es 0 y registrarlo
+            # ensuciaría el Flujo de Caja / Balance con ingresos vacíos (SC-032 / F13).
+            if monto > 0:
+                movimiento = MovimientoFinanciero(
+                    tipo='Ingreso',
+                    categoria='Servicio',
+                    monto=monto,
+                    concepto=concepto,
+                    fecha_movimiento=datetime.now(),
+                    id_cita=cita_id
+                )
+                db.add(movimiento)
+
+            # El commit/refresh se hacen siempre, para persistir estado_cita='Atendida'.
             db.commit()
             db.refresh(cita)
         return cita

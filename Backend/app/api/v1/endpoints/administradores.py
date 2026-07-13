@@ -146,9 +146,11 @@ async def get_administrador_complete(
                 detail="Administrador no encontrado"
             )
 
+        admin_obj = admin_with_usuario["administrador"]
+        usuario_obj = admin_with_usuario["usuario"]
         return {
-            **admin_with_usuario["administrador"].__dict__,
-            "usuario": admin_with_usuario["usuario"].__dict__ if admin_with_usuario["usuario"] else None
+            **{k: v for k, v in admin_obj.__dict__.items() if not k.startswith("_")},
+            "usuario": {k: v for k, v in usuario_obj.__dict__.items() if not k.startswith("_") and k != "contraseña"} if usuario_obj else None
         }
 
     except HTTPException:
