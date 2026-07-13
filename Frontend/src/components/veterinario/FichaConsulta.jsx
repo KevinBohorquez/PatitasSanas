@@ -209,7 +209,9 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
         await actualizarDisposicion();
 
         toast.success('Consulta actualizada correctamente.');
-        onComplete();
+        // SC-056 / F41: pasar el id_consulta para que el contenedor pueda
+        // finalizar la atención (persistir "Completada" y liberar al vet).
+        onComplete(consultaData?.id_consulta);
 
       } catch (error) {
         console.error('Error al guardar consulta:', error);
