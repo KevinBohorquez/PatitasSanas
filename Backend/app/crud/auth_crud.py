@@ -5,6 +5,7 @@ from app.models.usuario import Usuario
 from app.models.administrador import Administrador
 from app.models.veterinario import Veterinario
 from app.models.recepcionista import Recepcionista
+from app.config.security import hash_password, verify_password, is_hashed
 
 
 class CRUDAuth:
@@ -18,9 +19,15 @@ class CRUDAuth:
             Usuario.estado == "Activo"
         ).first()
         
-        if not usuario or usuario.contraseña != password:
+        if not usuario or not verify_password(password, usuario.contraseña):
             return None
-        
+
+        # SC-046: migración perezosa — si la contraseña estaba en texto plano,
+        # se re-hashea tras un login exitoso.
+        if not is_hashed(usuario.contraseña):
+            usuario.contraseña = hash_password(password)
+            db.commit()
+
         # Obtener perfil según tipo de usuario
         perfil = self._get_user_profile(db, usuario)
         
@@ -119,13 +126,13 @@ class CRUDAuth:
         if not usuario:
             return False, "Usuario no encontrado"
         
-        if usuario.contraseña != current_password:
+        if not verify_password(current_password, usuario.contraseña):
             return False, "Contraseña actual incorrecta"
         
         if len(new_password) < 3:
             return False, "La nueva contraseña debe tener al menos 3 caracteres"
         
-        usuario.contraseña = new_password
+        usuario.contraseña = hash_password(new_password)
         db.commit()
         
         return True, "Contraseña cambiada exitosamente"
@@ -140,7 +147,7 @@ class CRUDAuth:
         if len(new_password) < 3:
             return False, "La contraseña debe tener al menos 3 caracteres"
         
-        usuario.contraseña = new_password
+        usuario.contraseña = hash_password(new_password)
         db.commit()
         
         return True, "Contraseña reseteada exitosamente"
