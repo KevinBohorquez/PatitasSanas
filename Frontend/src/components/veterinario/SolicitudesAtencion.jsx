@@ -215,19 +215,33 @@ const SolicitudesAtencion = () => {
     setShowConsulta(true);
   };
 
-  const handleConsultaComplete = () => {
+  const handleConsultaComplete = async (consultaId) => {
     setShowConsulta(false);
     setSelectedSolicitud(null);
-    // Actualizar estado de la solicitud
-    setSolicitudes(prev =>
-      prev.map(s =>
-        s.id === selectedSolicitud.id
-          ? { ...s, estado: 'Atendida' }
-          : s
-      )
-    );
-    // Opcionalmente, actualizar en la API también
-    // updateSolicitudEstado(selectedSolicitud.id, 'En atencion');
+
+    // SC-056 / F41: al terminar la consulta se FINALIZA la atención en el backend:
+    // la solicitud pasa a "Completada" y el trigger libera al veterinario ("Libre").
+    // Antes solo se marcaba "Atendida" en el estado local (sin persistir), por lo que
+    // recepción no veía el cambio y se perdía al recargar.
+    try {
+      if (consultaId) {
+        const resp = await fetch(`/api/v1/consultas/${consultaId}/finalizar`, {
+          method: 'PATCH'
+        });
+        if (resp.ok) {
+          toast.success('Atención finalizada.');
+        } else {
+          const errBody = await resp.json().catch(() => null);
+          toast.error(formatApiError(errBody, 'No se pudo finalizar la atención'));
+        }
+      }
+    } catch (error) {
+      console.error('Error al finalizar la atención:', error);
+      toast.error('No se pudo finalizar la atención');
+    }
+
+    // Recargar los estados reales desde el backend (evita estados optimistas incorrectos).
+    fetchSolicitudes();
   };
 
   const solicitudesFiltradas = solicitudes.filter(s =>
