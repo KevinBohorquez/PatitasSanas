@@ -8,6 +8,7 @@ from app.models.administrador import Administrador
 from app.models.veterinario import Veterinario
 from app.models.recepcionista import Recepcionista
 from app.schemas.usuario_schema import UsuarioCreate, UsuarioUpdate, UsuarioSearch
+from app.config.security import hash_password, verify_password
 
 
 class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
@@ -23,7 +24,7 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
     def authenticate(self, db: Session, *, username: str, password: str) -> Optional[Usuario]:
         """Autenticar usuario (sin hash por simplicidad)"""
         usuario = self.get_by_username(db, username=username)
-        if usuario and usuario.contraseña == password and usuario.estado == "Activo":
+        if usuario and verify_password(password, usuario.contraseña) and usuario.estado == "Activo":
             return usuario
         return None
 
@@ -33,7 +34,7 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
         # Crear usuario base
         usuario_dict = {
             "username": user_data["username"],
-            "contraseña": user_data["contraseña"],
+            "contraseña": hash_password(user_data["contraseña"]),
             "tipo_usuario": user_type,
             "estado": user_data.get("estado", "Activo")
         }
@@ -127,7 +128,7 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
         """Cambiar contraseña de usuario"""
         usuario = self.get(db, user_id)
         if usuario:
-            usuario.contraseña = new_password
+            usuario.contraseña = hash_password(new_password)
             db.commit()
             db.refresh(usuario)
         return usuario

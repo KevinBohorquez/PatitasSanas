@@ -10,7 +10,7 @@ class Usuario(Base):
 
     id_usuario = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(20), unique=True, nullable=False)
-    contraseña = Column(String(60), nullable=False)
+    contraseña = Column(String(255), nullable=False)
     tipo_usuario = Column(SQLEnum('Veterinario', 'Recepcionista', 'Administrador', name='tipo_usuario_enum'),
                           nullable=False)
     fecha_creacion = Column(TIMESTAMP, default=func.current_timestamp())
