@@ -1,5 +1,5 @@
 # app/api/v1/endpoints/mascotas.py (CORREGIDO)
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -16,6 +16,22 @@ from app.api.deps import get_mascota_or_404
 from datetime import datetime
 
 router = APIRouter()
+
+
+@router.post("/imagen")
+async def subir_imagen_mascota(file: UploadFile = File(...)):
+    """Sube una imagen a Google Drive y devuelve el enlace para guardarlo en la mascota."""
+    from app.services.drive.drive_uploader import subir_imagen
+    if not (file.content_type or '').startswith('image/'):
+        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
+    contenido = await file.read()
+    if len(contenido) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="La imagen no debe superar 8 MB")
+    try:
+        url = subir_imagen(contenido, file.filename or 'mascota.jpg', file.content_type)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {str(e)}")
+    return {"url": url}
 
 
 @router.post("/", response_model=MascotaResponse, status_code=status.HTTP_201_CREATED)
