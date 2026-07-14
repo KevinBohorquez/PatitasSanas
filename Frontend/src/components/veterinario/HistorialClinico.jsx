@@ -4,51 +4,27 @@ import Loader from '../common/Loader/Loader';
 import EmptyState from '../common/EmptyState/EmptyState';
 
 const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
-  const [historial, setHistorial] = useState(null); // Guardar el historial clínico
-  const [consultas, setConsultas] = useState([]); // Guardar las consultas
+  const [consultas, setConsultas] = useState([]); // Historial detallado por consulta
+  const [selectedIndex, setSelectedIndex] = useState(0); // Consulta seleccionada en el panel
+  const [showDiagnostico, setShowDiagnostico] = useState(false); // Modal de diagnóstico completo
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Función para cargar el historial clínico de la mascota con mascotaId
-  const fetchHistorialClinico = async () => {
+  // Cargar el historial clínico detallado (una entrada por consulta, con edad/peso/observaciones
+  // y sus diagnósticos con patología).
+  const fetchHistorialDetallado = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(
-        `/api/v1/consultas/historial/${mascotaId}`
+        `/api/v1/consultas/historialDetallado/${mascotaId}?limit=50`
       );
       if (!response.ok) {
         throw new Error('Error al cargar el historial clínico');
       }
       const data = await response.json();
-      if (data.length > 0) {
-        setHistorial(data[0]); // Usamos el primer objeto del array
-      } else {
-        setHistorial(null); // Si no hay datos, dejamos historial en null
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Función para cargar las consultas de la mascota
-  const fetchConsultas = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `/api/v1/consultas/historialConsultas/${mascotaId}?limit=50`
-      );
-      if (!response.ok) {
-        throw new Error('Error al cargar las consultas');
-      }
-      const data = await response.json();
-
-      if (data.length > 0) {
-        setConsultas(data); // Asignamos las consultas al estado
-      } else {
-        setConsultas([]); // Si no hay consultas, asignamos un array vacío
-      }
+      setConsultas(data);
+      setSelectedIndex(0); // Por defecto se muestra la consulta más reciente
     } catch (err) {
       setError(err.message);
     } finally {
@@ -58,64 +34,114 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
 
   useEffect(() => {
     if (mascotaId) {
-      fetchHistorialClinico(); // Cargar el historial clínico al recibir mascotaId
-      fetchConsultas(); // Cargar las consultas relacionadas a la mascota
+      fetchHistorialDetallado();
     }
   }, [mascotaId]);
 
-  if (!isOpen) return null; // Si el modal no está abierto, no renderizamos nada
+  if (!isOpen) return null;
+
+  const formatFecha = (valor) => (valor ? new Date(valor).toLocaleString() : '--');
+
+  const formatEdad = (meses) => {
+    if (meses === null || meses === undefined) return '--';
+    const anios = Math.floor(meses / 12);
+    const resto = meses % 12;
+    if (anios > 0) return `${anios} año(s) ${resto} mes(es)`;
+    return `${resto} mes(es)`;
+  };
+
+  const formatBool = (valor) => {
+    if (valor === null || valor === undefined) return '--';
+    return valor ? 'Sí' : 'No';
+  };
+
+  const consultaSel = consultas[selectedIndex] || null;
 
   return (
     <div className="form-section">
       <h2>Historial Clínico de la Mascota</h2>
 
-      {loading && <Loader message="Cargando historial clínico y consultas" />}
+      {loading && <Loader message="Cargando historial clínico" />}
       {error && <p>Error: {error}</p>}
 
-      {/* Mostrar historial clínico si existe */}
-      {historial ? (
+      {!loading && !error && consultas.length === 0 && (
+        <EmptyState title="Sin consultas" message="No se encontraron consultas para esta mascota." size={120} />
+      )}
+
+      {/* Panel de la consulta seleccionada */}
+      {consultaSel && (
         <div className="form-container">
           <div className="form-group">
-            <label>Fecha del Evento:</label>
-            <input type="text" value={historial.fecha_evento || '--'} disabled />
+            <label>Fecha de la Consulta:</label>
+            <input type="text" value={formatFecha(consultaSel.fecha_consulta)} disabled />
           </div>
 
           <div className="form-group">
-            <label>Tipo de Evento:</label>
-            <input type="text" value={historial.tipo_evento || '--'} disabled />
+            <label>Tipo de Consulta:</label>
+            <input type="text" value={consultaSel.tipo_consulta || '--'} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Motivo de Consulta:</label>
+            <input type="text" value={consultaSel.motivo_consulta || '--'} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Síntomas Observados:</label>
+            <input type="text" value={consultaSel.sintomas_observados || '--'} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Condición General:</label>
+            <input type="text" value={consultaSel.condicion_general || '--'} disabled />
           </div>
 
           <div className="form-group">
             <label>Edad en Meses:</label>
-            <input type="text" value={historial.edad_meses || '--'} disabled />
-          </div>
-
-          <div className="form-group">
-            <label>Descripción del Evento:</label>
-            <input type="text" value={historial.descripcion_evento || '--'} disabled />
+            <input type="text" value={formatEdad(consultaSel.edad_meses)} disabled />
           </div>
 
           <div className="form-group">
             <label>Peso en el Momento:</label>
-            <input type="text" value={historial.peso_momento || '--'} disabled />
-          </div>
-
-          <div className="form-group">
-            <label>Observaciones:</label>
-            <input type="text" value={historial.observaciones || '--'} disabled />
+            <input type="text" value={consultaSel.peso_momento ?? '--'} disabled />
           </div>
 
           <div className="form-group">
             <label>Veterinario Responsable:</label>
-            <input type="text" value={historial.veterinario || '--'} disabled />
+            <input type="text" value={consultaSel.veterinario || '--'} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Diagnóstico Preliminar:</label>
+            <input type="text" value={consultaSel.diagnostico_preliminar || '--'} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Observaciones:</label>
+            <input
+              type="text"
+              value={consultaSel.observaciones || consultaSel.observaciones_historial || '--'}
+              disabled
+            />
+          </div>
+
+          <div className="form-group historial-diagnostico-action">
+            <button
+              type="button"
+              className="btn-diagnostico"
+              disabled={!consultaSel.diagnosticos || consultaSel.diagnosticos.length === 0}
+              onClick={() => setShowDiagnostico(true)}
+            >
+              {consultaSel.diagnosticos && consultaSel.diagnosticos.length > 0
+                ? `Ver diagnóstico completo (${consultaSel.diagnosticos.length})`
+                : 'Sin diagnóstico registrado'}
+            </button>
           </div>
         </div>
-      ) : (
-        <EmptyState title="Sin historial" message="No se encontraron datos para el historial clínico." size={120} />
       )}
 
-      {/* Mostrar lista de consultas si existen */}
-      {consultas.length > 0 ? (
+      {/* Lista de consultas: al hacer click se actualiza el panel superior */}
+      {consultas.length > 0 && (
         <div className="consulta-list">
           <h3>Consultas Realizadas</h3>
           <table>
@@ -124,25 +150,54 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
                 <th>Fecha de Consulta</th>
                 <th>Tipo de Consulta</th>
                 <th>Motivo de Consulta</th>
-                <th>Diagnóstico Preliminar</th>
-                <th>Observaciones</th>
+                <th>Diagnósticos</th>
               </tr>
             </thead>
             <tbody>
-              {consultas.map((consulta) => (
-                <tr key={consulta.id_consulta}>
-                  <td>{new Date(consulta.fecha_consulta).toLocaleString()}</td>
+              {consultas.map((consulta, index) => (
+                <tr
+                  key={consulta.id_consulta}
+                  className={index === selectedIndex ? 'consulta-row-active' : ''}
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  <td>{formatFecha(consulta.fecha_consulta)}</td>
                   <td>{consulta.tipo_consulta}</td>
                   <td>{consulta.motivo_consulta}</td>
-                  <td>{consulta.diagnostico_preliminar}</td>
-                  <td>{consulta.observaciones}</td>
+                  <td>{consulta.diagnosticos ? consulta.diagnosticos.length : 0}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : (
-        <EmptyState title="Sin consultas" message="No se encontraron consultas para esta mascota." size={120} />
+      )}
+
+      {/* Modal con el detalle completo de los diagnósticos de la consulta seleccionada */}
+      {showDiagnostico && consultaSel && (
+        <div className="diagnostico-overlay" onClick={() => setShowDiagnostico(false)}>
+          <div className="diagnostico-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Diagnóstico(s) de la consulta</h3>
+            {consultaSel.diagnosticos.map((d) => (
+              <div key={d.id_diagnostico} className="diagnostico-card">
+                <p><strong>Diagnóstico:</strong> {d.diagnostico || '--'}</p>
+                <p><strong>Tipo:</strong> {d.tipo_diagnostico || '--'}</p>
+                <p><strong>Estado de la patología:</strong> {d.estado_patologia || '--'}</p>
+                <p><strong>Fecha:</strong> {formatFecha(d.fecha_diagnostico)}</p>
+                {d.patologia ? (
+                  <div className="diagnostico-patologia">
+                    <p><strong>Patología:</strong> {d.patologia.nombre || '--'}</p>
+                    <p><strong>Gravedad:</strong> {d.patologia.gravedad || '--'}</p>
+                    <p><strong>Especie afectada:</strong> {d.patologia.especie_afecta || '--'}</p>
+                    <p><strong>¿Contagiosa?:</strong> {formatBool(d.patologia.es_contagiosa)}</p>
+                    <p><strong>¿Crónica?:</strong> {formatBool(d.patologia.es_cronica)}</p>
+                  </div>
+                ) : (
+                  <p><em>Sin patología asociada</em></p>
+                )}
+              </div>
+            ))}
+            <button onClick={() => setShowDiagnostico(false)} className="btn-close">Cerrar detalle</button>
+          </div>
+        </div>
       )}
 
       <button onClick={onClose} className="btn-close">Cerrar</button>
