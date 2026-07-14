@@ -35,6 +35,8 @@ from app.models.historial_clinico import HistorialClinico
 from app.models.movimiento_financiero import MovimientoFinanciero
 from app.models.horario_veterinario import HorarioVeterinario
 from app.models.horario_excepcion import HorarioExcepcion
+from app.models.horario_recepcionista import HorarioRecepcionista
+from app.models.horario_excepcion_recep import HorarioExcepcionRecep
 
 random.seed(2026)
 
@@ -277,11 +279,41 @@ while creadas < 12 and intentos < 80:
 hdb.commit()
 hdb.close()
 
+# Cronograma de recepcionistas (mismo patrón).
+with engine.begin() as conn:
+    conn.execute(text("DELETE FROM Horario_excepcion_recep"))
+    conn.execute(text("DELETE FROM Horario_recepcionista"))
+    conn.execute(text("ALTER TABLE Horario_excepcion_recep AUTO_INCREMENT = 1"))
+    conn.execute(text("ALTER TABLE Horario_recepcionista AUTO_INCREMENT = 1"))
+
+rdb = SessionLocal()
+recep_turno = rdb.execute(text("SELECT id_recepcionista, COALESCE(turno,'Mañana') FROM Recepcionista")).fetchall()
+for rid, turno in recep_turno:
+    dias = DIAS_SEM[:5] + (['Sabado'] if random.random() < 0.4 else [])
+    for d in dias:
+        rdb.add(HorarioRecepcionista(id_recepcionista=rid, dia_semana=d, turno=turno))
+rdb.flush()
+usados, creadas, intentos = set(), 0, 0
+while creadas < 8 and intentos < 60:
+    intentos += 1
+    rid = random.choice(recep_turno)[0]
+    fecha = (hoy + timedelta(days=random.randint(-3, 14))).date()
+    if (rid, fecha) in usados:
+        continue
+    usados.add((rid, fecha))
+    trabaja = random.random() < 0.5
+    rdb.add(HorarioExcepcionRecep(id_recepcionista=rid, fecha=fecha,
+                                  turno=random.choice(turnos_all) if trabaja else None, trabaja=trabaja))
+    creadas += 1
+rdb.commit()
+rdb.close()
+
 # --- Verificación con sesión independiente ---
 chk = SessionLocal()
 print("REEMPLAZO COMPLETADO:")
 for t in ["Cliente","Mascota","Cliente_Mascota","Solicitud_atencion","Triaje","Consulta",
           "Diagnostico","Tratamiento","Servicio_Solicitado","Cita","Resultado_servicio",
-          "Historial_clinico","Movimiento_financiero","Horario_veterinario","Horario_excepcion"]:
+          "Historial_clinico","Movimiento_financiero","Horario_veterinario","Horario_excepcion",
+          "Horario_recepcionista","Horario_excepcion_recep"]:
     print(f"  {t}: {chk.execute(text(f'SELECT COUNT(*) FROM {t}')).scalar()}")
 chk.close()
