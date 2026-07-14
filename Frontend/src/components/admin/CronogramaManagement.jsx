@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../veterinario/HistorialClinico.css';
+import '../cronograma/Cronograma.css';
+import CronogramaSemana from '../cronograma/CronogramaSemana';
+import CronogramaCalendario from '../cronograma/CronogramaCalendario';
 
 const DIAS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
 const TURNOS = ['Mañana', 'Tarde', 'Noche', 'Madrugada'];
@@ -10,6 +13,7 @@ const CronogramaManagement = () => {
   const [recurrentes, setRecurrentes] = useState([]);
   const [excepciones, setExcepciones] = useState([]);
   const [roster, setRoster] = useState(null);
+  const [tab, setTab] = useState('dia');
   const [rosterFecha, setRosterFecha] = useState(hoyISO());
   const [error, setError] = useState(null);
 
@@ -85,6 +89,18 @@ const CronogramaManagement = () => {
   return (
     <div className="form-section">
       <h2>Cronograma de veterinarios</h2>
+
+      <div className="cro-tabs">
+        <button className={`cro-tab ${tab === 'dia' ? 'active' : ''}`} onClick={() => setTab('dia')}>Día y gestión</button>
+        <button className={`cro-tab ${tab === 'semana' ? 'active' : ''}`} onClick={() => setTab('semana')}>Semana</button>
+        <button className={`cro-tab ${tab === 'calendario' ? 'active' : ''}`} onClick={() => setTab('calendario')}>Calendario</button>
+      </div>
+
+      {tab === 'semana' && <CronogramaSemana />}
+      {tab === 'calendario' && <CronogramaCalendario />}
+
+      {tab === 'dia' && (
+        <>
       {error && <p style={{ color: '#c62828' }}>Error: {error}</p>}
 
       {/* Roster del día */}
@@ -194,6 +210,8 @@ const CronogramaManagement = () => {
           </tbody>
         </table>
       </div>
+        </>
+      )}
     </div>
   );
 };
