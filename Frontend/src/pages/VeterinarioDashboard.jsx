@@ -41,8 +41,8 @@ const InicioVeterinario = ({ user, onNavigate }) => {
   const { veterinario, proxima_cita, pendientes_atender, solicitudes_asignadas, ultimas_atenciones } = data;
 
   return (
-    <div className="welcome-content">
-      <div className="welcome-header">
+    <div className="vet-dashboard">
+      <div className="vet-dashboard-header">
         <h2>Bienvenido, {veterinario?.nombre || user?.username}</h2>
         <p>
           Especialidad: {veterinario?.especialidad || 'No registrada'}
@@ -51,7 +51,7 @@ const InicioVeterinario = ({ user, onNavigate }) => {
         </p>
       </div>
 
-      <div className="quick-stats">
+      <div className="vet-cards">
         {/* Próxima cita */}
         <div className="stat-card stat-blue">
           <h3>Próxima cita</h3>
@@ -119,22 +119,6 @@ const InicioVeterinario = ({ user, onNavigate }) => {
           ) : (
             <p>Aún no hay atenciones registradas.</p>
           )}
-        </div>
-      </div>
-
-      {/* Accesos rápidos */}
-      <div className="quick-actions">
-        <h3>Accesos rápidos</h3>
-        <div className="quick-actions-grid">
-          <button className="quick-action-btn" onClick={() => onNavigate('solicitudes')}>
-            📋 Solicitudes de atención
-          </button>
-          <button className="quick-action-btn" onClick={() => onNavigate('citas')}>
-            📅 Citas programadas
-          </button>
-          <button className="quick-action-btn" onClick={() => onNavigate('mascotas')}>
-            🐕 Mascotas
-          </button>
         </div>
       </div>
     </div>
