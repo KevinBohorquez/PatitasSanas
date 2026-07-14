@@ -1,8 +1,9 @@
 """
 Reemplazo de datos transaccionales legacy por un set nuevo, coherente y ya atendido.
 Borra 13 tablas en orden de dependencia (en una conexión aislada) y conserva
-usuarios/vets/admins/recepcionistas y catálogos. Genera ~15 clientes, ~20 mascotas
-y ~12 casos con la cadena clínica completa cerrada.
+usuarios/vets/admins/recepcionistas y catálogos. Genera ~30 clientes, ~45 mascotas
+y ~25 casos con la cadena clínica completa cerrada, más solicitudes pendientes.
+También reinicia y siembra el cronograma (horario recurrente + excepciones).
 
 Nota: el borrado usa ALTER TABLE (commit implícito en MySQL); se hace en su propia
 conexión y la generación en una sesión ORM nueva para evitar corromper la unit-of-work.
@@ -32,6 +33,8 @@ from app.models.cita import Cita
 from app.models.resultado_servicio import ResultadoServicio
 from app.models.historial_clinico import HistorialClinico
 from app.models.movimiento_financiero import MovimientoFinanciero
+from app.models.horario_veterinario import HorarioVeterinario
+from app.models.horario_excepcion import HorarioExcepcion
 
 random.seed(2026)
 
@@ -89,7 +92,7 @@ def quita_tildes(s):
     return s
 
 # --- Clientes (15) ---
-N_CLIENTES = 15
+N_CLIENTES = 30
 clientes = []
 for i in range(N_CLIENTES):
     genero = random.choice(['M', 'F'])
@@ -106,7 +109,7 @@ for i in range(N_CLIENTES):
 db.flush()
 
 # --- Mascotas (20) + vínculo a un cliente ---
-N_MASCOTAS = 20
+N_MASCOTAS = 45
 mascotas = []
 for i in range(N_MASCOTAS):
     es_perro = random.random() < 0.6
@@ -125,7 +128,7 @@ for m in mascotas:
 db.flush()
 
 # --- Casos clínicos: 12 atendidos + 3 pendientes ---
-N_ATENDIDOS, N_PENDIENTES = 12, 3
+N_ATENDIDOS, N_PENDIENTES = 25, 8
 hoy = datetime(2026, 7, 13)
 
 for idx in range(N_ATENDIDOS):
@@ -205,11 +208,47 @@ for idx in range(N_ATENDIDOS, N_ATENDIDOS + N_PENDIENTES):
 db.commit()
 db.close()
 
+# ============================================================
+# 3) CRONOGRAMA: horario recurrente semanal + algunas excepciones
+# ============================================================
+with engine.begin() as conn:
+    conn.execute(text("DELETE FROM Horario_excepcion"))
+    conn.execute(text("DELETE FROM Horario_veterinario"))
+    conn.execute(text("ALTER TABLE Horario_excepcion AUTO_INCREMENT = 1"))
+    conn.execute(text("ALTER TABLE Horario_veterinario AUTO_INCREMENT = 1"))
+
+hdb = SessionLocal()
+vets_turno = hdb.execute(text("SELECT id_veterinario, turno FROM Veterinario")).fetchall()
+DIAS_SEM = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
+# Recurrente: cada vet trabaja su turno de Lunes a Viernes; ~40% también Sábado.
+for vid, turno in vets_turno:
+    dias = DIAS_SEM[:5] + (['Sabado'] if random.random() < 0.4 else [])
+    for d in dias:
+        hdb.add(HorarioVeterinario(id_veterinario=vid, dia_semana=d, turno=turno))
+hdb.flush()
+
+# Excepciones: días libres / turnos extra en fechas cercanas a hoy.
+turnos_all = ['Mañana', 'Tarde', 'Noche', 'Madrugada']
+usados, creadas, intentos = set(), 0, 0
+while creadas < 12 and intentos < 80:
+    intentos += 1
+    vid = random.choice(vets_turno)[0]
+    fecha = (hoy + timedelta(days=random.randint(-3, 14))).date()
+    if (vid, fecha) in usados:
+        continue
+    usados.add((vid, fecha))
+    trabaja = random.random() < 0.5
+    hdb.add(HorarioExcepcion(id_veterinario=vid, fecha=fecha,
+                             turno=random.choice(turnos_all) if trabaja else None, trabaja=trabaja))
+    creadas += 1
+hdb.commit()
+hdb.close()
+
 # --- Verificación con sesión independiente ---
 chk = SessionLocal()
 print("REEMPLAZO COMPLETADO:")
 for t in ["Cliente","Mascota","Cliente_Mascota","Solicitud_atencion","Triaje","Consulta",
           "Diagnostico","Tratamiento","Servicio_Solicitado","Cita","Resultado_servicio",
-          "Historial_clinico","Movimiento_financiero"]:
+          "Historial_clinico","Movimiento_financiero","Horario_veterinario","Horario_excepcion"]:
     print(f"  {t}: {chk.execute(text(f'SELECT COUNT(*) FROM {t}')).scalar()}")
 chk.close()
