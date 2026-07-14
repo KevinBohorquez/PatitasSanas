@@ -206,5 +206,11 @@ def mes(anio: int, mes: int, db: Session = Depends(get_db)):
         turnos = {}
         for v in vets:
             turnos[v["turno"]] = turnos.get(v["turno"], 0) + 1
-        dias.append({"fecha": f, "dia_semana": dia, "total": len(vets), "turnos": turnos})
+        dias.append({
+            "fecha": f, "dia_semana": dia, "total": len(vets), "turnos": turnos,
+            "veterinarios": [
+                {"veterinario": v["veterinario"], "turno": v["turno"], "estado": v["estado"]}
+                for v in vets
+            ],
+        })
     return {"anio": anio, "mes": mes, "dias": dias}
