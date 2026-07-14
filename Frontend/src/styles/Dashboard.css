@@ -408,7 +408,8 @@
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow: hidden;
+  overflow-x: auto; /* permite scroll horizontal en vez de recortar columnas/acciones */
+  -webkit-overflow-scrolling: touch;
   margin-top: 1rem;
 }
 
@@ -443,6 +444,37 @@
 
 .data-table tr:last-child td {
   border-bottom: none;
+}
+
+/* Listados de administración (veterinarios / recepcionistas):
+   - columna ID compacta para liberar espacio a los datos
+   - columna de ACCIONES con ancho suficiente para que los botones se vean completos
+   - min-width + scroll horizontal para adaptarse a distintos tamaños de monitor
+   (tarea: ID más pequeño + responsive de listas del administrador) */
+.vet-management .data-table,
+.receptionist-management .data-table {
+  min-width: 880px;
+}
+
+.vet-management .data-table th:first-child,
+.vet-management .data-table td:first-child,
+.receptionist-management .data-table th:first-child,
+.receptionist-management .data-table td:first-child {
+  width: 54px;
+  text-align: center;
+}
+
+.vet-management .data-table th:last-child,
+.vet-management .data-table td:last-child,
+.receptionist-management .data-table th:last-child,
+.receptionist-management .data-table td:last-child {
+  width: 170px;
+}
+
+.vet-management .action-buttons,
+.receptionist-management .action-buttons {
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 
 .empty-message {
