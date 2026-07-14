@@ -39,6 +39,8 @@ from app.models.cliente_mascota import ClienteMascota
 # Modelos de cronograma / horarios de veterinarios
 from app.models.horario_veterinario import HorarioVeterinario
 from app.models.horario_excepcion import HorarioExcepcion
+from app.models.horario_recepcionista import HorarioRecepcionista
+from app.models.horario_excepcion_recep import HorarioExcepcionRecep
 
 # Exportar todos los modelos para fácil importación
 __all__ = [
@@ -75,4 +77,6 @@ __all__ = [
     # Cronograma / horarios
     "HorarioVeterinario",
     "HorarioExcepcion",
+    "HorarioRecepcionista",
+    "HorarioExcepcionRecep",
 ]

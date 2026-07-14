@@ -29,6 +29,7 @@ from app.api.v1.endpoints.alarmas import router as alarmas_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.movimientos_financieros import router as movimientos_financieros_router
 from app.api.v1.endpoints.horarios import router as horarios_router
+from app.api.v1.endpoints.horarios_recep import router as horarios_recep_router
 
 from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
 
@@ -77,6 +78,7 @@ app.include_router(alarmas_router, prefix="/api/v1/alarmas", tags=["🔔 alarmas
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["📊 dashboard"])
 app.include_router(movimientos_financieros_router, prefix="/api/v1/movimientos-financieros", tags=["💰 finanzas"])
 app.include_router(horarios_router, prefix="/api/v1/horarios", tags=["📅 cronograma"])
+app.include_router(horarios_recep_router, prefix="/api/v1/horarios-recep", tags=["📅 cronograma recep"])
 
 
 @app.on_event("startup")
