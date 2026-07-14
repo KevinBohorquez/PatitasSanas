@@ -11,6 +11,7 @@ import CitasManagement from '../components/recepcionista/CitasManagement';
 import VeterinariosView from '../components/recepcionista/VeterinariosView';
 import ServiciosView from '../components/recepcionista/ServiciosView';
 import Reportes from '../components/recepcionista/Reportes';
+import CronogramaView from '../components/recepcionista/CronogramaView';
 import '../styles/Dashboard.css';
 
 const RecepcionistaDashboard = () => {
@@ -35,6 +36,7 @@ const RecepcionistaDashboard = () => {
     { id: 'solicitudes', label: 'Solicitudes', icon: '📋' },
     { id: 'citas', label: 'Citas', icon: '📅' },
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
+    { id: 'cronograma', label: 'Cronograma', icon: '📅' },
     { id: 'servicios', label: 'Servicios', icon: '🏥' },
     { id: 'reportes', label: 'Reportes', icon: '📊' }
   ];
@@ -51,6 +53,8 @@ const RecepcionistaDashboard = () => {
         return <CitasManagement />;
       case 'veterinarios':
         return <VeterinariosView />;
+      case 'cronograma':
+        return <CronogramaView />;
       case 'servicios':
         return <ServiciosView />;
       case 'reportes':

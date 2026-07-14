@@ -12,6 +12,7 @@ import ReportsManagement from '../components/admin/ReportsManagement';
 import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
 import FlujoCaja from '../components/admin/FlujoCaja';
 import BalanceFinanciero from '../components/admin/BalanceFinanciero';
+import CronogramaManagement from '../components/admin/CronogramaManagement';
 import '../styles/Dashboard.css';
 
 const AdminDashboard = () => {
@@ -33,6 +34,7 @@ const AdminDashboard = () => {
     { id: 'usuarios', label: 'Usuarios', icon: '👥' },
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
     { id: 'recepcionistas', label: 'Recepcionistas', icon: '👩‍💼' },
+    { id: 'cronograma', label: 'Cronograma', icon: '📅' },
     { id: 'servicios', label: 'Servicios', icon: '🏥' },
     { id: 'reportes', label: 'Reportes', icon: '📄' },
     { id: 'analytics', label: 'Analíticas', icon: '📊' },
@@ -48,6 +50,8 @@ const AdminDashboard = () => {
         return <VetManagement />;
       case 'recepcionistas':
         return <ReceptionistManagement />;
+      case 'cronograma':
+        return <CronogramaManagement />;
       case 'servicios':
         return <ServicesManagement />;
       case 'reportes':
