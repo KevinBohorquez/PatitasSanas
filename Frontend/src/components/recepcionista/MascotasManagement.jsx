@@ -160,7 +160,10 @@ const MascotasManagement = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setRazas(data || []);
+        // Ordenar alfabéticamente por nombre de raza (A-Z).
+        const ordenadas = [...(data || [])].sort((a, b) =>
+          (a.nombre_raza || '').localeCompare(b.nombre_raza || '', 'es'));
+        setRazas(ordenadas);
       } else {
         console.error('Error al cargar razas:', response.status);
         setRazas([]);
