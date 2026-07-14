@@ -216,8 +216,14 @@ const ServiciosView = () => {
           </div>
         )}
 
-        <Table 
+        <Table
           columns={columns}
+          mobileTitle={(servicio) => (
+            <>
+              <span className="card-hd-side">{servicio.id_servicio}</span>
+              <span className="card-hd-main">{servicio.nombre_servicio || 'Sin nombre'}</span>
+            </>
+          )}
           data={filteredServicios}
           emptyMessage="No hay servicios disponibles"
         />

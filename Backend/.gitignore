@@ -58,3 +58,6 @@ uploads/
 # Credenciales de servicios (NO subir)
 credentials/
 *service_account*.json
+
+# Backups de BD (contienen datos de producción; NO subir)
+backups/

@@ -593,8 +593,18 @@ const CitasManagement = () => {
               <p>Mostrando {filteredCitas.length} de {citas.length} citas</p>
             </div>
             
-            <Table 
+            <Table
               columns={columns}
+              mobileTitle={(cita) => {
+                const serv = (cita.nombre_servicio || '').trim().split(' ')[0];
+                return (
+                  <>
+                    <span className="card-hd-side">{cita.nombre_mascota || 'S/mascota'}</span>
+                    <span className="card-hd-mid">{serv || 'S/servicio'}</span>
+                    <span className="card-hd-side card-hd-right">{cita.fecha_formateada || ''}</span>
+                  </>
+                );
+              }}
               data={filteredCitas}
               actions={actions}
               emptyMessage="No hay citas registradas"

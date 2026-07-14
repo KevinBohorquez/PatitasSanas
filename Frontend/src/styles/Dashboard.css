@@ -105,6 +105,17 @@
   text-align: center;
 }
 
+/* Menú móvil (botón hamburguesa + overlay en rejilla): oculto en escritorio */
+.mobile-nav-fab,
+.mobile-nav-overlay {
+  display: none;
+}
+
+/* Título de tarjeta específico de móvil: oculto en escritorio */
+.cell-mobile-title {
+  display: none;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -408,7 +419,8 @@
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow: hidden;
+  overflow-x: auto; /* permite scroll horizontal en vez de recortar columnas/acciones */
+  -webkit-overflow-scrolling: touch;
   margin-top: 1rem;
 }
 
@@ -416,6 +428,7 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed; /* columnas de ancho estable entre páginas */
+  min-width: 640px; /* en móvil la tabla se desplaza en horizontal en vez de aplastar las columnas */
 }
 
 .data-table th {
@@ -443,6 +456,37 @@
 
 .data-table tr:last-child td {
   border-bottom: none;
+}
+
+/* Listados de administración (veterinarios / recepcionistas):
+   - columna ID compacta para liberar espacio a los datos
+   - columna de ACCIONES con ancho suficiente para que los botones se vean completos
+   - min-width + scroll horizontal para adaptarse a distintos tamaños de monitor
+   (tarea: ID más pequeño + responsive de listas del administrador) */
+.vet-management .data-table,
+.receptionist-management .data-table {
+  min-width: 880px;
+}
+
+.vet-management .data-table th:first-child,
+.vet-management .data-table td:first-child,
+.receptionist-management .data-table th:first-child,
+.receptionist-management .data-table td:first-child {
+  width: 54px;
+  text-align: center;
+}
+
+.vet-management .data-table th:last-child,
+.vet-management .data-table td:last-child,
+.receptionist-management .data-table th:last-child,
+.receptionist-management .data-table td:last-child {
+  width: 170px;
+}
+
+.vet-management .action-buttons,
+.receptionist-management .action-buttons {
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 
 .empty-message {
@@ -782,6 +826,345 @@
   border-right: none;
 }
 
+/* ============================================================
+   Menú de navegación móvil: botón hamburguesa flotante que abre
+   un overlay saturado con las opciones en rejilla 2x2, deslizable
+   en horizontal (paginado con scroll-snap). Solo visible <=768px.
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Botón hamburguesa flotante (esquina inferior derecha) */
+  .mobile-nav-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 300;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+    color: #fff;
+    border: 2.5px solid #32859c;
+    box-shadow: 0 6px 18px rgba(1, 54, 68, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  .mobile-nav-fab:active {
+    transform: scale(0.94);
+  }
+
+  /* Overlay tipo modal: la página de fondo se sigue viendo difuminada */
+  .mobile-nav-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    z-index: 350;
+    background: rgba(3, 30, 38, 0.28);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+
+  .mobile-nav-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Panel que emerge (crece) desde el botón hamburguesa hacia el centro */
+  .mobile-nav-panel {
+    width: min(86%, 380px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transform-origin: bottom right;
+    transform: translate(38%, 42%) scale(0.12);
+    opacity: 0;
+    transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.26s ease;
+  }
+
+  .mobile-nav-overlay.open .mobile-nav-panel {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  /* Carrusel de páginas (cada página = rejilla 2x2), sin barra de scroll */
+  .mobile-nav-pages {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;              /* Firefox */
+  }
+
+  .mobile-nav-pages::-webkit-scrollbar {
+    display: none;                      /* Chrome / Safari */
+  }
+
+  .mobile-nav-page {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(2, 108px);
+    gap: 12px;
+    align-content: center;
+  }
+
+  .mobile-nav-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 18px;
+    padding: 0.8rem 0.5rem;
+    color: #06242c;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(1, 54, 68, 0.25);
+    transition: transform 0.12s ease, background 0.2s ease;
+  }
+
+  .mobile-nav-card:active {
+    transform: scale(0.96);
+  }
+
+  .mobile-nav-card.active {
+    background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+    color: #fff;
+    border-color: #32859c;
+  }
+
+  .mobile-nav-card-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+  }
+
+  .mobile-nav-card-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .mobile-nav-card-label {
+    font-size: 0.8rem;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  /* Puntos indicadores de página */
+  .mobile-nav-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.2rem 0 1.2rem;
+  }
+
+  .mobile-nav-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .mobile-nav-dot.active {
+    background: #fff;
+    width: 22px;
+    border-radius: 5px;
+  }
+}
+
+/* ============================================================
+   Tablas como tarjetas apiladas (acordeón) SOLO en móvil.
+   Cada fila = una tarjeta; la primera celda es la cabecera y al
+   tocarla se despliegan el resto de campos como pares etiqueta/valor.
+   En escritorio la tabla se mantiene igual.
+   ============================================================ */
+@media (max-width: 768px) {
+  .table-container {
+    background: transparent;
+    box-shadow: none;
+    overflow-x: visible;      /* ya no hace scroll horizontal: usa tarjetas */
+    margin-top: 0.5rem;
+  }
+
+  /* anular el min-width y anchos de columna del modo escritorio.
+     Se usa !important porque varias vistas definen anchos de columna
+     propios (p. ej. .servicios-view td:first-child { width: 60px }) con
+     la misma especificidad, que si no ganan y aplastan la cabecera. */
+  .data-table,
+  .vet-management .data-table,
+  .receptionist-management .data-table {
+    min-width: 0 !important;
+  }
+
+  .data-table thead {
+    display: none !important;
+  }
+
+  .data-table,
+  .data-table tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .data-table tr {
+    display: block !important;
+    width: auto !important;
+    background: #fff;
+    border: 1px solid #e3eef2;
+    border-radius: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 10px rgba(1, 54, 68, 0.08);
+    overflow: hidden;
+  }
+
+  .data-table td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f4f6;
+    font-size: 0.9rem;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .data-table td::before {
+    content: attr(data-label);
+    flex: 0 0 40%;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #4a6b76;
+  }
+
+  .data-table tr td:last-child {
+    border-bottom: none;
+  }
+
+  /* Cabecera de la tarjeta = primera celda (nombre / dato principal) */
+  .data-table td:first-child,
+  .vet-management .data-table td:first-child,
+  .receptionist-management .data-table td:first-child {
+    width: auto !important;
+    min-width: 0 !important;
+    justify-content: flex-start;
+    gap: 8px;
+    background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.02rem;
+    text-align: left !important;
+    padding: 12px 14px;
+    border-bottom: none;
+    cursor: pointer;
+  }
+
+  .data-table td:first-child::before {
+    display: none;            /* la cabecera muestra solo el valor, sin etiqueta */
+  }
+
+  .data-table td:first-child::after {
+    content: '▾';
+    margin-left: auto;
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+  }
+
+  .data-table tr.expanded td:first-child::after {
+    transform: rotate(180deg);
+  }
+
+  /* Acordeón: se ocultan las demás celdas hasta expandir la tarjeta.
+     !important para ganar al `display: flex !important` de .data-table td. */
+  .data-table tr:not(.expanded) td:not(:first-child) {
+    display: none !important;
+  }
+
+  .data-table td .action-buttons {
+    flex-direction: row;      /* botones de acción uno al lado del otro */
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  /* Cabecera de tarjeta personalizada por tabla (mobileTitle):
+     en escritorio se muestra la primera columna; en móvil, el título en
+     columnas (una parte a la izquierda, otra a la derecha). */
+  .cell-desktop-value {
+    display: inline;
+  }
+
+  .has-mobile-title .cell-desktop-value {
+    display: none;
+  }
+
+  .cell-mobile-title {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.2;
+  }
+
+  /* Parte flexible: se recorta con puntos suspensivos si no cabe */
+  .card-hd-main,
+  .card-hd-mid {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .card-hd-mid {
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Parte con prioridad: siempre se muestra completa */
+  .card-hd-side {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .card-hd-right {
+    margin-left: auto;
+  }
+
+  /* la fila de "sin datos" no debe verse como tarjeta */
+  .data-table td.empty-message {
+    display: block;
+    text-align: center;
+    background: #fff;
+    border-radius: 14px;
+  }
+
+  .data-table td.empty-message::before {
+    display: none;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .sidebar {
@@ -801,17 +1184,13 @@
   .dashboard-layout {
     flex-direction: column;
   }
-  
+
+  /* En móvil el sidebar de escritorio se oculta: la navegación pasa al
+     botón hamburguesa flotante + menú superpuesto en rejilla (ver abajo). */
   .sidebar {
-    width: 100%;
-    height: auto;
-    order: 2;
+    display: none;
   }
-  
-  .main-content {
-    order: 1;
-  }
-  
+
   .dashboard-content {
     padding: 1rem;
   }

@@ -256,8 +256,14 @@ const VeterinariosView = () => {
           </div>
         )}
 
-        <Table 
+        <Table
           columns={columns}
+          mobileTitle={(vet) => (
+            <>
+              <span className="card-hd-main">{`${vet.nombre || ''} ${vet.apellido_paterno || ''}`.trim() || 'Sin nombre'}</span>
+              <span className="card-hd-side">{vet.codigo_CMVP || 'S/CMVP'}</span>
+            </>
+          )}
           data={filteredVeterinarios}
           emptyMessage="No hay veterinarios registrados"
         />

@@ -363,3 +363,47 @@
   background: #95a5a6;
   cursor: not-allowed;
 }
+
+/* ===== Responsive móvil ===== */
+@media (max-width: 768px) {
+  .flujo-caja {
+    padding: 14px;
+  }
+
+  .resumen-cards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .flujo-caja .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-registrar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filtros {
+    flex-wrap: wrap;
+  }
+
+  .modal-container {
+    width: 92%;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-cancelar,
+  .modal-actions .btn-guardar {
+    width: 100%;
+  }
+}
