@@ -13,6 +13,7 @@ const CitasProgramadas = () => {
   const [showAtender, setShowAtender] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [vista, setVista] = useState('programadas'); // 'programadas' | 'atendidas'
 
   const fetchCitas = async () => {
     try {
@@ -20,9 +21,10 @@ const CitasProgramadas = () => {
 
       // SC-016 / F4: listar por Cita.id_veterinario (incluye las citas creadas
       // por el recepcionista, que antes no aparecían por depender de Resultado_servicio).
-      const response = await fetch(
-        `/api/v1/veterinarios/citas-programadas/${user.id}`
-      );
+      const url = vista === 'atendidas'
+        ? `/api/v1/veterinarios/resultados-citas/${user.id}`
+        : `/api/v1/veterinarios/citas-programadas/${user.id}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Error al cargar citas');
       }
@@ -78,7 +80,7 @@ const CitasProgramadas = () => {
     if (user?.id) {
       fetchCitas();
     }
-  }, [user]);
+  }, [user, vista]);
 
   const handleAtender = (cita) => {
     if (cita?.id) {
@@ -139,15 +141,19 @@ const CitasProgramadas = () => {
 
   return (
     <div className="citas-programadas">
-      <div className="section-header">
-        <h2>Citas Programadas</h2>
+      <div className="section-header" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <h2>{vista === 'atendidas' ? 'Citas Atendidas' : 'Citas Programadas'}</h2>
+        <select value={vista} onChange={(e) => setVista(e.target.value)} style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc' }}>
+          <option value="programadas">Programadas (por atender)</option>
+          <option value="atendidas">Atendidas</option>
+        </select>
       </div>
 
       <Table
         columns={columns}
         data={citas}
-        actions={actions}
-        emptyMessage="No hay citas programadas"
+        actions={vista === 'programadas' ? actions : null}
+        emptyMessage={vista === 'atendidas' ? 'No hay citas atendidas' : 'No hay citas programadas'}
       />
 
       <Modal
