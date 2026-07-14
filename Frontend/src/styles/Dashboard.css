@@ -105,6 +105,12 @@
   text-align: center;
 }
 
+/* Menú móvil (botón hamburguesa + overlay en rejilla): oculto en escritorio */
+.mobile-nav-fab,
+.mobile-nav-overlay {
+  display: none;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -815,6 +821,178 @@
   border-right: none;
 }
 
+/* ============================================================
+   Menú de navegación móvil: botón hamburguesa flotante que abre
+   un overlay saturado con las opciones en rejilla 2x2, deslizable
+   en horizontal (paginado con scroll-snap). Solo visible <=768px.
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Botón hamburguesa flotante (esquina inferior derecha) */
+  .mobile-nav-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 300;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+    color: #fff;
+    border: 2.5px solid #32859c;
+    box-shadow: 0 6px 18px rgba(1, 54, 68, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  .mobile-nav-fab:active {
+    transform: scale(0.94);
+  }
+
+  /* Overlay a pantalla completa con fondo saturado del tema */
+  .mobile-nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 350;
+    background:
+      radial-gradient(120% 90% at 85% 15%, rgba(145, 228, 251, 0.35), transparent 60%),
+      linear-gradient(160deg, #2aabcf 0%, #008CB1 55%, #013644 100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .mobile-nav-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-nav-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+  }
+
+  .mobile-nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.3rem 0.4rem;
+  }
+
+  .mobile-nav-title {
+    font-family: 'Lilita One', sans-serif;
+    font-size: 1.7rem;
+    color: #fff;
+    letter-spacing: 0.5px;
+    text-shadow:
+      -1px -1px 0 #013644, 1px -1px 0 #013644,
+      -1px 1px 0 #013644, 1px 1px 0 #013644;
+  }
+
+  .mobile-nav-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+
+  .mobile-nav-close:active {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  /* Carrusel de páginas (cada página = una rejilla 2x2) */
+  .mobile-nav-pages {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-nav-page {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(2, minmax(120px, 150px));
+    gap: 16px;
+    padding: 16px 20px 28px;
+    align-content: center;
+    justify-content: center;
+  }
+
+  .mobile-nav-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 1.2rem 0.5rem;
+    color: #06242c;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(1, 54, 68, 0.25);
+    transition: transform 0.12s ease, background 0.2s ease;
+  }
+
+  .mobile-nav-card:active {
+    transform: scale(0.96);
+  }
+
+  .mobile-nav-card.active {
+    background: linear-gradient(135deg, #5ec1dd, #47b3d1);
+    color: #fff;
+    border-color: #32859c;
+  }
+
+  .mobile-nav-card-icon {
+    font-size: 2.1rem;
+    line-height: 1;
+  }
+
+  .mobile-nav-card-label {
+    font-size: 0.9rem;
+    text-align: center;
+    line-height: 1.15;
+  }
+
+  /* Puntos indicadores de página */
+  .mobile-nav-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.2rem 0 1.2rem;
+  }
+
+  .mobile-nav-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .mobile-nav-dot.active {
+    background: #fff;
+    width: 22px;
+    border-radius: 5px;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .sidebar {
@@ -835,78 +1013,10 @@
     flex-direction: column;
   }
 
-  /* ===== Nav móvil: barra de tarjetas desplazable en horizontal =====
-     En móvil el sidebar se convierte en una fila de tarjetas (solo las
-     opciones, sin el logo) que se desplaza de izquierda a derecha. */
+  /* En móvil el sidebar de escritorio se oculta: la navegación pasa al
+     botón hamburguesa flotante + menú superpuesto en rejilla (ver abajo). */
   .sidebar {
-    width: 100%;
-    height: auto;
-    order: 1;              /* la navegación va arriba, sobre el contenido */
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    border-right: none;
-    border-bottom: 1.5px solid #91E4FB;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  .main-content {
-    order: 2;
-  }
-
-  .sidebar-header {          /* se oculta el logo en móvil */
     display: none;
-  }
-
-  .sidebar-nav {
-    flex: none;
-    padding: 0.6rem 0.5rem;
-  }
-
-  .nav-list {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 0.25rem;
-    scrollbar-width: thin;
-  }
-
-  .nav-item {
-    margin: 0;
-    flex: 0 0 auto;          /* no se encogen: se desplazan en horizontal */
-  }
-
-  .nav-link {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    width: auto;
-    min-width: 82px;
-    padding: 0.6rem 0.75rem;
-    margin: 0;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .nav-link:hover {
-    transform: none;         /* se anula el desplazamiento horizontal de escritorio */
-    background: #eaf6fb;
-  }
-
-  .nav-icon {
-    font-size: 1.5rem;
-    width: auto;
-  }
-
-  .nav-label {
-    font-size: 0.72rem;
-    line-height: 1.1;
   }
 
   .dashboard-content {
