@@ -1,5 +1,5 @@
 # app/api/v1/endpoints/mascotas.py (CORREGIDO)
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -19,16 +19,21 @@ router = APIRouter()
 
 
 @router.post("/imagen")
-async def subir_imagen_mascota(file: UploadFile = File(...)):
-    """Sube una imagen a Google Drive y devuelve el enlace para guardarlo en la mascota."""
+async def subir_imagen_mascota(file: UploadFile = File(...), nombre: str = Form(None)):
+    """Sube una imagen a Google Drive y devuelve el enlace. `nombre` es el nombre base
+    (sin extensión) con el que se guardará el archivo, para identificarlo fácilmente."""
+    import os as _os
     from app.services.drive.drive_uploader import subir_imagen
     if not (file.content_type or '').startswith('image/'):
         raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
     contenido = await file.read()
     if len(contenido) > 8 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="La imagen no debe superar 8 MB")
+    ext = _os.path.splitext(file.filename or '')[1].lower() or '.jpg'
+    base = (nombre or 'mascota').strip() or 'mascota'
+    filename = f"{base}{ext}"
     try:
-        url = subir_imagen(contenido, file.filename or 'mascota.jpg', file.content_type)
+        url = subir_imagen(contenido, filename, file.content_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {str(e)}")
     return {"url": url}
