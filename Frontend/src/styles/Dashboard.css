@@ -415,6 +415,7 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* columnas de ancho estable entre páginas */
 }
 
 .data-table th {
@@ -433,6 +434,7 @@
   padding: 1rem;
   border-bottom: 1px solid #eee;
   font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .data-table tr:hover {
