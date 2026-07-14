@@ -639,20 +639,28 @@ def get_dashboard_veterinario(id_usuario: int, db: Session = Depends(get_db)):
     triaje_solicitud_ids = [
         row[0] for row in db.query(Triaje.id_solicitud).filter(Triaje.id_veterinario == vet_id).all()
     ]
+    # Solo las que aún no han sido atendidas (excluye Completada y Cancelada).
+    estados_no_atendidos = ["Pendiente", "En triaje", "En atencion"]
     solicitudes_items = []
     total_solicitudes = 0
     if triaje_solicitud_ids:
         total_solicitudes = (
             db.query(func.count(SolicitudAtencion.id_solicitud))
-            .filter(SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids))
+            .filter(
+                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
+                SolicitudAtencion.estado.in_(estados_no_atendidos),
+            )
             .scalar()
         )
         filas = (
             db.query(SolicitudAtencion, Mascota.nombre)
             .outerjoin(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota)
-            .filter(SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids))
+            .filter(
+                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
+                SolicitudAtencion.estado.in_(estados_no_atendidos),
+            )
             .order_by(SolicitudAtencion.fecha_hora_solicitud.desc())
-            .limit(5)
+            .limit(8)
             .all()
         )
         solicitudes_items = [
