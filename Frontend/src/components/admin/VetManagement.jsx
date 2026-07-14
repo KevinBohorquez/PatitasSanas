@@ -929,12 +929,18 @@ const VetManagement = () => {
           </div>
         )}
 
-        <Table 
+        <Table
           columns={columns}
+          mobileTitle={(vet) => (
+            <>
+              <span className="card-hd-main">{`${vet.nombre || ''} ${vet.apellido_paterno || ''}`.trim() || 'Sin nombre'}</span>
+              <span className="card-hd-side">{vet.codigo_cmvp || 'S/CMVP'}</span>
+            </>
+          )}
           data={veterinarios}
           actions={actions}
           emptyMessage={
-            searchTerm || selectedTurno 
+            searchTerm || selectedTurno
               ? "No se encontraron veterinarios con los filtros aplicados"
               : "No hay veterinarios registrados"
           }

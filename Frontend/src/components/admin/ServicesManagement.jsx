@@ -473,6 +473,12 @@ const ServicesManagement = () => {
 
       <Table
         columns={columns}
+        mobileTitle={(servicio) => (
+          <>
+            <span className="card-hd-side">{servicio.id_servicio}</span>
+            <span className="card-hd-main">{servicio.nombre_servicio || 'Sin nombre'}</span>
+          </>
+        )}
         data={serviciosPaginados}
         actions={actions}
         emptyMessage="No hay servicios registrados"
