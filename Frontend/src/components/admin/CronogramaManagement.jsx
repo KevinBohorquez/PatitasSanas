@@ -14,6 +14,9 @@ const CronogramaManagement = () => {
   const [excepciones, setExcepciones] = useState([]);
   const [roster, setRoster] = useState(null);
   const [tab, setTab] = useState('dia');
+  const [filtroRecVet, setFiltroRecVet] = useState('');
+  const [filtroExcVista, setFiltroExcVista] = useState('proximas');
+  const [filtroExcVet, setFiltroExcVet] = useState('');
   const [rosterFecha, setRosterFecha] = useState(hoyISO());
   const [error, setError] = useState(null);
 
@@ -86,6 +89,17 @@ const CronogramaManagement = () => {
     await recargar(); await cargarRoster(rosterFecha);
   };
 
+  // Filtros (client-side sobre lo ya cargado)
+  const recurrentesFiltrados = filtroRecVet
+    ? recurrentes.filter((h) => String(h.id_veterinario) === String(filtroRecVet))
+    : recurrentes;
+
+  const hoyStr = hoyISO();
+  let excepcionesFiltradas = excepciones;
+  if (filtroExcVista === 'proximas') excepcionesFiltradas = excepcionesFiltradas.filter((e) => e.fecha >= hoyStr);
+  else if (filtroExcVista === 'libres') excepcionesFiltradas = excepcionesFiltradas.filter((e) => !e.trabaja);
+  if (filtroExcVet) excepcionesFiltradas = excepcionesFiltradas.filter((e) => String(e.id_veterinario) === String(filtroExcVet));
+
   return (
     <div className="form-section">
       <h2>Cronograma de veterinarios</h2>
@@ -151,11 +165,18 @@ const CronogramaManagement = () => {
         </div>
         <button type="submit" className="btn-diagnostico">Agregar</button>
       </form>
+      <div className="form-group" style={{ maxWidth: 300 }}>
+        <label>Filtrar por veterinario:</label>
+        <select value={filtroRecVet} onChange={(e) => setFiltroRecVet(e.target.value)}>
+          <option value="">Todos</option>
+          {vets.map((v) => <option key={v.id_veterinario} value={v.id_veterinario}>{v.nombre} {v.apellido_paterno}</option>)}
+        </select>
+      </div>
       <div className="consulta-list">
         <table>
           <thead><tr><th>Veterinario</th><th>Día</th><th>Turno</th><th></th></tr></thead>
           <tbody>
-            {recurrentes.map((h) => (
+            {recurrentesFiltrados.map((h) => (
               <tr key={h.id_horario}>
                 <td>{h.veterinario}</td><td>{h.dia_semana}</td><td>{h.turno}</td>
                 <td><button className="btn-close" onClick={() => borrar(`/api/v1/horarios/recurrente/${h.id_horario}`, cargarRecurrentes)}>Quitar</button></td>
@@ -196,11 +217,28 @@ const CronogramaManagement = () => {
         )}
         <button type="submit" className="btn-diagnostico">Agregar</button>
       </form>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div className="form-group">
+          <label>Ver:</label>
+          <select value={filtroExcVista} onChange={(e) => setFiltroExcVista(e.target.value)}>
+            <option value="proximas">Próximas (vigentes)</option>
+            <option value="libres">Días libres / faltas</option>
+            <option value="todas">Todas</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Veterinario:</label>
+          <select value={filtroExcVet} onChange={(e) => setFiltroExcVet(e.target.value)}>
+            <option value="">Todos</option>
+            {vets.map((v) => <option key={v.id_veterinario} value={v.id_veterinario}>{v.nombre} {v.apellido_paterno}</option>)}
+          </select>
+        </div>
+      </div>
       <div className="consulta-list">
         <table>
           <thead><tr><th>Veterinario</th><th>Fecha</th><th>¿Trabaja?</th><th>Turno</th><th></th></tr></thead>
           <tbody>
-            {excepciones.map((ex) => (
+            {excepcionesFiltradas.map((ex) => (
               <tr key={ex.id_excepcion}>
                 <td>{ex.veterinario}</td><td>{ex.fecha}</td>
                 <td>{ex.trabaja ? 'Sí' : 'Día libre'}</td><td>{ex.turno || '--'}</td>
