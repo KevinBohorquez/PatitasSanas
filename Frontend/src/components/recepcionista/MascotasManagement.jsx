@@ -26,6 +26,31 @@ const MascotasManagement = () => {
   
   // Estados para validaciones
   const [validationErrors, setValidationErrors] = useState({});
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
+
+  // Sube la imagen seleccionada a Google Drive y guarda el enlace en el formulario.
+  const subirImagen = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      setSubiendoImagen(true);
+      const res = await fetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Error al subir la imagen');
+      }
+      const data = await res.json();
+      setFormData((prev) => ({ ...prev, imagen: data.url }));
+      setValidationErrors((prev) => ({ ...prev, imagen: '' }));
+      toast.success('Imagen subida a Drive correctamente');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSubiendoImagen(false);
+    }
+  };
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -886,14 +911,26 @@ const MascotasManagement = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>FOTO (URL - Opcional)</label>
+                  <label>FOTO (Opcional)</label>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label className="btn btn-secondary" style={{ cursor: subiendoImagen ? 'wait' : 'pointer', margin: 0 }}>
+                      {subiendoImagen ? 'Subiendo...' : '📁 Subir imagen'}
+                      <input type="file" accept="image/*" onChange={subirImagen}
+                             disabled={subiendoImagen} style={{ display: 'none' }} />
+                    </label>
+                    {formData.imagen && (
+                      <img src={formData.imagen} alt="Vista previa" onError={(ev) => { ev.target.style.display = 'none'; }}
+                           style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }} />
+                    )}
+                  </div>
                   <input
                     type="url"
                     name="imagen"
                     value={formData.imagen}
                     onChange={handleInputChange}
-                    placeholder="https://ejemplo.com/foto.jpg"
+                    placeholder="o pega una URL: https://ejemplo.com/foto.jpg"
                     className={validationErrors.imagen ? 'error' : ''}
+                    style={{ marginTop: 8 }}
                   />
                   {validationErrors.imagen && (
                     <span className="error-message">{validationErrors.imagen}</span>
