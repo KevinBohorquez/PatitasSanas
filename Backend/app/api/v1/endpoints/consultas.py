@@ -1018,6 +1018,87 @@ async def get_historial_clinico_mascota(
         )
 
 
+@router.get("/historialDetallado/{mascota_id}", response_model=List[dict])
+async def get_historial_detallado_mascota(
+    mascota_id: int,
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=500, description="Cantidad máxima de consultas")
+):
+    """
+    Historial clínico detallado por consulta de una mascota. Por cada consulta devuelve sus
+    datos clínicos + el evento de historial asociado (edad, peso, observaciones) + los
+    diagnósticos con su patología (nombre, tipo, estado, gravedad, contagiosa/crónica).
+    Alimenta el panel interactivo y el detalle de diagnóstico del modal de Historial Clínico.
+    """
+    try:
+        # Consultas de la mascota, por la cadena Consulta -> Triaje -> Solicitud_atencion -> Mascota.
+        consultas = db.query(Consulta, Veterinario) \
+            .join(Triaje, Triaje.id_triaje == Consulta.id_triaje) \
+            .join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Triaje.id_solicitud) \
+            .outerjoin(Veterinario, Veterinario.id_veterinario == Consulta.id_veterinario) \
+            .filter(SolicitudAtencion.id_mascota == mascota_id) \
+            .order_by(Consulta.fecha_consulta.desc()) \
+            .limit(limit).all()
+
+        resultado = []
+        for cons, vet in consultas:
+            # Evento de historial de esta consulta (peso/edad/observaciones registrados al atender).
+            evento = db.query(HistorialClinico) \
+                .filter(HistorialClinico.id_consulta == cons.id_consulta) \
+                .order_by(HistorialClinico.fecha_evento) \
+                .first()
+
+            # Diagnósticos de la consulta, con la patología asociada.
+            diags = db.query(Diagnostico, Patologia) \
+                .outerjoin(Patologia, Patologia.id_patologia == Diagnostico.id_patologia) \
+                .filter(Diagnostico.id_consulta == cons.id_consulta) \
+                .order_by(Diagnostico.fecha_diagnostico) \
+                .all()
+
+            diagnosticos = [
+                {
+                    "id_diagnostico": d.id_diagnostico,
+                    "diagnostico": d.diagnostico,
+                    "tipo_diagnostico": d.tipo_diagnostico,
+                    "estado_patologia": d.estado_patologia,
+                    "fecha_diagnostico": d.fecha_diagnostico,
+                    "patologia": {
+                        "nombre": p.nombre_patologia,
+                        "gravedad": p.gravedad,
+                        "especie_afecta": p.especie_afecta,
+                        "es_contagiosa": p.es_contagiosa,
+                        "es_cronica": p.es_crónica,
+                    } if p else None,
+                }
+                for d, p in diags
+            ]
+
+            resultado.append({
+                "id_consulta": cons.id_consulta,
+                "fecha_consulta": cons.fecha_consulta,
+                "tipo_consulta": cons.tipo_consulta,
+                "motivo_consulta": cons.motivo_consulta,
+                "sintomas_observados": cons.sintomas_observados,
+                "diagnostico_preliminar": cons.diagnostico_preliminar,
+                "observaciones": cons.observaciones,
+                "condicion_general": cons.condicion_general,
+                "es_seguimiento": cons.es_seguimiento,
+                "veterinario": f"{vet.nombre} {vet.apellido_paterno}" if vet else None,
+                "edad_meses": evento.edad_meses if evento else None,
+                "peso_momento": float(evento.peso_momento) if evento and evento.peso_momento else None,
+                "observaciones_historial": evento.observaciones if evento else None,
+                "diagnosticos": diagnosticos,
+            })
+
+        return resultado
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener historial detallado: {str(e)}"
+        )
+
+
 @router.get("/citaServicio/{cita_id}")
 async def get_cita_by_id(cita_id: int, db: Session = Depends(get_db)):
     try:
