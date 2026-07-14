@@ -64,3 +64,24 @@
   align-self: flex-start; background: #64b5f6; color: #fff; border-radius: 10px;
   padding: 1px 8px; font-size: .72rem; font-weight: 700;
 }
+
+/* Calendario grande */
+.cro-cal-lg { max-width: 1040px; }
+.cro-cal-lg .cro-cal-hcell { padding: 12px 0; font-size: 1rem; }
+.cro-cal-lg .cro-cal-cell { min-height: 116px; padding: 8px; cursor: default; }
+.cro-cal-lg .cro-cal-num { font-size: 1.15rem; }
+.cro-cal-lg .cro-cal-badge { font-size: .82rem; padding: 2px 10px; }
+.cro-cal-lg .cro-cal-activo:hover { background: #bbdefb; border-color: #64b5f6; }
+
+/* Tooltip del calendario (sigue al mouse) */
+.cro-cal-tip {
+  position: fixed; z-index: 1000; background: #fff;
+  border: 1px solid #64b5f6; border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+  padding: 10px 12px; max-width: 260px; font-size: .85rem; pointer-events: none;
+}
+.cro-cal-tip-head {
+  font-weight: 700; color: #1565c0; margin-bottom: 6px;
+  border-bottom: 1px solid #eee; padding-bottom: 4px;
+}
+.cro-cal-tip-row { margin: 3px 0; color: #333; }
+.cro-cal-tip-turno { font-weight: 700; color: #555; }

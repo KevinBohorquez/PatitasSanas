@@ -4,15 +4,17 @@ import './Cronograma.css';
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS_CAB = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const TURNOS = ['Mañana', 'Tarde', 'Noche', 'Madrugada'];
 
-// Vista calendario mensual: cada día muestra cuántos veterinarios trabajan.
+// Vista calendario mensual (grande) con tooltip al pasar el mouse.
 const CronogramaCalendario = () => {
   const now = new Date();
   const [anio, setAnio] = useState(now.getFullYear());
-  const [mes, setMes] = useState(now.getMonth() + 1); // 1-12
+  const [mes, setMes] = useState(now.getMonth() + 1);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hover, setHover] = useState(null); // { info, x, y }
 
   useEffect(() => {
     (async () => {
@@ -32,7 +34,6 @@ const CronogramaCalendario = () => {
     setMes(m); setAnio(a);
   };
 
-  // Construir la grilla del mes (Lunes primero).
   const primero = new Date(anio, mes - 1, 1);
   const offset = (primero.getDay() + 6) % 7; // 0 = Lunes
   const porDia = {};
@@ -43,11 +44,16 @@ const CronogramaCalendario = () => {
   for (let i = 0; i < offset; i++) celdas.push(null);
   for (let d = 1; d <= totalDias; d++) celdas.push(d);
 
+  const moverTooltip = (info, e) => {
+    const cerca = e.clientX > window.innerWidth - 280;
+    setHover({ info, x: cerca ? e.clientX - 270 : e.clientX + 14, y: e.clientY + 14 });
+  };
+
   return (
     <div>
       <div className="cro-toolbar">
         <button className="cro-nav" onClick={() => cambiarMes(-1)}>◀</button>
-        <strong>{MESES[mes - 1]} {anio}</strong>
+        <strong style={{ fontSize: '1.15rem' }}>{MESES[mes - 1]} {anio}</strong>
         <button className="cro-nav" onClick={() => cambiarMes(1)}>▶</button>
       </div>
 
@@ -55,7 +61,7 @@ const CronogramaCalendario = () => {
       {error && <p>Error: {error}</p>}
 
       {data && !loading && (
-        <div className="cro-cal">
+        <div className="cro-cal cro-cal-lg">
           <div className="cro-cal-head">
             {DIAS_CAB.map((d) => <div key={d} className="cro-cal-hcell">{d}</div>)}
           </div>
@@ -65,13 +71,35 @@ const CronogramaCalendario = () => {
               const info = porDia[d];
               const total = info ? info.total : 0;
               return (
-                <div key={d} className={`cro-cal-cell ${total > 0 ? 'cro-cal-activo' : ''}`}>
+                <div
+                  key={d}
+                  className={`cro-cal-cell ${total > 0 ? 'cro-cal-activo' : ''}`}
+                  onMouseEnter={total > 0 ? (e) => moverTooltip(info, e) : undefined}
+                  onMouseMove={total > 0 ? (e) => moverTooltip(info, e) : undefined}
+                  onMouseLeave={() => setHover(null)}
+                >
                   <div className="cro-cal-num">{d}</div>
                   {total > 0 && <div className="cro-cal-badge">{total} vet</div>}
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
+
+      {hover && (
+        <div className="cro-cal-tip" style={{ left: hover.x, top: hover.y }}>
+          <div className="cro-cal-tip-head">{hover.info.dia_semana} {hover.info.fecha.slice(8, 10)}/{hover.info.fecha.slice(5, 7)}</div>
+          {TURNOS.map((t) => {
+            const vs = hover.info.veterinarios.filter((v) => v.turno === t);
+            if (vs.length === 0) return null;
+            return (
+              <div key={t} className="cro-cal-tip-row">
+                <span className="cro-cal-tip-turno">{t}:</span>{' '}
+                {vs.map((v) => `${v.veterinario}${v.estado !== 'Activo' ? ' (inactivo)' : ''}`).join(', ')}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
