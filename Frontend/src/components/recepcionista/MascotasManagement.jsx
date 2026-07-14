@@ -403,9 +403,16 @@ const MascotasManagement = () => {
       const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const pathname = url.pathname.toLowerCase();
       const hasValidExtension = validExtensions.some(ext => pathname.includes(ext));
-      const validImageHosts = ['i.ibb.co', 'imgur.com', 'i.imgur.com', 'images.unsplash.com', 'picsum.photos'];
+      // Las imágenes que sube la propia app a Google Drive quedan como
+      // https://drive.google.com/uc?id=... : no tienen extensión en el path, así que
+      // hay que aceptar esos hosts o la mascota queda imposible de editar (la
+      // validación fallaba y el formulario nunca llegaba a enviar el PUT).
+      const validImageHosts = [
+        'i.ibb.co', 'imgur.com', 'i.imgur.com', 'images.unsplash.com', 'picsum.photos',
+        'drive.google.com', 'googleusercontent.com'
+      ];
       const isValidHost = validImageHosts.some(host => url.hostname.includes(host));
-      
+
       return hasValidExtension || isValidHost;
     } catch (_) {
       return false;
