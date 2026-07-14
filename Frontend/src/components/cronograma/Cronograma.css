@@ -46,7 +46,7 @@
 .cro-vet-inactivo { background: #ffebee; color: #c62828; text-decoration: line-through; }
 
 /* ===== Calendario mensual ===== */
-.cro-cal { max-width: 720px; }
+.cro-cal { max-width: 720px; margin: 0 auto; }
 .cro-cal-head, .cro-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cro-cal-hcell {
   background: #2d3e50; color: #fff; text-align: center; padding: 6px 0;
