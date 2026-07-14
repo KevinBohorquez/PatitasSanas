@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, timedelta
+import calendar as _calendar
 
 from app.config.database import get_db
 from app.models.horario_veterinario import HorarioVeterinario
@@ -145,17 +146,15 @@ def eliminar_excepcion(id_excepcion: int, db: Session = Depends(get_db)):
     return {"message": "Excepción eliminada", "success": True}
 
 
-# ================= ROSTER EFECTIVO DE UN DÍA (recepcionista + admin) =================
-@router.get("/dia/{fecha}")
-def veterinarios_del_dia(fecha: date, db: Session = Depends(get_db)):
-    """Quiénes trabajan una fecha concreta, con su turno. Combina el horario recurrente
-    del día de la semana con las excepciones de esa fecha (que lo sobrescriben por vet)."""
+# ================= ROSTER EFECTIVO (recepcionista + admin) =================
+def _roster_fecha(db: Session, fecha: date):
+    """Combina el horario recurrente del día de la semana con las excepciones de esa
+    fecha (que sustituyen al recurrente por veterinario). Devuelve (dia_semana, lista)."""
     dia = DIAS[fecha.weekday()]
     base = db.query(HorarioVeterinario).filter_by(dia_semana=dia).all()
     excepciones = db.query(HorarioExcepcion).filter_by(fecha=fecha).all()
     exc_por_vet = {e.id_veterinario: e for e in excepciones}
 
-    # (id_veterinario, turno) -> origen. La excepción de un vet sustituye su recurrente ese día.
     roster = {}
     for h in base:
         if h.id_veterinario in exc_por_vet:
@@ -166,15 +165,46 @@ def veterinarios_del_dia(fecha: date, db: Session = Depends(get_db)):
             roster[(vid, e.turno)] = "excepcion"
 
     info = _info_vets(db, {vid for vid, _ in roster.keys()})
-    return {
-        "fecha": fecha,
-        "dia_semana": dia,
-        "total": len(roster),
-        "veterinarios": [
-            {"id_veterinario": vid, "veterinario": info.get(vid, {}).get("nombre"),
-             "especialidad": info.get(vid, {}).get("especialidad"),
-             "estado": info.get(vid, {}).get("estado"),
-             "turno": turno, "origen": origen}
-            for (vid, turno), origen in sorted(roster.items())
-        ],
-    }
+    return dia, [
+        {"id_veterinario": vid, "veterinario": info.get(vid, {}).get("nombre"),
+         "especialidad": info.get(vid, {}).get("especialidad"),
+         "estado": info.get(vid, {}).get("estado"),
+         "turno": turno, "origen": origen}
+        for (vid, turno), origen in sorted(roster.items())
+    ]
+
+
+@router.get("/dia/{fecha}")
+def veterinarios_del_dia(fecha: date, db: Session = Depends(get_db)):
+    """Quiénes trabajan una fecha concreta, con su turno."""
+    dia, vets = _roster_fecha(db, fecha)
+    return {"fecha": fecha, "dia_semana": dia, "total": len(vets), "veterinarios": vets}
+
+
+@router.get("/semana/{fecha}")
+def semana(fecha: date, db: Session = Depends(get_db)):
+    """Roster de la semana (Lunes a Domingo) que contiene la fecha dada."""
+    lunes = fecha - timedelta(days=fecha.weekday())
+    dias = []
+    for i in range(7):
+        f = lunes + timedelta(days=i)
+        dia, vets = _roster_fecha(db, f)
+        dias.append({"fecha": f, "dia_semana": dia, "veterinarios": vets})
+    return {"inicio": lunes, "fin": lunes + timedelta(days=6), "dias": dias}
+
+
+@router.get("/mes/{anio}/{mes}")
+def mes(anio: int, mes: int, db: Session = Depends(get_db)):
+    """Resumen por día de un mes (total de veterinarios en turno y conteo por turno)."""
+    if not (1 <= mes <= 12):
+        raise HTTPException(status_code=400, detail="mes debe estar entre 1 y 12")
+    ndias = _calendar.monthrange(anio, mes)[1]
+    dias = []
+    for d in range(1, ndias + 1):
+        f = date(anio, mes, d)
+        dia, vets = _roster_fecha(db, f)
+        turnos = {}
+        for v in vets:
+            turnos[v["turno"]] = turnos.get(v["turno"], 0) + 1
+        dias.append({"fecha": f, "dia_semana": dia, "total": len(vets), "turnos": turnos})
+    return {"anio": anio, "mes": mes, "dias": dias}
