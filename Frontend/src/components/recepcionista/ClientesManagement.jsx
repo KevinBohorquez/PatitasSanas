@@ -558,6 +558,7 @@ const ClientesManagement = () => {
                     className={validationErrors.dni ? 'error' : ''}
                     required
                     maxLength="8"
+                    disabled={modalType === 'edit'}
                   />
                   {validationErrors.dni && (
                     <span className="error-message">{validationErrors.dni}</span>
