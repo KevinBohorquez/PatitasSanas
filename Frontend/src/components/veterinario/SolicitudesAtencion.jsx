@@ -19,6 +19,7 @@ const SolicitudesAtencion = () => {
   const [showTriaje, setShowTriaje] = useState(false);
   const [showConsulta, setShowConsulta] = useState(false);
   const [filtroUrgencia, setFiltroUrgencia] = useState('todas');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
   const [procesandoAtencion, setProcesandoAtencion] = useState(false);
 
   // Función para actualizar la disposición del veterinario
@@ -251,9 +252,14 @@ const SolicitudesAtencion = () => {
     fetchSolicitudes();
   };
 
-  const solicitudesFiltradas = solicitudes.filter(s =>
-    filtroUrgencia === 'todas' || s.urgencia.toLowerCase() === filtroUrgencia
-  );
+  const solicitudesFiltradas = solicitudes.filter((s) => {
+    const okUrgencia = filtroUrgencia === 'todas' || s.urgencia.toLowerCase() === filtroUrgencia;
+    const okEstado =
+      filtroEstado === 'todos' ||
+      (filtroEstado === 'completadas' && s.estado === 'Completada') ||
+      (filtroEstado === 'pendientes' && s.estado !== 'Completada' && s.estado !== 'Cancelada');
+    return okUrgencia && okEstado;
+  });
 
   const columns = [
     { key: 'mascota', header: 'MASCOTA' },
@@ -327,6 +333,12 @@ const SolicitudesAtencion = () => {
               <option value="alta">Alta</option>
               <option value="media">Media</option>
               <option value="baja">Baja</option>
+            </select>
+            <label>Estado:</label>
+            <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+              <option value="todos">Ver todo</option>
+              <option value="completadas">Completadas</option>
+              <option value="pendientes">Por completar</option>
             </select>
           </div>
         </div>
