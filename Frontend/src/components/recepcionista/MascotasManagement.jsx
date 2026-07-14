@@ -26,30 +26,30 @@ const MascotasManagement = () => {
   
   // Estados para validaciones
   const [validationErrors, setValidationErrors] = useState({});
-  const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [imagenFile, setImagenFile] = useState(null);
+  const [imagenPreview, setImagenPreview] = useState('');
 
-  // Sube la imagen seleccionada a Google Drive y guarda el enlace en el formulario.
-  const subirImagen = async (e) => {
+  // Guarda el archivo elegido y muestra vista previa local. NO sube todavía:
+  // la subida a Drive ocurre solo al finalizar el registro (en el submit).
+  const handleImagenSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('El archivo debe ser una imagen'); return; }
+    setImagenFile(file);
+    setImagenPreview(URL.createObjectURL(file));
+    setValidationErrors((prev) => ({ ...prev, imagen: '' }));
+  };
+
+  // Sube el archivo pendiente a Drive y devuelve el enlace (se llama en el submit).
+  const subirImagenPendiente = async () => {
     const fd = new FormData();
-    fd.append('file', file);
-    try {
-      setSubiendoImagen(true);
-      const res = await fetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || 'Error al subir la imagen');
-      }
-      const data = await res.json();
-      setFormData((prev) => ({ ...prev, imagen: data.url }));
-      setValidationErrors((prev) => ({ ...prev, imagen: '' }));
-      toast.success('Imagen subida a Drive correctamente');
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubiendoImagen(false);
+    fd.append('file', imagenFile);
+    const res = await fetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Error al subir la imagen');
     }
+    return (await res.json()).url;
   };
   
   const [formData, setFormData] = useState({
@@ -258,6 +258,8 @@ const MascotasManagement = () => {
     });
     setValidationErrors({});
     setClienteDetails(null);
+    setImagenFile(null);
+    setImagenPreview('');
     setShowModal(true);
   };
 
@@ -265,6 +267,8 @@ const MascotasManagement = () => {
   const handleEdit = async (mascota) => {
     setModalType('edit');
     setSelectedMascota(mascota);
+    setImagenFile(null);
+    setImagenPreview('');
     
     // Encontrar el tipo de animal de la mascota
     const tipoAnimal = tiposAnimal.find(t => t.id_raza === mascota.id_raza);
@@ -457,14 +461,25 @@ const MascotasManagement = () => {
       let responseData = await response.json();
 
       if (response.ok) {
-        if (formData.imagen && formData.imagen.trim()) {
+        // La imagen se sube a Drive SOLO ahora que el registro se finalizó (mascota creada).
+        // Si hay archivo pendiente, se sube; si no, se usa la URL pegada manualmente.
+        let imagenUrl = null;
+        try {
+          if (imagenFile) {
+            imagenUrl = await subirImagenPendiente();
+          } else if (formData.imagen && formData.imagen.trim()) {
+            imagenUrl = formData.imagen.trim();
+          }
+        } catch (imgErr) {
+          toast.warning(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'}, pero no se pudo subir la imagen: ${imgErr.message}`);
+        }
+
+        if (imagenUrl) {
           try {
-            mascotaData.imagen = formData.imagen.trim();
-            
-            const updateUrl = modalType === 'add' 
+            mascotaData.imagen = imagenUrl;
+            const updateUrl = modalType === 'add'
               ? `${BASE_URL}/mascotas/${responseData.id_mascota}?cliente_id=${formData.id_cliente}`
               : url;
-            
             const imageResponse = await fetch(updateUrl, {
               method: 'PUT',
               mode: 'cors',
@@ -474,23 +489,21 @@ const MascotasManagement = () => {
               },
               body: JSON.stringify(mascotaData)
             });
-
             const imageResponseData = await imageResponse.json();
-
             if (imageResponse.ok) {
               toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente con imagen`);
             } else {
-              toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero hubo un problema con la imagen. Error: ${imageResponseData.detail || 'Error desconocido'}`);
+              toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'}, pero hubo un problema con la imagen. Error: ${imageResponseData.detail || 'Error desconocido'}`);
             }
           } catch (imageError) {
             console.error('Error al agregar imagen:', imageError);
-            toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente, pero no se pudo agregar la imagen debido a problemas de conexión.`);
+            toast.error(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'}, pero no se pudo guardar la imagen.`);
           }
         } else {
           toast.success(`Mascota ${modalType === 'add' ? 'registrada' : 'actualizada'} exitosamente`);
         }
         setShowModal(false);
-        fetchMascotas(); 
+        fetchMascotas();
       } else {
         console.error('Error del servidor');
         toast.error(formatApiError(responseData, 'No se pudo guardar la mascota'));
@@ -913,15 +926,15 @@ const MascotasManagement = () => {
                 <div className="form-group">
                   <label>FOTO (Opcional)</label>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <label className="btn btn-secondary" style={{ cursor: subiendoImagen ? 'wait' : 'pointer', margin: 0 }}>
-                      {subiendoImagen ? 'Subiendo...' : '📁 Subir imagen'}
-                      <input type="file" accept="image/*" onChange={subirImagen}
-                             disabled={subiendoImagen} style={{ display: 'none' }} />
+                    <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0 }}>
+                      📁 Elegir imagen
+                      <input type="file" accept="image/*" onChange={handleImagenSelect} style={{ display: 'none' }} />
                     </label>
-                    {formData.imagen && (
-                      <img src={formData.imagen} alt="Vista previa" onError={(ev) => { ev.target.style.display = 'none'; }}
+                    {(imagenPreview || formData.imagen) && (
+                      <img src={imagenPreview || formData.imagen} alt="Vista previa" onError={(ev) => { ev.target.style.display = 'none'; }}
                            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }} />
                     )}
+                    <small style={{ color: '#888' }}>Se sube al guardar</small>
                   </div>
                   <input
                     type="url"
