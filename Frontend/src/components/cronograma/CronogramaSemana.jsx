@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Cronograma.css';
+import { CONFIG_VET } from './cronogramaConfig';
 
 const TURNOS = ['Mañana', 'Tarde', 'Noche', 'Madrugada'];
 const hoyISO = () => new Date().toISOString().slice(0, 10);
@@ -9,7 +10,7 @@ const fmt = (iso) => {
 };
 
 // Grilla semanal Lunes-Domingo: turnos en filas, días en columnas.
-const CronogramaSemana = () => {
+const CronogramaSemana = ({ config = CONFIG_VET }) => {
   const [fecha, setFecha] = useState(hoyISO());
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,12 +20,12 @@ const CronogramaSemana = () => {
     (async () => {
       try {
         setLoading(true); setError(null);
-        const r = await fetch(`/api/v1/horarios/semana/${fecha}`);
+        const r = await fetch(`${config.base}/semana/${fecha}`);
         if (!r.ok) throw new Error('No se pudo cargar la semana');
         setData(await r.json());
       } catch (e) { setError(e.message); } finally { setLoading(false); }
     })();
-  }, [fecha]);
+  }, [fecha, config.base]);
 
   const cambiarSemana = (dias) => {
     const d = new Date(fecha + 'T00:00:00');
@@ -64,14 +65,14 @@ const CronogramaSemana = () => {
                 <tr key={turno}>
                   <th className="cro-turno-head">{turno}</th>
                   {data.dias.map((d) => {
-                    const vets = d.veterinarios.filter((v) => v.turno === turno);
+                    const personas = (d[config.rosterKey] || []).filter((v) => v.turno === turno);
                     return (
                       <td key={d.fecha + turno} className="cro-cell">
-                        {vets.map((v) => (
-                          <div key={v.id_veterinario}
+                        {personas.map((v) => (
+                          <div key={v[config.personIdKey]}
                                className={`cro-vet ${v.estado !== 'Activo' ? 'cro-vet-inactivo' : ''} ${v.origen === 'excepcion' ? 'cro-vet-exc' : ''}`}
                                title={v.origen === 'excepcion' ? 'Excepción' : 'Recurrente'}>
-                            {v.veterinario}{v.estado !== 'Activo' ? ' (inactivo)' : ''}
+                            {v[config.nameKey]}{v.estado !== 'Activo' ? ' (inactivo)' : ''}
                           </div>
                         ))}
                       </td>

@@ -12,7 +12,7 @@ import ReportsManagement from '../components/admin/ReportsManagement';
 import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
 import FlujoCaja from '../components/admin/FlujoCaja';
 import BalanceFinanciero from '../components/admin/BalanceFinanciero';
-import CronogramaManagement from '../components/admin/CronogramaManagement';
+import CronogramaAdmin from '../components/admin/CronogramaAdmin';
 import '../styles/Dashboard.css';
 
 const AdminDashboard = () => {
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
       case 'recepcionistas':
         return <ReceptionistManagement />;
       case 'cronograma':
-        return <CronogramaManagement />;
+        return <CronogramaAdmin />;
       case 'servicios':
         return <ServicesManagement />;
       case 'reportes':

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Cronograma.css';
+import { CONFIG_VET } from './cronogramaConfig';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -7,7 +8,7 @@ const DIAS_CAB = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const TURNOS = ['Mañana', 'Tarde', 'Noche', 'Madrugada'];
 
 // Vista calendario mensual (grande) con tooltip al pasar el mouse.
-const CronogramaCalendario = () => {
+const CronogramaCalendario = ({ config = CONFIG_VET }) => {
   const now = new Date();
   const [anio, setAnio] = useState(now.getFullYear());
   const [mes, setMes] = useState(now.getMonth() + 1);
@@ -20,12 +21,12 @@ const CronogramaCalendario = () => {
     (async () => {
       try {
         setLoading(true); setError(null);
-        const r = await fetch(`/api/v1/horarios/mes/${anio}/${mes}`);
+        const r = await fetch(`${config.base}/mes/${anio}/${mes}`);
         if (!r.ok) throw new Error('No se pudo cargar el mes');
         setData(await r.json());
       } catch (e) { setError(e.message); } finally { setLoading(false); }
     })();
-  }, [anio, mes]);
+  }, [anio, mes, config.base]);
 
   const cambiarMes = (delta) => {
     let m = mes + delta, a = anio;
@@ -79,7 +80,7 @@ const CronogramaCalendario = () => {
                   onMouseLeave={() => setHover(null)}
                 >
                   <div className="cro-cal-num">{d}</div>
-                  {total > 0 && <div className="cro-cal-badge">{total} vet</div>}
+                  {total > 0 && <div className="cro-cal-badge">{total} {config.label === 'recepcionista' ? 'rec' : 'vet'}</div>}
                 </div>
               );
             })}
@@ -91,12 +92,12 @@ const CronogramaCalendario = () => {
         <div className="cro-cal-tip" style={{ left: hover.x, top: hover.y }}>
           <div className="cro-cal-tip-head">{hover.info.dia_semana} {hover.info.fecha.slice(8, 10)}/{hover.info.fecha.slice(5, 7)}</div>
           {TURNOS.map((t) => {
-            const vs = hover.info.veterinarios.filter((v) => v.turno === t);
+            const vs = (hover.info[config.rosterKey] || []).filter((v) => v.turno === t);
             if (vs.length === 0) return null;
             return (
               <div key={t} className="cro-cal-tip-row">
                 <span className="cro-cal-tip-turno">{t}:</span>{' '}
-                {vs.map((v) => `${v.veterinario}${v.estado !== 'Activo' ? ' (inactivo)' : ''}`).join(', ')}
+                {vs.map((v) => `${v[config.nameKey]}${v.estado !== 'Activo' ? ' (inactivo)' : ''}`).join(', ')}
               </div>
             );
           })}
