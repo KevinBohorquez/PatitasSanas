@@ -157,15 +157,56 @@ html, body, #root {
   background: var(--light-color);
 }
 
+/* ===== Red de seguridad responsive (global) =====
+   Evita el scroll horizontal de toda la página en móviles y hace que
+   contenidos anchos (imágenes, tablas, bloques) se ajusten al ancho del
+   dispositivo en lugar de desbordar. */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Cualquier tabla dentro de un contenedor puede desplazarse en vez de recortarse */
+.table-container,
+.tabla-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
     padding: 0 0.5rem;
   }
-  
+
   .btn {
     padding: 0.5rem 1rem;
     font-size: 13px;
+  }
+}
+
+/* Ajustes generales para teléfonos: rejillas a una sola columna y
+   secciones/tarjetas con padding reducido para aprovechar el ancho. */
+@media (max-width: 600px) {
+  .stats-grid,
+  .quick-stats,
+  .admin-stats,
+  .cards-grid,
+  .metrics-grid,
+  .info-grid,
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card-header,
+  .card-body {
+    padding: 1rem;
   }
 }
 
