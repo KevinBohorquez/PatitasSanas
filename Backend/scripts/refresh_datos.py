@@ -173,21 +173,30 @@ for idx in range(N_ATENDIDOS):
     db.add(diag); db.flush()
 
     serv = random.choice(servicios)
+    # Estado de la cita: mayoría atendida, algunas canceladas o programadas (futuras).
+    outcome = random.choices(['Atendida', 'Cancelada', 'Programada'], weights=[68, 18, 14])[0]
+    estado_examen = {'Atendida': 'Completado', 'Cancelada': 'Citado', 'Programada': 'Citado'}[outcome]
+    if outcome == 'Programada':
+        fecha_cita = hoy + timedelta(days=random.randint(1, 20))
+        obs_cita = "Cita programada, pendiente de atención."
+    elif outcome == 'Cancelada':
+        fecha_cita = cons.fecha_consulta + timedelta(days=random.randint(1, 5))
+        obs_cita = "Cita cancelada por el cliente."
+    else:
+        fecha_cita = cons.fecha_consulta + timedelta(days=random.randint(1, 5))
+        obs_cita = "Cita atendida correctamente."
+
     ss = ServicioSolicitado(id_consulta=cons.id_consulta, id_servicio=serv[0],
         fecha_solicitado=cons.fecha_consulta, prioridad=random.choice(['Urgente','Normal','Programable']),
-        estado_examen='Completado', comentario_opcional="Servicio realizado sin complicaciones.")
+        estado_examen=estado_examen, comentario_opcional="Servicio registrado en la consulta.")
     db.add(ss); db.flush()
 
     cita = Cita(id_mascota=m.id_mascota, id_servicio_solicitado=ss.id_servicio_solicitado, id_veterinario=vet,
-        fecha_hora_programada=cons.fecha_consulta + timedelta(days=random.randint(1,5)),
-        estado_cita='Atendida', requiere_ayuno=random.choice([True, False]),
-        observaciones="Cita atendida correctamente.")
+        fecha_hora_programada=fecha_cita, estado_cita=outcome,
+        requiere_ayuno=random.choice([True, False]), observaciones=obs_cita)
     db.add(cita); db.flush()
 
-    db.add(ResultadoServicio(id_cita=cita.id_cita, id_veterinario=vet,
-        resultado=f"Resultado del servicio {serv[1]}: dentro de parámetros normales.",
-        interpretacion="Sin hallazgos que requieran intervención adicional.",
-        fecha_realizacion=cita.fecha_hora_programada))
+    # La consulta ocurrió: siempre se registra en el historial.
     db.add(HistorialClinico(id_mascota=m.id_mascota, id_consulta=cons.id_consulta, id_veterinario=vet,
         fecha_evento=cons.fecha_consulta, tipo_evento="Consulta médica", edad_meses=edad_meses_tot,
         descripcion_evento="Consulta general con evaluación clínica completa.",
@@ -195,9 +204,16 @@ for idx in range(N_ATENDIDOS):
     db.add(HistorialClinico(id_mascota=m.id_mascota, id_diagnostico=diag.id_diagnostico, id_veterinario=vet,
         fecha_evento=cons.fecha_consulta, tipo_evento="Diagnóstico",
         descripcion_evento="Registro de diagnóstico y plan terapéutico."))
-    db.add(MovimientoFinanciero(tipo='Ingreso', categoria='Servicio', monto=serv[2],
-        concepto=f"Pago del servicio {serv[1]}", fecha_movimiento=cita.fecha_hora_programada,
-        id_cita=cita.id_cita, id_administrador=random.choice(admin_ids)))
+
+    # Solo las citas atendidas generan resultado del servicio e ingreso.
+    if outcome == 'Atendida':
+        db.add(ResultadoServicio(id_cita=cita.id_cita, id_veterinario=vet,
+            resultado=f"Resultado del servicio {serv[1]}: dentro de parámetros normales.",
+            interpretacion="Sin hallazgos que requieran intervención adicional.",
+            fecha_realizacion=cita.fecha_hora_programada))
+        db.add(MovimientoFinanciero(tipo='Ingreso', categoria='Servicio', monto=serv[2],
+            concepto=f"Pago del servicio {serv[1]}", fecha_movimiento=cita.fecha_hora_programada,
+            id_cita=cita.id_cita, id_administrador=random.choice(admin_ids)))
     db.flush()
 
 for idx in range(N_ATENDIDOS, N_ATENDIDOS + N_PENDIENTES):
@@ -205,6 +221,23 @@ for idx in range(N_ATENDIDOS, N_ATENDIDOS + N_PENDIENTES):
     db.add(SolicitudAtencion(id_mascota=m.id_mascota, id_recepcionista=random.choice(recep_ids),
         fecha_hora_solicitud=hoy - timedelta(days=random.randint(0,4)),
         tipo_solicitud=random.choice(['Consulta urgente','Consulta normal']), estado='Pendiente'))
+
+# Egresos (gastos operativos y de nómina) para tener también salidas de dinero.
+EGRESOS = [
+    ("Compra de insumos médicos", 'Operativo', (300, 1500)),
+    ("Alquiler del local", 'Operativo', (1800, 2500)),
+    ("Servicios: luz, agua e internet", 'Operativo', (400, 900)),
+    ("Mantenimiento de equipos", 'Operativo', (200, 800)),
+    ("Compra de alimento y accesorios", 'Operativo', (500, 2000)),
+    ("Pago de planilla de veterinarios", 'Nomina', (4000, 9000)),
+    ("Pago de planilla de recepcionistas", 'Nomina', (2500, 5000)),
+    ("Publicidad y marketing", 'Operativo', (150, 700)),
+]
+for _ in range(18):
+    concepto, cat, (lo, hi) = random.choice(EGRESOS)
+    db.add(MovimientoFinanciero(tipo='Egreso', categoria=cat, monto=round(random.uniform(lo, hi), 2),
+        concepto=concepto, fecha_movimiento=hoy - timedelta(days=random.randint(0, 180)),
+        id_cita=None, id_administrador=random.choice(admin_ids)))
 db.commit()
 db.close()
 
