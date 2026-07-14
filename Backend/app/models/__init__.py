@@ -36,6 +36,10 @@ from app.models.movimiento_financiero import MovimientoFinanciero
 # Modelos de relación
 from app.models.cliente_mascota import ClienteMascota
 
+# Modelos de cronograma / horarios de veterinarios
+from app.models.horario_veterinario import HorarioVeterinario
+from app.models.horario_excepcion import HorarioExcepcion
+
 # Exportar todos los modelos para fácil importación
 __all__ = [
     "Base",
@@ -67,5 +71,8 @@ __all__ = [
     # Relaciones
     "ClienteMascota",
     # Financieros
-    "MovimientoFinanciero"
+    "MovimientoFinanciero",
+    # Cronograma / horarios
+    "HorarioVeterinario",
+    "HorarioExcepcion",
 ]
