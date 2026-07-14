@@ -325,13 +325,9 @@ const ReceptionistManagement = () => {
         })
       );
 
-      // Filtrar solo usuarios activos
-      const recepcionistasActivos = recepcionistasCompletos.filter(
-        rec => rec.estado_usuario === 'Activo' || rec.estado_usuario === 'N/A'
-      );
-
-      // Mapear los datos para que coincidan con la estructura esperada por Table
-      const mappedRecepcionistas = recepcionistasActivos.map(recep => ({
+      // Mostrar todos los recepcionistas (activos e inactivos) para que el conteo
+      // "N registros" coincida con las filas visibles. El estado se refleja por fila.
+      const mappedRecepcionistas = recepcionistasCompletos.map(recep => ({
         id: recep.id_recepcionista,
         id_usuario: recep.id_usuario,
         dni: recep.dni || 'Sin DNI',
@@ -1305,13 +1301,9 @@ const ReceptionistManagement = () => {
         })
       );
 
-      // Filtrar solo usuarios activos
-      const recepcionistasActivos = recepcionistasCompletos.filter(
-        rec => rec.estado_usuario === 'Activo' || rec.estado_usuario === 'N/A'
-      );
-
-      // Mapear los datos para que coincidan con la estructura esperada por Table
-      const mappedRecepcionistas = recepcionistasActivos.map(recep => ({
+      // Mostrar todos los recepcionistas (activos e inactivos) para que el conteo
+      // "N registros" coincida con las filas visibles. El estado se refleja por fila.
+      const mappedRecepcionistas = recepcionistasCompletos.map(recep => ({
         id: recep.id_recepcionista,
         id_usuario: recep.id_usuario,
         dni: recep.dni || 'Sin DNI',
