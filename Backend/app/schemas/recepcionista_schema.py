@@ -45,6 +45,9 @@ class RecepcionistaUpdate(BaseModel):
     nombre: Optional[str] = None
     apellido_paterno: Optional[str] = None
     apellido_materno: Optional[str] = None
+    # genero faltaba: al no estar en el schema se descartaba del body y nunca se
+    # guardaba al editar. El DNI NO se incluye a propósito: es un dato no modificable.
+    genero: Optional[str] = None
     telefono: Optional[str] = None
     email: Optional[EmailStr] = None
     turno: Optional[str] = None
@@ -54,6 +57,12 @@ class RecepcionistaUpdate(BaseModel):
     _validate_apellido_paterno = validator('apellido_paterno', allow_reuse=True)(validate_name)
     _validate_apellido_materno = validator('apellido_materno', allow_reuse=True)(validate_name)
     _validate_telefono = validator('telefono', allow_reuse=True)(validate_telefono)
+
+    @validator('genero')
+    def validate_genero(cls, v):
+        if v and v not in ['F', 'M']:
+            raise ValueError('Género debe ser F o M')
+        return v
 
 
 # ===== SCHEMAS DE OUTPUT (RESPONSE) =====

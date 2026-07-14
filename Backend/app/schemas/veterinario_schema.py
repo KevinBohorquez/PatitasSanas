@@ -52,8 +52,8 @@ class VeterinarioCreate(BaseModel):
 
     @validator('turno')
     def validate_turno(cls, v):
-        if v not in ['Mañana', 'Tarde', 'Noche']:
-            raise ValueError('Turno debe ser Mañana, Tarde o Noche')
+        if v not in ['Mañana', 'Tarde', 'Noche', 'Madrugada']:
+            raise ValueError('Turno debe ser Mañana, Tarde, Noche o Madrugada')
         return v
 
     @validator('disposicion')
@@ -65,6 +65,15 @@ class VeterinarioCreate(BaseModel):
 
 class VeterinarioUpdate(BaseModel):
     """Schema para actualizar un veterinario"""
+    # Datos personales: faltaban aquí, por lo que FastAPI los descartaba del body y
+    # nunca llegaban al UPDATE (editar nombre/apellidos/género/fecha de nacimiento
+    # devolvía 200 pero no guardaba nada).
+    # El DNI NO se incluye a propósito: es un dato no modificable.
+    nombre: Optional[str] = None
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
+    genero: Optional[str] = None
+    fecha_nacimiento: Optional[date] = None
     id_especialidad: Optional[int] = None
     codigo_CMVP: Optional[str] = None
     tipo_veterinario: Optional[str] = None
@@ -74,7 +83,16 @@ class VeterinarioUpdate(BaseModel):
     turno: Optional[str] = None
 
     # Validators para campos opcionales
+    _validate_nombre = validator('nombre', allow_reuse=True)(validate_name)
+    _validate_apellido_paterno = validator('apellido_paterno', allow_reuse=True)(validate_name)
+    _validate_apellido_materno = validator('apellido_materno', allow_reuse=True)(validate_name)
     _validate_telefono = validator('telefono', allow_reuse=True)(validate_telefono)
+
+    @validator('genero')
+    def validate_genero(cls, v):
+        if v and v not in ['F', 'M']:
+            raise ValueError('Género debe ser F o M')
+        return v
 
     @validator('codigo_CMVP')
     def validate_codigo_cmvp(cls, v):
@@ -90,14 +108,14 @@ class VeterinarioUpdate(BaseModel):
 
     @validator('turno')
     def validate_turno(cls, v):
-        if v and v not in ['Mañana', 'Tarde', 'Noche']:
-            raise ValueError('Turno debe ser Mañana, Tarde o Noche')
+        if v and v not in ['Mañana', 'Tarde', 'Noche', 'Madrugada']:
+            raise ValueError('Turno debe ser Mañana, Tarde, Noche o Madrugada')
         return v
 
     @validator('disposicion')
     def validate_disposicion(cls, v):
-        if v and v not in ['Libre', 'Ocupado']:
-            raise ValueError('Disposición debe ser Libre u Ocupado')
+        if v and v not in ['Libre', 'Ocupado', 'Fuera de turno']:
+            raise ValueError('Disposición debe ser Libre, Ocupado o Fuera de turno')
         return v
 
 
