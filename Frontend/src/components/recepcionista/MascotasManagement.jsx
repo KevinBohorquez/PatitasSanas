@@ -41,9 +41,18 @@ const MascotasManagement = () => {
   };
 
   // Sube el archivo pendiente a Drive y devuelve el enlace (se llama en el submit).
+  // El nombre en Drive sigue el estándar: mascota-[mascota]-[dueño]-fecha
   const subirImagenPendiente = async () => {
+    const dueno = clienteDetails || clientes.find((c) => String(c.id_cliente) === String(formData.id_cliente));
+    const nombreDueno = dueno ? `${dueno.nombre}-${dueno.apellido_paterno}` : 'dueno';
+    const fecha = new Date().toISOString().slice(0, 10);
+    const nombre = `mascota-${formData.nombre}-${nombreDueno}-${fecha}`
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')      // quitar acentos
+      .replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-_.]/g, ''); // limpiar caracteres
+
     const fd = new FormData();
     fd.append('file', imagenFile);
+    fd.append('nombre', nombre);
     const res = await fetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -936,18 +945,6 @@ const MascotasManagement = () => {
                     )}
                     <small style={{ color: '#888' }}>Se sube al guardar</small>
                   </div>
-                  <input
-                    type="url"
-                    name="imagen"
-                    value={formData.imagen}
-                    onChange={handleInputChange}
-                    placeholder="o pega una URL: https://ejemplo.com/foto.jpg"
-                    className={validationErrors.imagen ? 'error' : ''}
-                    style={{ marginTop: 8 }}
-                  />
-                  {validationErrors.imagen && (
-                    <span className="error-message">{validationErrors.imagen}</span>
-                  )}
                 </div>
                 <div className="form-group">
                   <label className="checkbox-label">
