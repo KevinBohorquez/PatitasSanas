@@ -415,6 +415,7 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* columnas de ancho estable entre páginas */
 }
 
 .data-table th {
@@ -433,6 +434,7 @@
   padding: 1rem;
   border-bottom: 1px solid #eee;
   font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .data-table tr:hover {
@@ -879,8 +881,94 @@
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Panel de inicio del veterinario ===== */
+.stat-clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-highlight {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin: 0.3rem 0;
+}
+
+.stat-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #ef6c00;
+  margin: 0.2rem 0;
+  line-height: 1;
+}
+
+.attention-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.estado-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #eeeeee;
+  color: #555;
+}
+
+.estado-pendiente { background: #fff3e0; color: #e65100; }
+.estado-en-triaje { background: #e3f2fd; color: #1565c0; }
+.estado-en-atencion { background: #ede7f6; color: #5e35b1; }
+.estado-completada { background: #e8f5e9; color: #2e7d32; }
+.estado-cancelada { background: #ffebee; color: #c62828; }
+
+/* Layout del panel de inicio del veterinario: cabecera arriba, tarjetas en 2x2,
+   todo dentro del recuadro celeste del tema. */
+.vet-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: #d6f1f8;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.vet-dashboard-header h2 {
+  color: #1976d2;
+  margin-bottom: 0.3rem;
+}
+
+.vet-dashboard-header p {
+  color: #555;
+}
+
+.vet-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .vet-cards {
     grid-template-columns: 1fr;
   }
 }

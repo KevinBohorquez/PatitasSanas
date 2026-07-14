@@ -7,7 +7,7 @@
 -- Las citas sin servicio/consulta asociada quedan sin vet (correcto). Idempotente.
 -- Ejecutar contra veterinaria_db.
 UPDATE `Cita` c
-  JOIN `Servicio_solicitado` ss ON ss.id_servicio_solicitado = c.id_servicio_solicitado
+  JOIN `Servicio_Solicitado` ss ON ss.id_servicio_solicitado = c.id_servicio_solicitado
   JOIN `Consulta` co ON co.id_consulta = ss.id_consulta
    SET c.id_veterinario = co.id_veterinario
  WHERE c.id_veterinario IS NULL

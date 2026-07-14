@@ -41,4 +41,4 @@ fastapi-mail==1.4.1
 
 # SC-020 / F27: subida de adjuntos a Google Drive
 google-api-python-client==2.108.0
-google-auth==2.25.2
+google-auth==2.25.2google-auth-oauthlib

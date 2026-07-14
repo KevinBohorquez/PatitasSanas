@@ -1,16 +1,18 @@
 # app/api/v1/endpoints/veterinarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import case
+from sqlalchemy import case, func
 from typing import Optional
 
 from app.config.database import get_db
 # ✅ TEMPORAL: Usar el patrón que funciona en clientes
 from app.crud import veterinario  # ← Si existe este import
-from app.models import ResultadoServicio, Cita
+from app.models import ResultadoServicio, Cita, Mascota, ServicioSolicitado, Servicio
 from app.models.veterinario import Veterinario
 from app.models.especialidad import Especialidad
 from app.models.usuario import Usuario
+from app.models.solicitud_atencion import SolicitudAtencion
+from app.models.triaje import Triaje
 from app.schemas import VeterinarioResponse, VeterinarioCreate, VeterinarioUpdate
 
 # from app.schemas.veterinario_schema import (...)  # ← Comentado temporalmente
@@ -585,3 +587,126 @@ def get_citas_programadas(id_usuario: int, db: Session = Depends(get_db)):
         }
         for c in citas
     ]
+
+
+@router.get("/dashboard/{id_usuario}")
+def get_dashboard_veterinario(id_usuario: int, db: Session = Depends(get_db)):
+    """
+    Resumen para el panel de inicio del veterinario, resuelto por su id_usuario:
+    perfil (especialidad, turno, disposición), próxima cita, número de citas
+    pendientes de atender, solicitudes asignadas y últimas atenciones.
+    """
+    vet = (
+        db.query(Veterinario, Especialidad.descripcion)
+        .outerjoin(Especialidad, Especialidad.id_especialidad == Veterinario.id_especialidad)
+        .filter(Veterinario.id_usuario == id_usuario)
+        .first()
+    )
+    if not vet:
+        raise HTTPException(status_code=404, detail="Veterinario no encontrado")
+    vet_obj, especialidad_desc = vet
+    vet_id = vet_obj.id_veterinario
+
+    # Próxima cita programada del veterinario (con mascota y servicio).
+    prox = (
+        db.query(Cita, Mascota.nombre, Servicio.nombre_servicio)
+        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
+        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
+        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Programada")
+        .order_by(Cita.fecha_hora_programada.asc())
+        .first()
+    )
+    proxima_cita = None
+    if prox:
+        c, masc_nombre, serv_nombre = prox
+        proxima_cita = {
+            "id_cita": c.id_cita,
+            "fecha_hora_programada": c.fecha_hora_programada,
+            "mascota": masc_nombre,
+            "servicio": serv_nombre,
+            "requiere_ayuno": c.requiere_ayuno,
+        }
+
+    # Pendientes de atender: citas programadas asignadas al veterinario.
+    pendientes = (
+        db.query(func.count(Cita.id_cita))
+        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Programada")
+        .scalar()
+    )
+
+    # Solicitudes asignadas: las de los triajes que hizo el veterinario.
+    triaje_solicitud_ids = [
+        row[0] for row in db.query(Triaje.id_solicitud).filter(Triaje.id_veterinario == vet_id).all()
+    ]
+    # Solo las que aún no han sido atendidas (excluye Completada y Cancelada).
+    estados_no_atendidos = ["Pendiente", "En triaje", "En atencion"]
+    solicitudes_items = []
+    total_solicitudes = 0
+    if triaje_solicitud_ids:
+        total_solicitudes = (
+            db.query(func.count(SolicitudAtencion.id_solicitud))
+            .filter(
+                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
+                SolicitudAtencion.estado.in_(estados_no_atendidos),
+            )
+            .scalar()
+        )
+        filas = (
+            db.query(SolicitudAtencion, Mascota.nombre)
+            .outerjoin(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota)
+            .filter(
+                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
+                SolicitudAtencion.estado.in_(estados_no_atendidos),
+            )
+            .order_by(SolicitudAtencion.fecha_hora_solicitud.desc())
+            .limit(8)
+            .all()
+        )
+        solicitudes_items = [
+            {
+                "id_solicitud": s.id_solicitud,
+                "mascota": masc,
+                "tipo_solicitud": s.tipo_solicitud,
+                "estado": s.estado,
+                "fecha": s.fecha_hora_solicitud,
+            }
+            for s, masc in filas
+        ]
+
+    # Últimas atenciones: citas ya atendidas por el veterinario.
+    atendidas = (
+        db.query(Cita, Mascota.nombre, Servicio.nombre_servicio)
+        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
+        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
+        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Atendida")
+        .order_by(Cita.fecha_hora_programada.desc())
+        .limit(5)
+        .all()
+    )
+    ultimas_atenciones = [
+        {
+            "id_cita": c.id_cita,
+            "fecha": c.fecha_hora_programada,
+            "mascota": masc,
+            "servicio": serv,
+        }
+        for c, masc, serv in atendidas
+    ]
+
+    return {
+        "veterinario": {
+            "nombre": f"{vet_obj.nombre} {vet_obj.apellido_paterno}".strip(),
+            "especialidad": especialidad_desc,
+            "turno": vet_obj.turno,
+            "disposicion": vet_obj.disposicion,
+        },
+        "proxima_cita": proxima_cita,
+        "pendientes_atender": pendientes or 0,
+        "solicitudes_asignadas": {
+            "total": total_solicitudes or 0,
+            "items": solicitudes_items,
+        },
+        "ultimas_atenciones": ultimas_atenciones,
+    }

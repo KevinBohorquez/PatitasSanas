@@ -632,6 +632,14 @@ class CRUDHistorialClinico(CRUDBase[HistorialClinico, HistorialClinicoCreate, No
     def add_evento_consulta(self, db: Session, *, mascota_id: int, consulta_id: int, veterinario_id: int,
                             descripcion: str, peso_actual: float = None) -> HistorialClinico:
         """Agregar evento específico de consulta"""
+        # Registrar la edad (en meses) que la mascota tenía al momento de la consulta, para
+        # que quede visible en el historial. Antes no se guardaba y quedaba siempre NULL.
+        from app.models.mascota import Mascota
+        mascota_obj = db.query(Mascota).filter(Mascota.id_mascota == mascota_id).first()
+        edad_meses_actual = None
+        if mascota_obj:
+            edad_meses_actual = (mascota_obj.edad_anios or 0) * 12 + (mascota_obj.edad_meses or 0)
+
         evento_data = HistorialClinicoCreate(
             id_mascota=mascota_id,
             id_consulta=consulta_id,
@@ -639,6 +647,7 @@ class CRUDHistorialClinico(CRUDBase[HistorialClinico, HistorialClinicoCreate, No
             tipo_evento="Consulta médica",
             descripcion_evento=descripcion,
             peso_momento=peso_actual,
+            edad_meses=edad_meses_actual,
             fecha_evento=datetime.now()
         )
         return self.add_evento(db, evento_data=evento_data)
