@@ -549,17 +549,15 @@ const MascotasManagement = () => {
     }
   };
 
-  // Función para obtener las razas filtradas
+  // Función para obtener las razas filtradas (ordenadas alfabéticamente A-Z)
   const getRazasByTipo = () => {
     if (!formData.tipo_animal) return [];
-    
+
     return tiposAnimal
       .filter(tipo => tipo.descripcion === formData.tipo_animal)
-      .map(tipo => {
-        const raza = razas.find(r => r.id_raza === tipo.id_raza);
-        return raza;
-      })
-      .filter(raza => raza !== undefined);
+      .map(tipo => razas.find(r => r.id_raza === tipo.id_raza))
+      .filter(raza => raza !== undefined)
+      .sort((a, b) => (a.nombre_raza || '').localeCompare(b.nombre_raza || '', 'es'));
   };
 
   const clearFilters = () => {
