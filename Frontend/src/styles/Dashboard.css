@@ -417,6 +417,7 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed; /* columnas de ancho estable entre páginas */
+  min-width: 640px; /* en móvil la tabla se desplaza en horizontal en vez de aplastar las columnas */
 }
 
 .data-table th {
@@ -833,17 +834,81 @@
   .dashboard-layout {
     flex-direction: column;
   }
-  
+
+  /* ===== Nav móvil: barra de tarjetas desplazable en horizontal =====
+     En móvil el sidebar se convierte en una fila de tarjetas (solo las
+     opciones, sin el logo) que se desplaza de izquierda a derecha. */
   .sidebar {
     width: 100%;
     height: auto;
+    order: 1;              /* la navegación va arriba, sobre el contenido */
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-right: none;
+    border-bottom: 1.5px solid #91E4FB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .main-content {
     order: 2;
   }
-  
-  .main-content {
-    order: 1;
+
+  .sidebar-header {          /* se oculta el logo en móvil */
+    display: none;
   }
-  
+
+  .sidebar-nav {
+    flex: none;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  .nav-item {
+    margin: 0;
+    flex: 0 0 auto;          /* no se encogen: se desplazan en horizontal */
+  }
+
+  .nav-link {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    width: auto;
+    min-width: 82px;
+    padding: 0.6rem 0.75rem;
+    margin: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    transform: none;         /* se anula el desplazamiento horizontal de escritorio */
+    background: #eaf6fb;
+  }
+
+  .nav-icon {
+    font-size: 1.5rem;
+    width: auto;
+  }
+
+  .nav-label {
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
   .dashboard-content {
     padding: 1rem;
   }
