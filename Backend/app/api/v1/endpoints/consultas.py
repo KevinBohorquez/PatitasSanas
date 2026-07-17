@@ -1,7 +1,7 @@
 # app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, date
 
@@ -145,6 +145,90 @@ async def get_cita(
             status_code=500,
             detail=f"Error al obtener cita: {str(e)}"
         )
+
+@router.get("/citas/enriquecidas")
+async def get_citas_enriquecidas(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1, description="Número de página"),
+    per_page: int = Query(10, ge=1, le=100, description="Elementos por página"),
+    search: Optional[str] = Query(None, description="Buscar por nombre de mascota"),
+    estado: Optional[str] = Query(None, description="Filtrar por estado de la cita"),
+):
+    """
+    Lista de citas ya enriquecida (mascota, servicio y veterinario) resuelta en UNA sola
+    consulta con JOINs, paginada y filtrada en el servidor.
+
+    Reemplaza el patrón N+1 del frontend (1 + N*3 peticiones HTTP: mascota, servicio y
+    veterinario por cada fila) por una única respuesta. Todos los JOIN son a filas únicas
+    (claves), así que no hay riesgo de multiplicar filas.
+    """
+    try:
+        nombre_vet = func.concat_ws(" ", Veterinario.nombre, Veterinario.apellido_paterno)
+
+        query = (
+            db.query(
+                Cita,
+                Mascota.nombre.label("nombre_mascota"),
+                Servicio.nombre_servicio.label("nombre_servicio"),
+                nombre_vet.label("nombre_veterinario"),
+            )
+            .join(Mascota, Mascota.id_mascota == Cita.id_mascota)
+            .outerjoin(
+                ServicioSolicitado,
+                ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado,
+            )
+            .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+            .outerjoin(Veterinario, Veterinario.id_veterinario == Cita.id_veterinario)
+        )
+
+        if estado:
+            query = query.filter(Cita.estado_cita == estado)
+        if search and search.strip():
+            query = query.filter(Mascota.nombre.ilike(f"%{search.strip()}%"))
+
+        total = query.count()
+
+        # Orden: la cita más reciente (recién creada) primero. Cita no tiene timestamp de
+        # creación, así que se usa id_cita desc como proxy — igual criterio "lo último
+        # primero" que el listado de solicitudes.
+        rows = (
+            query.order_by(Cita.id_cita.desc())
+            .offset((page - 1) * per_page)
+            .limit(per_page)
+            .all()
+        )
+
+        citas = [
+            {
+                "id_cita": c.id_cita,
+                "id_mascota": c.id_mascota,
+                "id_servicio_solicitado": c.id_servicio_solicitado,
+                "id_veterinario": c.id_veterinario,
+                "fecha_hora_programada": c.fecha_hora_programada,
+                "estado_cita": c.estado_cita,
+                "requiere_ayuno": c.requiere_ayuno,
+                "observaciones": c.observaciones,
+                "nombre_mascota": nombre_mascota or "Desconocida",
+                "nombre_servicio": nombre_servicio or "Sin servicio",
+                "nombre_veterinario": (nombre_veterinario or "").strip() or "Sin asignar",
+            }
+            for c, nombre_mascota, nombre_servicio, nombre_veterinario in rows
+        ]
+
+        return {
+            "citas": citas,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener citas enriquecidas: {str(e)}"
+        )
+
 
 @router.patch("/cita/{cita_id}/atender", response_model=CitaResponse)
 async def atender_cita(
@@ -1298,11 +1382,7 @@ async def get_diagnosticos_by_consulta(
         # Realizar la consulta para obtener todos los diagnósticos relacionados con la consulta
         diagnosticos = db.query(Diagnostico).filter(Diagnostico.id_consulta == id_consulta).all()
 
-        # Si no se encuentran diagnósticos
-        if not diagnosticos:
-            raise HTTPException(status_code=404, detail="No se encontraron diagnósticos para esta consulta")
-
-        # Retornar la lista de diagnósticos
+        # Retornar la lista de diagnósticos (vacía si no hay ninguno)
         return diagnosticos
 
     except HTTPException:
@@ -1323,6 +1403,37 @@ async def get_tratamiento_patologia_by_diagnostico(
     Obtener tratamiento y patología relacionados a un diagnóstico dado su id_diagnostico
     """
     try:
+        # Obtener primero el diagnóstico directamente. El diagnóstico puede haberse
+        # creado sin patología (id_patologia = NULL); en ese caso el INNER JOIN de abajo
+        # no devuelve nada y el formulario de "Modificar Diagnóstico" mostraba un 404.
+        diagnostico_obj = db.query(Diagnostico).filter(
+            Diagnostico.id_diagnostico == id_diagnostico
+        ).first()
+
+        if not diagnostico_obj:
+            raise HTTPException(status_code=404, detail="Diagnóstico no encontrado")
+
+        # Si el diagnóstico aún no tiene patología, devolver sus datos base con valores
+        # por defecto para que el formulario se abra vacío pero funcional (editable).
+        if diagnostico_obj.id_patologia is None:
+            return [{
+                "id_tratamiento": None,
+                "id_consulta": diagnostico_obj.id_consulta,
+                "id_patologia": None,
+                "nombre_patologia": "",
+                "especie_afecta": "",
+                "gravedad": "",
+                "es_crónica": None,
+                "es_contagiosa": None,
+                "fecha_inicio_tratamiento": None,
+                "eficacia_tratamiento": None,
+                "tipo_tratamiento": None,
+                "tipo_diagnostico": diagnostico_obj.tipo_diagnostico,
+                "fecha_diagnostico": diagnostico_obj.fecha_diagnostico,
+                "estado_patologia": diagnostico_obj.estado_patologia,
+                "diagnostico": diagnostico_obj.diagnostico
+            }]
+
         # Realizamos la consulta para obtener los tratamientos, patologías y diagnósticos relacionados
         tratamiento_patologia_diagnostico = db.query(Tratamiento, Patologia, Diagnostico) \
             .join(Patologia, Patologia.id_patologia == Tratamiento.id_patologia) \
@@ -1330,7 +1441,34 @@ async def get_tratamiento_patologia_by_diagnostico(
             .filter(Diagnostico.id_diagnostico == id_diagnostico) \
             .all()
 
+        # Si hay patología pero aún no hay tratamiento, devolver diagnóstico + patología
+        # para que el formulario se abra con esos datos (sin romper con 404).
         if not tratamiento_patologia_diagnostico:
+            diagnostico_patologia = db.query(Diagnostico, Patologia) \
+                .join(Patologia, Patologia.id_patologia == Diagnostico.id_patologia) \
+                .filter(Diagnostico.id_diagnostico == id_diagnostico) \
+                .first()
+
+            if diagnostico_patologia:
+                d, p = diagnostico_patologia
+                return [{
+                    "id_tratamiento": None,
+                    "id_consulta": d.id_consulta,
+                    "id_patologia": p.id_patologia,
+                    "nombre_patologia": p.nombre_patologia,
+                    "especie_afecta": p.especie_afecta,
+                    "gravedad": p.gravedad,
+                    "es_crónica": p.es_crónica,
+                    "es_contagiosa": p.es_contagiosa,
+                    "fecha_inicio_tratamiento": None,
+                    "eficacia_tratamiento": None,
+                    "tipo_tratamiento": None,
+                    "tipo_diagnostico": d.tipo_diagnostico,
+                    "fecha_diagnostico": d.fecha_diagnostico,
+                    "estado_patologia": d.estado_patologia,
+                    "diagnostico": d.diagnostico
+                }]
+
             raise HTTPException(
                 status_code=404,
                 detail="No se encontraron tratamientos, patologías o diagnósticos para este diagnóstico"
@@ -1411,6 +1549,26 @@ async def update_diagnostico_completo(
                 patologia_obj.es_crónica = data.es_cronico
             if data.gravedad_patologia is not None:
                 patologia_obj.gravedad = data.gravedad_patologia
+        else:
+            # El diagnóstico fue creado sin patología (id_patologia = NULL). Si ya existe una
+            # patología con ese nombre, reutilizarla (nombre_patologia es UNIQUE en la BD, así
+            # que crear una duplicada rompía con 500); si no, crearla con los datos del
+            # formulario, usando defaults para los campos NOT NULL que el formulario no envíe.
+            nombre_pat = data.nombre_patologia or "Sin especificar"
+            patologia_obj = db.query(Patologia).filter(
+                Patologia.nombre_patologia == nombre_pat
+            ).first()
+            if not patologia_obj:
+                patologia_obj = Patologia(
+                    nombre_patologia=nombre_pat,
+                    especie_afecta=data.especie_afecta or "Ambas",
+                    gravedad=data.gravedad_patologia or "Moderada",
+                    es_contagiosa=data.es_contagioso,
+                    es_crónica=data.es_cronico,
+                )
+                db.add(patologia_obj)
+                db.flush()  # obtener id_patologia antes de crear el tratamiento
+            diagnostico_obj.id_patologia = patologia_obj.id_patologia
 
         # 4. Obtener y actualizar TRATAMIENTO
         tratamiento_obj = db.query(Tratamiento).filter(
@@ -1425,6 +1583,17 @@ async def update_diagnostico_completo(
                 tratamiento_obj.tipo_tratamiento = data.tipo_tratamiento
             if data.eficacia_tratamiento is not None:
                 tratamiento_obj.eficacia_tratamiento = data.eficacia_tratamiento
+        else:
+            # No existía tratamiento (diagnóstico creado sin patología/tratamiento).
+            # Crear uno nuevo vinculado a la patología y consulta del diagnóstico.
+            tratamiento_obj = Tratamiento(
+                id_consulta=diagnostico_obj.id_consulta,
+                id_patologia=patologia_obj.id_patologia,
+                fecha_inicio=data.fecha_inicio or date.today(),
+                tipo_tratamiento=data.tipo_tratamiento or "Medicamentoso",
+                eficacia_tratamiento=data.eficacia_tratamiento,
+            )
+            db.add(tratamiento_obj)
 
         # 5. Guardar cambios
         db.commit()
