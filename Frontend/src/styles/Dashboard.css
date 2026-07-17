@@ -879,7 +879,7 @@
 
   /* Panel que emerge (crece) desde el botón hamburguesa hacia el centro */
   .mobile-nav-panel {
-    width: min(86%, 380px);
+    width: min(72%, 300px);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -894,9 +894,12 @@
     opacity: 1;
   }
 
-  /* Carrusel de páginas (cada página = rejilla 2x2), sin barra de scroll */
+  /* Carrusel de páginas (cada página = rejilla 2 columnas x 3 filas), sin barra
+     de scroll. El gap separa una página de la siguiente para que, al deslizar,
+     los botones del borde no se vean pegados (misma separación que la rejilla). */
   .mobile-nav-pages {
     display: flex;
+    gap: 14px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
@@ -913,8 +916,9 @@
     scroll-snap-align: center;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(2, 108px);
-    gap: 12px;
+    grid-template-rows: repeat(3, 112px);
+    row-gap: 22px;
+    column-gap: 10px;
     align-content: center;
   }
 
@@ -923,15 +927,15 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
     background: rgba(255, 255, 255, 0.96);
     border: 2px solid rgba(255, 255, 255, 0.6);
-    border-radius: 18px;
-    padding: 0.8rem 0.5rem;
+    border-radius: 14px;
+    padding: 0.5rem 0.4rem;
     color: #06242c;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 5px 14px rgba(1, 54, 68, 0.25);
+    box-shadow: none;
     transition: transform 0.12s ease, background 0.2s ease;
   }
 
@@ -946,31 +950,36 @@
   }
 
   .mobile-nav-card-icon {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 32px;
-  }
-
-  .mobile-nav-card-icon svg {
-    width: 30px;
     height: 30px;
   }
 
+  .mobile-nav-card-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
   .mobile-nav-card-label {
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     text-align: center;
     line-height: 1.1;
   }
 
-  /* Puntos indicadores de página */
+  /* Puntos indicadores de página: fijados al fondo de la pantalla (el overlay
+     ocupa toda la pantalla, así que absolute los posiciona respecto al viewport). */
   .mobile-nav-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     justify-content: center;
     gap: 8px;
-    padding: 0.2rem 0 1.2rem;
+    padding: 0;
   }
 
   .mobile-nav-dot {
@@ -996,7 +1005,11 @@
 @media (max-width: 768px) {
   .table-container {
     background: transparent;
-    box-shadow: none;
+    /* !important porque una regla global sin @media en ListadoMascotas.css
+       (.table-container { box-shadow ... }) se filtra y, por orden, pisaría este
+       none. Con !important se garantiza que NINGÚN contenedor tenga sombra en
+       móvil, en todas las secciones. */
+    box-shadow: none !important;
     overflow-x: visible;      /* ya no hace scroll horizontal: usa tarjetas */
     margin-top: 0.5rem;
   }
