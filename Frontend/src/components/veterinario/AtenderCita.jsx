@@ -148,8 +148,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudo guardar el resultado de la cita'));
       }
 
-      const data = await response.json();
-      
+      await response.json();
+
       toast.success('Cita atendida exitosamente', { title: 'Cita guardada' });
       onComplete();
       

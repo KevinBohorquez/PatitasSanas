@@ -119,7 +119,7 @@ const ServiciosView = () => {
     { 
       key: 'numero', 
       header: 'N°',
-      render: (servicio, index) => {
+      render: (servicio) => {
         // Calcular el índice basado en la lista filtrada
         const filteredIndex = filteredServicios.findIndex(s => s.id_servicio === servicio.id_servicio);
         return String(filteredIndex + 1);

@@ -158,7 +158,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudieron guardar los datos del triaje'));
       }
 
-      const result = await response.json();
+      await response.json();
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);

@@ -26,7 +26,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [consultaData, setConsultaData] = useState(null);
-  const [triageData, setTriageData] = useState(null);
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [diagnosticoId, setDiagnosticoId] = useState(null);
 
@@ -43,8 +42,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       
       if (response.ok) {
         const triageResult = await response.json();
-        setTriageData(triageResult);
-        
+
         const consulta = await fetchConsultaData(triageResult.id_triaje);
         // SC-041 / F22: los diagnósticos se piden por id_consulta, no por id_triaje.
         await fetchDiagnosticos(consulta?.id_consulta);
@@ -147,7 +145,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           throw new Error(`Error ${response.status}: ${errorText}`);
         }
 
-        const result = await response.json();
+        await response.json();
       } catch (error) {
         console.error('Error al actualizar disposición:', error);
         toast.error(`Error al actualizar disposición del veterinario: ${error.message}`);
@@ -203,7 +201,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           throw new Error(formatApiError(errorBody, 'No se pudo guardar la consulta'));
         }
 
-        const result = await response.json();
+        await response.json();
 
         // 🚀 Aquí actualizas la disposición:
         await actualizarDisposicion();

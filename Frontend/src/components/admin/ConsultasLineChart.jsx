@@ -79,7 +79,7 @@ const ConsultasLineChart = () => {
         total_consultas: mapa[mes] ?? 0,
       }));
       setRawData(completo);
-    } catch (err) {
+    } catch {
       // Si la API falla, mostramos mensaje pero no datos inventados
       setError('No se pudo cargar los datos. Verifica que el servidor esté activo.');
       setRawData([]);
