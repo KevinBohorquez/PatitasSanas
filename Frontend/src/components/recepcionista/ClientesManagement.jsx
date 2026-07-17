@@ -454,6 +454,12 @@ const ClientesManagement = () => {
           columns={columns}
           data={clientesPagina}
           actions={actions}
+          mobileTitle={(cliente) => (
+            <>
+              <span className="card-hd-main">{`${cliente.nombre || ''} ${cliente.apellido_paterno || ''}`.trim() || 'Sin nombre'}</span>
+              <span className="card-hd-side">{cliente.dni || 'Sin DNI'}</span>
+            </>
+          )}
           emptyMessage={
             searchTerm || statusFilter !== 'todos'
               ? "No se encontraron clientes con los filtros aplicados"
