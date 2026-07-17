@@ -1034,6 +1034,12 @@
     width: 100% !important;
   }
 
+  /* En móvil el tbody no aporta color: es solo el contenedor de las tarjetas
+     (cada fila es la tarjeta). Se mantiene transparente en todas las vistas. */
+  .data-table tbody {
+    background: transparent;
+  }
+
   .data-table tr {
     display: block !important;
     width: auto !important;
