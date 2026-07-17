@@ -14,7 +14,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
     observaciones: ''
   });
 
-  const [loading, setLoading] = useState(false); 
+  const [loading] = useState(false);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [veterinarios, setVeterinarios] = useState([]);
@@ -123,7 +123,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudo crear el servicio'));
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast.success('Servicio creado correctamente');
       onSave();

@@ -15,7 +15,6 @@ const ListadoMascotas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado para manejar la visibilidad del modal
-  const [mascotaId, setMascotaId] = useState(null); // Estado para almacenar la ID de la mascota
   const [selectedMascota, setSelectedMascota] = useState(null); // Guardar la mascota seleccionada
 
   // Función para cargar las mascotas desde el endpoint

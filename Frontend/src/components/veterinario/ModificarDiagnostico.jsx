@@ -51,7 +51,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
           setError('No se encontró el diagnóstico');
           setLoading(false);
         }
-      } catch (err) {
+      } catch {
         setError('Error al cargar los datos');
         setLoading(false);
       }
@@ -113,7 +113,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       );
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         toast.success('Diagnóstico actualizado correctamente');
         
         // Llamar a onSave para cerrar modal y refrescar datos

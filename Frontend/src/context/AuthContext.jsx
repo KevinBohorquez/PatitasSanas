@@ -90,10 +90,10 @@ export const AuthProvider = ({ children }) => {
           message: data.message || data.detail || data.error || 'Credenciales inválidas' 
         };
       }
-    } catch (error) {
-      return { 
-        success: false, 
-        message: 'Error de conexión. Verifique su conexión a internet.' 
+    } catch {
+      return {
+        success: false,
+        message: 'Error de conexión. Verifique su conexión a internet.'
       };
     }
   };

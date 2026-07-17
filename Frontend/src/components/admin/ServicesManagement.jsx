@@ -244,10 +244,6 @@ const ServicesManagement = () => {
   };
 
   // Manejadores de paginación
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
-
   const handleNextPage = () => {
     const paginationInfo = getPaginationInfo();
     if (paginationInfo.hasNext) {

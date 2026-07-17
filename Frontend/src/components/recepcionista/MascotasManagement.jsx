@@ -414,7 +414,7 @@ const MascotasManagement = () => {
       const isValidHost = validImageHosts.some(host => url.hostname.includes(host));
 
       return hasValidExtension || isValidHost;
-    } catch (_) {
+    } catch {
       return false;
     }
   };

@@ -124,7 +124,7 @@ const VeterinariosView = () => {
     { 
       key: 'numero', 
       header: 'N°',
-      render: (veterinario, index) => {
+      render: (veterinario) => {
         // Calcular el índice basado en la lista filtrada
         const filteredIndex = filteredVeterinarios.findIndex(v => v.id_veterinario === veterinario.id_veterinario);
         return String(filteredIndex + 1);
