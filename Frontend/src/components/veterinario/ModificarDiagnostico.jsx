@@ -42,7 +42,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
             estadoPatologia: diagnostico.estado_patologia || 'Activa',
             gravedadPatologia: diagnostico.gravedad || 'Leve',
             fechaInicio: diagnostico.fecha_inicio_tratamiento || '',
-            tipoTratamiento: diagnostico.tipo_tratamiento || 'Medicamento',
+            tipoTratamiento: diagnostico.tipo_tratamiento || 'Medicamentoso',
             eficaciaTratamiento: diagnostico.eficacia_tratamiento || 'Muy buena'
           });
 

@@ -253,7 +253,7 @@ class DiagnosticoResponse(BaseResponse):
     """Schema para respuesta de diagnóstico"""
     id_diagnostico: int
     id_consulta: int
-    id_patologia: int
+    id_patologia: Optional[int] = None
     tipo_diagnostico: str
     fecha_diagnostico: datetime
     estado_patologia: str

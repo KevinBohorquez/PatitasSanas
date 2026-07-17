@@ -125,6 +125,14 @@ async def get_mascotas(
                     "nombre": f"{cliente.nombre} {cliente.apellido_paterno}"
                 }
 
+        # Obtener especie desde Tipo_animal
+        especie = None
+        tipo_animal = db.query(TipoAnimal).filter(
+            TipoAnimal.id_raza == mascota.id_raza
+        ).first()
+        if tipo_animal:
+            especie = tipo_animal.descripcion
+
         result.append({
             "id_mascota": mascota.id_mascota,
             "nombre": mascota.nombre,
@@ -135,6 +143,7 @@ async def get_mascotas(
             "esterilizado": mascota.esterilizado,
             "imagen": mascota.imagen,
             "id_raza": mascota.id_raza,
+            "especie": especie,
             "cliente": cliente_info
         })
 

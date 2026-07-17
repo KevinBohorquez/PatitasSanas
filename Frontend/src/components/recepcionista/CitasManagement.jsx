@@ -9,8 +9,11 @@ import Loader from '../common/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const CitasManagement = () => {
-  const [citas, setCitas] = useState([]);
-  const [filteredCitas, setFilteredCitas] = useState([]);
+  const [citas, setCitas] = useState([]); // página actual, ya enriquecida por el backend
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCitas, setTotalCitas] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0); // fuerza recarga tras crear/eliminar
   const [mascotas, setMascotas] = useState([]);
   const [veterinariosDisponibles, setVeterinariosDisponibles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,8 +22,9 @@ const CitasManagement = () => {
   const [selectedMascota, setSelectedMascota] = useState(null);
   const [serviciosSolicitados, setServiciosSolicitados] = useState([]);
   
-  // Estados para filtros
+  // Estados para filtros (server-side)
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('todos');
   
   // Estados para validaciones
@@ -37,125 +41,62 @@ const CitasManagement = () => {
 
   const BASE_URL = '/api/v1';
 
-  // Cargar datos
+  const ITEMS_POR_PAGINA = 10;
+
+  // Cargar catálogo de mascotas al montar
   useEffect(() => {
-    fetchCitas();
     fetchMascotas();
   }, []);
 
-  // Aplicar filtros
+  // Debounce del término de búsqueda para no consultar en cada tecla
   useEffect(() => {
-    applyFilters();
-  }, [citas, searchTerm, estadoFilter]);
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-  const applyFilters = () => {
-    let filtered = [...citas];
+  // Al cambiar la búsqueda o el filtro de estado, volver a la primera página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, estadoFilter]);
 
-    // Filtro por búsqueda (nombre de mascota)
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(cita => {
-        const nombreMascota = cita.nombre_mascota?.toLowerCase() || '';
-        return nombreMascota.includes(term);
-      });
-    }
+  // Cargar la página actual desde el servidor (paginación + filtro server-side).
+  // refreshKey fuerza la recarga tras crear/eliminar aunque no cambien página/filtros.
+  useEffect(() => {
+    fetchCitas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch, estadoFilter, refreshKey]);
 
-    // Filtro por estado
-    if (estadoFilter !== 'todos') {
-      filtered = filtered.filter(cita => cita.estado_cita === estadoFilter);
-    }
-
-    setFilteredCitas(filtered);
-  };
-
+  // Obtener la página actual de citas, ya enriquecida por el backend (una sola petición
+  // con JOINs en lugar del antiguo patrón N+1 de 1 + N*3 peticiones).
   const fetchCitas = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/consultas/cita`, {
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        per_page: String(ITEMS_POR_PAGINA),
+      });
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
+      if (estadoFilter !== 'todos') params.set('estado', estadoFilter);
+
+      const response = await fetch(`${BASE_URL}/consultas/citas/enriquecidas?${params.toString()}`, {
         method: 'GET',
         mode: 'cors',
-        headers: {
-          'Accept': 'application/json',
-        },
+        headers: { 'Accept': 'application/json' },
       });
 
       if (response.ok) {
         const data = await response.json();
-        const citasConDetalles = await Promise.all(
-          data.map(async (cita) => {
-            try {
-              // Obtener información de mascota, servicio y veterinario
-              const requests = [
-                fetch(`${BASE_URL}/mascotas/${cita.id_mascota}`, {
-                  method: 'GET',
-                  mode: 'cors',
-                  headers: { 'Accept': 'application/json' },
-                }),
-                fetch(`${BASE_URL}/consultas/citaServicio/${cita.id_cita}`, {
-                  method: 'GET',
-                  mode: 'cors',
-                  headers: { 'Accept': 'application/json' },
-                }),
-              ];
-
-              // Obtener veterinario solo si está asignado
-              if (cita.id_veterinario) {
-                requests.push(
-                  fetch(`${BASE_URL}/veterinarios/${cita.id_veterinario}`, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: { 'Accept': 'application/json' },
-                  })
-                );
-              }
-
-              const [mascotaResponse, servicioResponse, veterinarioResponse] = await Promise.all(requests);
-
-              let nombreMascota = 'Desconocida';
-              let nombreServicio = 'Sin servicio';
-              let nombreVeterinario = 'Sin asignar';
-
-              if (mascotaResponse.ok) {
-                const mascotaData = await mascotaResponse.json();
-                nombreMascota = mascotaData.nombre || 'Desconocida';
-              }
-
-              if (servicioResponse.ok) {
-                const servicioData = await servicioResponse.json();
-                nombreServicio = servicioData.nombre_servicio || 'Sin servicio';
-              }
-
-              if (veterinarioResponse && veterinarioResponse.ok) {
-                const vetData = await veterinarioResponse.json();
-                nombreVeterinario = `${vetData.nombre || ''} ${vetData.apellido_paterno || ''}`.trim() || 'Sin asignar';
-              }
-
-              return {
-                ...cita,
-                nombre_mascota: nombreMascota,
-                nombre_servicio: nombreServicio,
-                nombre_veterinario: nombreVeterinario,
-                fecha_formateada: new Date(cita.fecha_hora_programada).toLocaleDateString('es-ES'),
-                hora_formateada: new Date(cita.fecha_hora_programada).toLocaleTimeString('es-ES', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })
-              };
-            } catch (error) {
-              console.error('Error al obtener detalles de cita:', error);
-              return {
-                ...cita,
-                nombre_mascota: 'Error',
-                nombre_servicio: 'Error',
-                nombre_veterinario: 'Error',
-                fecha_formateada: 'N/A',
-                hora_formateada: 'N/A'
-              };
-            }
-          })
-        );
-
-        setCitas(citasConDetalles);
+        const rows = (data.citas || []).map((cita) => ({
+          ...cita,
+          fecha_formateada: new Date(cita.fecha_hora_programada).toLocaleDateString('es-ES'),
+          hora_formateada: new Date(cita.fecha_hora_programada).toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        }));
+        setCitas(rows);
+        setTotalCitas(data.total || 0);
+        setTotalPages(data.total_pages || 1);
       } else {
         console.error('Error al cargar citas:', response.statusText);
         toast.error('Error al cargar las citas');
@@ -203,7 +144,7 @@ const CitasManagement = () => {
                 ...mascota,
                 nombre_dueño: nombreDueño
               };
-            } catch (error) {
+            } catch {
               return {
                 ...mascota,
                 nombre_dueño: 'Error'
@@ -251,7 +192,7 @@ const CitasManagement = () => {
                   return tieneCita ? null : servicio;
                 }
                 return servicio;
-              } catch (error) {
+              } catch {
                 return servicio;
               }
             })
@@ -451,7 +392,9 @@ const CitasManagement = () => {
       if (response.ok) {
         toast.success('Cita registrada exitosamente');
         setShowModal(false);
-        fetchCitas(); // Recargar la lista
+        // Volver a la primera página (la nueva cita aparece arriba, orden desc)
+        setCurrentPage(1);
+        setRefreshKey(k => k + 1);
       } else {
         const errorData = await response.json();
         toast.error(formatApiError(errorData, 'No se pudo registrar la cita'));
@@ -486,7 +429,7 @@ const CitasManagement = () => {
 
       if (response.ok) {
         toast.success('Cita eliminada exitosamente');
-        fetchCitas(); // Recargar la lista
+        setRefreshKey(k => k + 1);
       } else {
         const errorData = await response.json();
         toast.error(formatApiError(errorData, 'No se pudo eliminar la cita'));
@@ -589,10 +532,12 @@ const CitasManagement = () => {
           <Loader message="Cargando citas" />
         ) : (
           <>
-            <div className="results-info">
-              <p>Mostrando {filteredCitas.length} de {citas.length} citas</p>
-            </div>
-            
+            {totalCitas > 0 && (
+              <div className="results-info">
+                <p>Mostrando {citas.length} de {totalCitas} citas</p>
+              </div>
+            )}
+
             <Table
               columns={columns}
               mobileTitle={(cita) => {
@@ -605,11 +550,34 @@ const CitasManagement = () => {
                   </>
                 );
               }}
-              data={filteredCitas}
+              data={citas}
               actions={actions}
               emptyMessage="No hay citas registradas"
             />
           </>
+        )}
+
+        {!loading && totalPages > 1 && (
+          <div
+            className="pagination-controls"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}
+          >
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPages}</span>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente
+            </button>
+          </div>
         )}
       </div>
 

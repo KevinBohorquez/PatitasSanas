@@ -9,9 +9,11 @@ import { confirm } from '../../utils/confirm';
 
 const SolicitudesManagement = () => {
   const { user } = useAuth();
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [filteredSolicitudes, setFilteredSolicitudes] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // SC-019 / F25: paginación client-side
+  const [solicitudes, setSolicitudes] = useState([]); // página actual, ya enriquecida por el backend
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalSolicitudes, setTotalSolicitudes] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0); // fuerza recarga tras crear/eliminar
   const [mascotas, setMascotas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -122,10 +124,11 @@ const SolicitudesManagement = () => {
     return null;
   };
 
-  // Estados para filtros
+  // Estados para filtros (server-side)
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  
+
   const [formData, setFormData] = useState({
     id_mascota: '',
     tipo_solicitud: '',
@@ -134,147 +137,67 @@ const SolicitudesManagement = () => {
 
   const BASE_URL = '/api/v1';
 
-  // Cargar datos al montar el componente
+  const ITEMS_POR_PAGINA = 10;
+
+  // Cargar catálogos e info del recepcionista al montar (una sola vez)
   useEffect(() => {
-    fetchSolicitudes();
     fetchMascotas();
     loadRecepcionistaInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Función para cargar información
   const loadRecepcionistaInfo = async () => {
     const info = await getRecepcionistaInfo();
     setRecepcionistaInfo(info);
-    // console.log('Información del recepcionista cargada:', info);
   };
 
-  // Aplicar filtros cuando cambien las solicitudes
+  // Debounce del término de búsqueda para no consultar en cada tecla
   useEffect(() => {
-    applyFilters();
-  }, [solicitudes, searchTerm, statusFilter]);
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-  // Función para aplicar filtros
-  const applyFilters = () => {
-    let filtered = [...solicitudes];
+  // Al cambiar la búsqueda o el filtro de estado, volver a la primera página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter]);
 
-    // Filtro por nombre de mascota o dueño
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(solicitud => {
-        const nombreMascota = solicitud.nombre_mascota?.toLowerCase() || '';
-        const nombreDueño = solicitud.nombre_dueño?.toLowerCase() || '';
-        
-        return nombreMascota.includes(term) || nombreDueño.includes(term);
-      });
-    }
+  // Cargar la página actual desde el servidor (paginación + filtro server-side).
+  // refreshKey fuerza la recarga tras crear/eliminar aunque no cambien página/filtros.
+  useEffect(() => {
+    fetchSolicitudes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch, statusFilter, refreshKey]);
 
-    // Filtro por estado
-    if (statusFilter !== 'todos') {
-      filtered = filtered.filter(solicitud => solicitud.estado === statusFilter);
-    }
-
-    setFilteredSolicitudes(filtered);
-    setCurrentPage(1); // SC-019: al cambiar el filtro/búsqueda, volver a la primera página
-  };
-
-  // Función para obtener todas las solicitudes
+  // Obtener la página actual de solicitudes, ya enriquecida por el backend (una sola
+  // petición con JOINs en lugar del antiguo patrón N+1 de 1 + N*3 peticiones).
   const fetchSolicitudes = async () => {
     setLoading(true);
     try {
-      // SC-019 / F25: pedir hasta el máximo del backend (este endpoint usa 'limit')
-      // para no truncar el listado; se pagina en el cliente sobre lo filtrado.
-      const response = await fetch(`${BASE_URL}/solicitudes/?limit=100`, {
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        per_page: String(ITEMS_POR_PAGINA),
+      });
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
+      if (statusFilter !== 'todos') params.set('estado', statusFilter);
+
+      const response = await fetch(`${BASE_URL}/solicitudes/enriquecidas?${params.toString()}`, {
         method: 'GET',
         mode: 'cors',
-        headers: {
-          'Accept': 'application/json',
-        },
+        headers: { 'Accept': 'application/json' },
       });
+
       if (response.ok) {
         const data = await response.json();
-        // console.log('Datos de solicitudes recibidos:', data); // Debug
-        
-        // Procesar los datos para incluir nombres de mascota y dueño
-        const solicitudesConNombres = await Promise.all(
-          (data.solicitudes || data).map(async (solicitud) => {
-            // console.log('Procesando solicitud:', solicitud); // Debug
-            
-            try {
-              const mascotaResponse = await fetch(`${BASE_URL}/mascotas/${solicitud.id_mascota}`, {
-                method: 'GET',
-                mode: 'cors',
-                headers: { 'Accept': 'application/json' },
-              });
-              
-              let nombreMascota = 'Desconocida';
-              let nombreDueño = 'Desconocido';
-              
-              if (mascotaResponse.ok) {
-                const mascotaData = await mascotaResponse.json();
-                // console.log('Datos de mascota:', mascotaData); // Debug
-                
-                nombreMascota = mascotaData.nombre || 'Desconocida';
-                
-                // Obtener información del cliente usando el endpoint correcto
-                const clienteResponse = await fetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${solicitud.id_mascota}`, {
-                  method: 'GET',
-                  mode: 'cors',
-                  headers: { 'Accept': 'application/json' },
-                });
-                
-                if (clienteResponse.ok) {
-                  const clienteData = await clienteResponse.json();
-                  // console.log('Datos de cliente-mascota:', JSON.stringify(clienteData, null, 2)); // Debug expandido
-                  
-                  // La estructura correcta es: clienteData.clientes[0].nombre_completo
-                  if (clienteData.clientes && clienteData.clientes.length > 0) {
-                    nombreDueño = clienteData.clientes[0].nombre_completo;
-                  }
-                } else {
-                  // console.log('Error al obtener cliente, status:', clienteResponse.status);
-                }
-              }
-              
-              // Obtener el veterinario asignado (vía Triaje) por la solicitud
-              let nombreVeterinario = 'Sin asignar';
-              try {
-                const vetResponse = await fetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}/veterinario`, {
-                  method: 'GET',
-                  mode: 'cors',
-                  headers: { 'Accept': 'application/json' },
-                });
-                if (vetResponse.ok) {
-                  const vetData = await vetResponse.json();
-                  nombreVeterinario = vetData.nombre_veterinario || 'Sin asignar';
-                }
-              } catch {
-                // Si falla, se queda en 'Sin asignar'
-              }
-
-              return {
-                ...solicitud,
-                nombre_mascota: nombreMascota,
-                nombre_dueño: nombreDueño,
-                nombre_veterinario: nombreVeterinario,
-                fecha_hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleDateString('es-ES'),
-                hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-              };
-            } catch (error) {
-              console.error('Error al obtener datos de mascota/cliente:', error);
-              return {
-                ...solicitud,
-                nombre_mascota: 'Error',
-                nombre_dueño: 'Error',
-                nombre_veterinario: 'Sin asignar',
-                fecha_hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleDateString('es-ES'),
-                hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-              };
-            }
-          })
-        );
-        
-        // console.log('Solicitudes procesadas:', solicitudesConNombres); // Debug
-        setSolicitudes(solicitudesConNombres);
+        const rows = (data.solicitudes || []).map((solicitud) => ({
+          ...solicitud,
+          fecha_hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleDateString('es-ES'),
+          hora_formateada: new Date(solicitud.fecha_hora_solicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        }));
+        setSolicitudes(rows);
+        setTotalSolicitudes(data.total || 0);
+        setTotalPages(data.total_pages || 1);
       } else {
         console.error('Error al cargar solicitudes:', response.statusText);
         toast.error('Error al cargar las solicitudes');
@@ -290,7 +213,7 @@ const SolicitudesManagement = () => {
   // Función para obtener todas las mascotas
   const fetchMascotas = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/`, {
+      const response = await fetch(`${BASE_URL}/mascotas/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -370,7 +293,7 @@ const SolicitudesManagement = () => {
 
         if (response.ok) {
           toast.success('Solicitud eliminada exitosamente');
-          fetchSolicitudes();
+          setRefreshKey(k => k + 1);
         } else {
           const errorData = await response.json();
           toast.error(`Error: ${errorData.detail || 'Error desconocido'}`);
@@ -462,11 +385,11 @@ const SolicitudesManagement = () => {
       });
 
       if (response.ok) {
-        const responseData = await response.json();
-        // console.log('Respuesta del servidor:', responseData);
         toast.success('Solicitud agregada exitosamente');
         setShowModal(false);
-        fetchSolicitudes(); 
+        // Volver a la primera página (la nueva solicitud aparece arriba, orden desc)
+        setCurrentPage(1);
+        setRefreshKey(k => k + 1);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Error del servidor:', JSON.stringify(errorData, null, 2));
@@ -525,13 +448,9 @@ const SolicitudesManagement = () => {
     }
   ];
 
-  // SC-019 / F25: paginación client-side sobre los resultados filtrados.
-  const ITEMS_POR_PAGINA = 10;
-  const totalPaginas = Math.max(1, Math.ceil(filteredSolicitudes.length / ITEMS_POR_PAGINA));
-  const solicitudesPagina = filteredSolicitudes.slice(
-    (currentPage - 1) * ITEMS_POR_PAGINA,
-    currentPage * ITEMS_POR_PAGINA
-  );
+  // Paginación server-side: el backend ya devuelve la página y el total de páginas.
+  const totalPaginas = Math.max(1, totalPages);
+  const solicitudesPagina = solicitudes;
 
   return (
     <div className="solicitudes-management">
@@ -580,10 +499,10 @@ const SolicitudesManagement = () => {
           </div>
         </div>
 
-        {filteredSolicitudes.length > 0 && (
+        {totalSolicitudes > 0 && (
           <div className="results-info">
             <span>
-              Mostrando {filteredSolicitudes.length} de {solicitudes.length} solicitudes
+              Mostrando {solicitudesPagina.length} de {totalSolicitudes} solicitudes
             </span>
           </div>
         )}
