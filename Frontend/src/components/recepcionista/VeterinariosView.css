@@ -282,6 +282,71 @@
   .clear-filters-btn {
     width: 100%;
   }
+
+  /* Encabezado de la tarjeta (móvil): letra blanca sobre el degradado azul.
+     En escritorio la primera celda conserva su color teal (#008CB1). */
+  .veterinarios-view .data-table td:first-child {
+    color: #fff;
+  }
+
+  /* Cabecera con tres secciones a lo ancho de la tarjeta:
+       1) nombre y apellido -> mitad izquierda
+       2) CMVP              -> mitad derecha (empieza en el medio del card)
+       3) chevron           -> extremo derecho (margin-left: auto del estilo base)
+     El texto de cada sección va alineado a la izquierda, de modo que el espacio
+     entre el nombre y el CMVP queda siempre en el medio de la tarjeta. */
+  .veterinarios-view .cell-mobile-title {
+    flex: 1;             /* ocupa todo el ancho disponible (antes del chevron) */
+    min-width: 0;
+  }
+
+  /* Sección 1 — nombre y apellido: mitad izquierda, alineado a la izquierda;
+     se recorta con "…" si es muy largo. */
+  .veterinarios-view .card-hd-main {
+    flex: 1 1 0;
+    text-align: left;
+  }
+
+  /* Sección 2 — CMVP: mitad derecha, alineado a la izquierda. */
+  .veterinarios-view .card-hd-side {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: left;
+  }
+
+  /* Sección 3 — chevron: fuera del flujo, fijado al extremo derecho. Así el
+     contenedor (secciones 1 y 2) ocupa el ancho completo y el gap entre nombre
+     y CMVP cae en el medio exacto del card (no desplazado por el chevron). */
+  .veterinarios-view .data-table td:first-child {
+    position: relative;
+  }
+
+  .veterinarios-view .data-table td:first-child::after {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    margin-left: 0;
+    transform: translateY(-50%);
+  }
+
+  .veterinarios-view .data-table tr.expanded td:first-child::after {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  /* En móvil, sin panel blanco: las tarjetas flotan sobre el fondo de la vista.
+     El .data-table ya es transparente; el blanco venía del contenedor/sección. */
+  .veterinarios-view .veterinarios-table-section {
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .veterinarios-view .table-container,
+  .veterinarios-view .data-table {
+    background: transparent;
+  }
 }
 
 /* ---- MEJORAS ADICIONALES ---- */
