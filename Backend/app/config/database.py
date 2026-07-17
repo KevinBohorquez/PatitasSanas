@@ -19,7 +19,9 @@ if DATABASE_URL and DATABASE_URL.startswith("mysql://"):
 # Crear engine
 engine = create_engine(
     DATABASE_URL,
-    echo=True,  # Ver queries SQL en logs
+    # Registrar cada sentencia SQL solo en desarrollo. En producción (Railway) el
+    # echo genera mucho overhead de I/O y ruido en los logs.
+    echo=os.getenv("ENVIRONMENT", "development") == "development",
     pool_pre_ping=True,  # Verificar conexión
     pool_recycle=300  # Reciclar conexiones cada 5 min
 )
