@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.models import Cita, ResultadoServicio, ServicioSolicitado
+from app.crud.consulta import resultado_servicio, cita as cita_crud, servicio_solicitado
 from app.schemas.consulta_schema import ResultadoServicioResponse, ResultadoServicioCreate
 
 router = APIRouter()
@@ -11,60 +11,57 @@ router = APIRouter()
 @router.get("/resultado_servicio/{cita_id}", response_model=ResultadoServicioResponse)
 async def get_resultado_servicio(cita_id: int, db: Session = Depends(get_db)):
     # Buscar el resultado del servicio para la cita específica
-    resultado_servicio = db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first()
+    resultado = resultado_servicio.get_by_cita(db, cita_id=cita_id)
 
-    if not resultado_servicio:
+    if not resultado:
         raise HTTPException(status_code=404, detail="Resultado del servicio no encontrado para esta cita")
 
     return ResultadoServicioResponse(
-        id_resultado=resultado_servicio.id_resultado,
-        id_cita=resultado_servicio.id_cita,
-        id_veterinario=resultado_servicio.id_veterinario,
-        resultado=resultado_servicio.resultado,
-        interpretacion=resultado_servicio.interpretacion,
-        archivo_adjunto=resultado_servicio.archivo_adjunto,
-        fecha_realizacion=resultado_servicio.fecha_realizacion
+        id_resultado=resultado.id_resultado,
+        id_cita=resultado.id_cita,
+        id_veterinario=resultado.id_veterinario,
+        resultado=resultado.resultado,
+        interpretacion=resultado.interpretacion,
+        archivo_adjunto=resultado.archivo_adjunto,
+        fecha_realizacion=resultado.fecha_realizacion
     )
 
 
 @router.put("/resultado_servicio/{cita_id}", response_model=ResultadoServicioResponse)
 async def update_resultado_servicio(cita_id: int, resultado_servicio_update: ResultadoServicioCreate, db: Session = Depends(get_db)):
     # Buscar el resultado del servicio para la cita específica
-    resultado_servicio = db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first()
+    resultado = resultado_servicio.get_by_cita(db, cita_id=cita_id)
 
-    if not resultado_servicio:
+    if not resultado:
         raise HTTPException(status_code=404, detail="Resultado del servicio no encontrado para esta cita")
 
     # Actualizar los campos del resultado de servicio
-    resultado_servicio.resultado = resultado_servicio_update.resultado
-    resultado_servicio.interpretacion = resultado_servicio_update.interpretacion
-    resultado_servicio.archivo_adjunto = resultado_servicio_update.archivo_adjunto
-    resultado_servicio.fecha_realizacion = resultado_servicio_update.fecha_realizacion
+    resultado.resultado = resultado_servicio_update.resultado
+    resultado.interpretacion = resultado_servicio_update.interpretacion
+    resultado.archivo_adjunto = resultado_servicio_update.archivo_adjunto
+    resultado.fecha_realizacion = resultado_servicio_update.fecha_realizacion
 
     # Marcar cita como atendida y registrar ingreso automaticamente (HU-13)
-    from app.crud.consulta import cita as cita_crud
     cita_crud.marcar_atendida(db, cita_id=cita_id)
 
     # SC-042 / F24: al registrar el resultado, el examen avanza a 'Completado'.
-    cita_obj = db.query(Cita).filter(Cita.id_cita == cita_id).first()
+    cita_obj = cita_crud.get(db, cita_id)
     if cita_obj and cita_obj.id_servicio_solicitado:
-        ss = db.query(ServicioSolicitado).filter(
-            ServicioSolicitado.id_servicio_solicitado == cita_obj.id_servicio_solicitado
-        ).first()
+        ss = servicio_solicitado.get(db, cita_obj.id_servicio_solicitado)
         if ss:
             ss.estado_examen = 'Completado'
 
     db.commit()
-    db.refresh(resultado_servicio)
+    db.refresh(resultado)
 
     return ResultadoServicioResponse(
-        id_resultado=resultado_servicio.id_resultado,
-        id_cita=resultado_servicio.id_cita,
-        id_veterinario=resultado_servicio.id_veterinario,
-        resultado=resultado_servicio.resultado,
-        interpretacion=resultado_servicio.interpretacion,
-        archivo_adjunto=resultado_servicio.archivo_adjunto,
-        fecha_realizacion=resultado_servicio.fecha_realizacion
+        id_resultado=resultado.id_resultado,
+        id_cita=resultado.id_cita,
+        id_veterinario=resultado.id_veterinario,
+        resultado=resultado.resultado,
+        interpretacion=resultado.interpretacion,
+        archivo_adjunto=resultado.archivo_adjunto,
+        fecha_realizacion=resultado.fecha_realizacion
     )
 
 
@@ -81,10 +78,8 @@ async def subir_adjunto_resultado(
     Requiere configurar GOOGLE_SERVICE_ACCOUNT_JSON (y opcionalmente GDRIVE_FOLDER_ID);
     si Drive no está configurado, responde 503 con un mensaje claro.
     """
-    resultado_servicio = db.query(ResultadoServicio).filter(
-        ResultadoServicio.id_cita == cita_id
-    ).first()
-    if not resultado_servicio:
+    resultado = resultado_servicio.get_by_cita(db, cita_id=cita_id)
+    if not resultado:
         raise HTTPException(
             status_code=404,
             detail="Resultado del servicio no encontrado para esta cita",
@@ -103,8 +98,8 @@ async def subir_adjunto_resultado(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir el adjunto: {str(e)}")
 
-    resultado_servicio.archivo_adjunto = enlace
+    resultado.archivo_adjunto = enlace
     db.commit()
-    db.refresh(resultado_servicio)
+    db.refresh(resultado)
 
     return {"archivo_adjunto": enlace}

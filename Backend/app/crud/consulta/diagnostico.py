@@ -15,6 +15,10 @@ class CRUDDiagnostico(CRUDBase[Diagnostico, DiagnosticoCreate, None]):
         return db.query(Diagnostico).filter(Diagnostico.id_consulta == consulta_id) \
             .order_by(desc(Diagnostico.fecha_diagnostico)).all()
 
+    def get_all_by_consulta(self, db: Session, *, consulta_id: int) -> List[Diagnostico]:
+        """Diagnósticos de una consulta sin ordenar (orden natural de la BD)."""
+        return db.query(Diagnostico).filter(Diagnostico.id_consulta == consulta_id).all()
+
     def get_by_tipo(self, db: Session, *, tipo_diagnostico: str) -> List[Diagnostico]:
         """Obtener diagnósticos por tipo"""
         return db.query(Diagnostico).filter(Diagnostico.tipo_diagnostico == tipo_diagnostico) \

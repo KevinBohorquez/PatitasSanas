@@ -5,8 +5,10 @@ from typing import List
 from datetime import datetime, date
 
 from app.config.database import get_db
-from app.crud.consulta import consulta, diagnostico, historial_clinico, triaje, solicitud_atencion
-from app.models import Diagnostico, Tratamiento, Patologia
+from app.crud.consulta import consulta, diagnostico, historial_clinico, triaje, solicitud_atencion, tratamiento
+from app.crud.catalogo import patologia
+from app.queries import diagnostico_queries
+from app.models import Tratamiento, Patologia
 from app.schemas.consulta_schema import DiagnosticoCreate, DiagnosticoResponse, DiagnosticoCompletoUpdate
 
 router = APIRouter()
@@ -116,10 +118,9 @@ async def get_diagnosticos_by_consulta(
     Obtener todos los diagnósticos relacionados con una consulta específica.
     """
     try:
-        # Realizar la consulta para obtener todos los diagnósticos relacionados con la consulta
-        diagnosticos = db.query(Diagnostico).filter(Diagnostico.id_consulta == id_consulta).all()
+        # Todos los diagnósticos relacionados con la consulta (vacía si no hay ninguno)
+        diagnosticos = diagnostico.get_all_by_consulta(db, consulta_id=id_consulta)
 
-        # Retornar la lista de diagnósticos (vacía si no hay ninguno)
         return diagnosticos
 
     except HTTPException:
@@ -143,9 +144,7 @@ async def get_tratamiento_patologia_by_diagnostico(
         # Obtener primero el diagnóstico directamente. El diagnóstico puede haberse
         # creado sin patología (id_patologia = NULL); en ese caso el INNER JOIN de abajo
         # no devuelve nada y el formulario de "Modificar Diagnóstico" mostraba un 404.
-        diagnostico_obj = db.query(Diagnostico).filter(
-            Diagnostico.id_diagnostico == id_diagnostico
-        ).first()
+        diagnostico_obj = diagnostico.get(db, id_diagnostico)
 
         if not diagnostico_obj:
             raise HTTPException(status_code=404, detail="Diagnóstico no encontrado")
@@ -172,19 +171,16 @@ async def get_tratamiento_patologia_by_diagnostico(
             }]
 
         # Realizamos la consulta para obtener los tratamientos, patologías y diagnósticos relacionados
-        tratamiento_patologia_diagnostico = db.query(Tratamiento, Patologia, Diagnostico) \
-            .join(Patologia, Patologia.id_patologia == Tratamiento.id_patologia) \
-            .join(Diagnostico, Diagnostico.id_patologia == Patologia.id_patologia) \
-            .filter(Diagnostico.id_diagnostico == id_diagnostico) \
-            .all()
+        tratamiento_patologia_diagnostico = diagnostico_queries.get_tratamiento_patologia_diagnostico(
+            db, id_diagnostico=id_diagnostico
+        )
 
         # Si hay patología pero aún no hay tratamiento, devolver diagnóstico + patología
         # para que el formulario se abra con esos datos (sin romper con 404).
         if not tratamiento_patologia_diagnostico:
-            diagnostico_patologia = db.query(Diagnostico, Patologia) \
-                .join(Patologia, Patologia.id_patologia == Diagnostico.id_patologia) \
-                .filter(Diagnostico.id_diagnostico == id_diagnostico) \
-                .first()
+            diagnostico_patologia = diagnostico_queries.get_diagnostico_patologia(
+                db, id_diagnostico=id_diagnostico
+            )
 
             if diagnostico_patologia:
                 d, p = diagnostico_patologia
@@ -255,9 +251,7 @@ async def update_diagnostico_completo(
     """
     try:
         # 1. Obtener el diagnóstico principal
-        diagnostico_obj = db.query(Diagnostico).filter(
-            Diagnostico.id_diagnostico == id_diagnostico
-        ).first()
+        diagnostico_obj = diagnostico.get(db, id_diagnostico)
 
         if not diagnostico_obj:
             raise HTTPException(status_code=404, detail="Diagnóstico no encontrado")
@@ -271,9 +265,7 @@ async def update_diagnostico_completo(
             diagnostico_obj.estado_patologia = data.estado_patologia
 
         # 3. Obtener y actualizar PATOLOGIA
-        patologia_obj = db.query(Patologia).filter(
-            Patologia.id_patologia == diagnostico_obj.id_patologia
-        ).first()
+        patologia_obj = patologia.get(db, diagnostico_obj.id_patologia)
 
         if patologia_obj:
             if data.nombre_patologia is not None:
@@ -292,9 +284,7 @@ async def update_diagnostico_completo(
             # que crear una duplicada rompía con 500); si no, crearla con los datos del
             # formulario, usando defaults para los campos NOT NULL que el formulario no envíe.
             nombre_pat = data.nombre_patologia or "Sin especificar"
-            patologia_obj = db.query(Patologia).filter(
-                Patologia.nombre_patologia == nombre_pat
-            ).first()
+            patologia_obj = patologia.get_by_nombre(db, nombre_patologia=nombre_pat)
             if not patologia_obj:
                 patologia_obj = Patologia(
                     nombre_patologia=nombre_pat,
@@ -308,10 +298,9 @@ async def update_diagnostico_completo(
             diagnostico_obj.id_patologia = patologia_obj.id_patologia
 
         # 4. Obtener y actualizar TRATAMIENTO
-        tratamiento_obj = db.query(Tratamiento).filter(
-            Tratamiento.id_consulta == diagnostico_obj.id_consulta,
-            Tratamiento.id_patologia == diagnostico_obj.id_patologia
-        ).first()
+        tratamiento_obj = tratamiento.get_by_consulta_patologia(
+            db, consulta_id=diagnostico_obj.id_consulta, patologia_id=diagnostico_obj.id_patologia
+        )
 
         if tratamiento_obj:
             if data.fecha_inicio is not None:
@@ -341,11 +330,9 @@ async def update_diagnostico_completo(
             db.refresh(tratamiento_obj)
 
         # 6. Devolver datos actualizados (misma estructura que el GET)
-        tratamiento_patologia_diagnostico = db.query(Tratamiento, Patologia, Diagnostico) \
-            .join(Patologia, Patologia.id_patologia == Tratamiento.id_patologia) \
-            .join(Diagnostico, Diagnostico.id_patologia == Patologia.id_patologia) \
-            .filter(Diagnostico.id_diagnostico == id_diagnostico) \
-            .all()
+        tratamiento_patologia_diagnostico = diagnostico_queries.get_tratamiento_patologia_diagnostico(
+            db, id_diagnostico=id_diagnostico
+        )
 
         if tratamiento_patologia_diagnostico:
             return [
@@ -370,10 +357,9 @@ async def update_diagnostico_completo(
             ]
         else:
             # Si no hay tratamiento, devolver solo diagnóstico y patología
-            diagnostico_patologia = db.query(Diagnostico, Patologia) \
-                .join(Patologia, Patologia.id_patologia == Diagnostico.id_patologia) \
-                .filter(Diagnostico.id_diagnostico == id_diagnostico) \
-                .first()
+            diagnostico_patologia = diagnostico_queries.get_diagnostico_patologia(
+                db, id_diagnostico=id_diagnostico
+            )
 
             if diagnostico_patologia:
                 d, p = diagnostico_patologia

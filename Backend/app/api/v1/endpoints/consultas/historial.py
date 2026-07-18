@@ -1,15 +1,11 @@
 # app/api/v1/endpoints/consultas/historial.py
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import date
 
 from app.config.database import get_db
-from app.models import Veterinario, HistorialClinico, Diagnostico, Patologia
-from app.models.consulta import Consulta
-from app.models.triaje import Triaje
-from app.models.solicitud_atencion import SolicitudAtencion
+from app.queries import historial_queries
 
 router = APIRouter()
 
@@ -28,18 +24,10 @@ async def get_historial_clinico_mascota(
     Si la mascota no tiene eventos, retorna una lista vacía (HTTP 200).
     """
     try:
-        query = db.query(HistorialClinico, Veterinario) \
-            .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
-            .filter(HistorialClinico.id_mascota == mascota_id)
-
-        if fecha_desde:
-            query = query.filter(HistorialClinico.fecha_evento >= fecha_desde)
-        if fecha_hasta:
-            # Incluir todos los eventos del día 'fecha_hasta' (hasta las 23:59:59)
-            fecha_hasta_completa = datetime.combine(fecha_hasta, datetime.max.time())
-            query = query.filter(HistorialClinico.fecha_evento <= fecha_hasta_completa)
-
-        resultados = query.order_by(desc(HistorialClinico.fecha_evento)).limit(limit).all()
+        resultados = historial_queries.listar_historial(
+            db, mascota_id=mascota_id, fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta, limit=limit
+        )
 
         return [
             {
@@ -72,21 +60,10 @@ async def get_historial_consultas_mascota(
     Obtener historial clínico de una mascota y sus consultas
     """
     try:
-        # Consultar las consultas relacionadas con la mascota, pasando por la cadena
-        # correcta: Consulta -> Triaje -> Solicitud_atencion -> Mascota.
-        # (Antes se cruzaba SolicitudAtencion.id_solicitud == Consulta.id_triaje, lo que
-        # comparaba un id de solicitud con un id de triaje y solo coincidía por casualidad
-        # en los registros donde ambos ids eran iguales.)
-        eventos = db.query(Consulta) \
-            .join(Triaje, Triaje.id_triaje == Consulta.id_triaje) \
-            .join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Triaje.id_solicitud) \
-            .filter(SolicitudAtencion.id_mascota == mascota_id) \
-            .order_by(Consulta.fecha_consulta.desc()) \
-            .limit(limit).all()
+        eventos = historial_queries.listar_consultas(db, mascota_id=mascota_id, limit=limit)
 
         # Si la mascota no tiene consultas, devolver lista vacía (HTTP 200) en lugar
         # de 404, para que el front muestre un historial vacío y no un error.
-        # Mapear los eventos para devolverlos en el formato adecuado
         return [
             {
                 "id_consulta": e.id_consulta,
@@ -121,29 +98,17 @@ async def get_historial_detallado_mascota(
     Alimenta el panel interactivo y el detalle de diagnóstico del modal de Historial Clínico.
     """
     try:
-        # Consultas de la mascota, por la cadena Consulta -> Triaje -> Solicitud_atencion -> Mascota.
-        consultas = db.query(Consulta, Veterinario) \
-            .join(Triaje, Triaje.id_triaje == Consulta.id_triaje) \
-            .join(SolicitudAtencion, SolicitudAtencion.id_solicitud == Triaje.id_solicitud) \
-            .outerjoin(Veterinario, Veterinario.id_veterinario == Consulta.id_veterinario) \
-            .filter(SolicitudAtencion.id_mascota == mascota_id) \
-            .order_by(Consulta.fecha_consulta.desc()) \
-            .limit(limit).all()
+        consultas = historial_queries.listar_consultas_con_veterinario(
+            db, mascota_id=mascota_id, limit=limit
+        )
 
         resultado = []
         for cons, vet in consultas:
             # Evento de historial de esta consulta (peso/edad/observaciones registrados al atender).
-            evento = db.query(HistorialClinico) \
-                .filter(HistorialClinico.id_consulta == cons.id_consulta) \
-                .order_by(HistorialClinico.fecha_evento) \
-                .first()
+            evento = historial_queries.get_evento_historial_consulta(db, consulta_id=cons.id_consulta)
 
             # Diagnósticos de la consulta, con la patología asociada.
-            diags = db.query(Diagnostico, Patologia) \
-                .outerjoin(Patologia, Patologia.id_patologia == Diagnostico.id_patologia) \
-                .filter(Diagnostico.id_consulta == cons.id_consulta) \
-                .order_by(Diagnostico.fecha_diagnostico) \
-                .all()
+            diags = historial_queries.listar_diagnosticos_consulta(db, consulta_id=cons.id_consulta)
 
             diagnosticos = [
                 {

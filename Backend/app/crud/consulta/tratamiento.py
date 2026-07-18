@@ -1,7 +1,7 @@
 # app/crud/consulta/tratamiento.py
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from typing import List
+from typing import List, Optional
 from datetime import date, timedelta
 from app.crud.base_crud import CRUDBase
 from app.models.tratamiento import Tratamiento
@@ -15,6 +15,14 @@ class CRUDTratamiento(CRUDBase[Tratamiento, TratamientoCreate, None]):
         """Obtener tratamientos de una consulta"""
         return db.query(Tratamiento).filter(Tratamiento.id_consulta == consulta_id) \
             .order_by(desc(Tratamiento.fecha_inicio)).all()
+
+    def get_by_consulta_patologia(self, db: Session, *, consulta_id: int,
+                                  patologia_id: int) -> Optional[Tratamiento]:
+        """Obtener el tratamiento de una consulta para una patología concreta"""
+        return db.query(Tratamiento).filter(
+            Tratamiento.id_consulta == consulta_id,
+            Tratamiento.id_patologia == patologia_id
+        ).first()
 
     def get_by_tipo(self, db: Session, *, tipo_tratamiento: str) -> List[Tratamiento]:
         """Obtener tratamientos por tipo"""
