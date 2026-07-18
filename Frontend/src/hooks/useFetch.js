@@ -22,6 +22,7 @@ export function useFetch(path, options = {}) {
     transform,
     errorMessage,
     init,
+    onSuccess,
   } = options;
 
   const [data, setData] = useState(null);
@@ -36,7 +37,9 @@ export function useFetch(path, options = {}) {
       const res = await apiFetch(path, init);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      setData(transform ? transform(json) : json);
+      const result = transform ? transform(json) : json;
+      setData(result);
+      if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(errorMessage || err.message || 'Error al cargar los datos');
     } finally {

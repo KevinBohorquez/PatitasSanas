@@ -48,6 +48,14 @@ describe('useFetch', () => {
     await waitFor(() => expect(result.current.error).toBe('No se pudo cargar'));
   });
 
+  it('llama onSuccess con el dato tras cargar', async () => {
+    apiFetch.mockReturnValue(mockRes({ ok: 1 }));
+    const onSuccess = vi.fn();
+    renderHook(() => useFetch('/x', { onSuccess }));
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledWith({ ok: 1 }));
+  });
+
   it('no dispara la carga si enabled=false', async () => {
     const { result } = renderHook(() => useFetch('/x', { enabled: false }));
 
