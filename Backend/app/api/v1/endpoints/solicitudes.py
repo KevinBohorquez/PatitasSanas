@@ -1,18 +1,13 @@
-# app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
+# app/api/v1/endpoints/solicitudes.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session, aliased
-from sqlalchemy import not_, func, or_
+from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
 from app.config.database import get_db
-from app.crud.consulta import (
-    solicitud_atencion
-)
-from app.models import Triaje, Veterinario, SolicitudAtencion
-from app.models.mascota import Mascota
-from app.models.cliente_mascota import ClienteMascota
-from app.models.clientes import Cliente
+from app.crud.consulta import solicitud_atencion, triaje as triaje_crud
+from app.crud.veterinario_crud import veterinario as veterinario_crud
+from app.queries import solicitud_queries
 
 from app.schemas.consulta_schema import (
     SolicitudAtencionResponse, SolicitudAtencionCreate
@@ -117,82 +112,9 @@ async def get_solicitudes_enriquecidas(
     al servidor para escalar a muchos registros.
     """
     try:
-        # Un cliente "principal" por mascota: el de menor id_cliente. Replica el
-        # clientes[0] que tomaba el frontend y evita que el JOIN multiplique filas
-        # cuando una mascota tiene varios clientes asociados.
-        pc = (
-            db.query(
-                ClienteMascota.id_mascota.label("id_mascota"),
-                func.min(ClienteMascota.id_cliente).label("id_cliente"),
-            )
-            .group_by(ClienteMascota.id_mascota)
-            .subquery()
+        solicitudes, total = solicitud_queries.listar_enriquecidas(
+            db, page=page, per_page=per_page, search=search, estado=estado
         )
-
-        # El triaje más antiguo por solicitud, para resolver un único veterinario
-        # asignado (la asignación vive en Triaje, no en la solicitud).
-        pt = (
-            db.query(
-                Triaje.id_solicitud.label("id_solicitud"),
-                func.min(Triaje.id_triaje).label("id_triaje"),
-            )
-            .group_by(Triaje.id_solicitud)
-            .subquery()
-        )
-        triaje_vet = aliased(Triaje)
-
-        # concat_ws ignora los NULL (a diferencia de CONCAT, que devolvería NULL si
-        # falta el apellido materno).
-        nombre_duenio = func.concat_ws(
-            " ", Cliente.nombre, Cliente.apellido_paterno, Cliente.apellido_materno
-        )
-        nombre_vet = func.concat_ws(" ", Veterinario.nombre, Veterinario.apellido_paterno)
-
-        query = (
-            db.query(
-                SolicitudAtencion,
-                Mascota.nombre.label("nombre_mascota"),
-                nombre_duenio.label("nombre_dueno"),
-                nombre_vet.label("nombre_veterinario"),
-            )
-            .join(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota)
-            .outerjoin(pc, pc.c.id_mascota == SolicitudAtencion.id_mascota)
-            .outerjoin(Cliente, Cliente.id_cliente == pc.c.id_cliente)
-            .outerjoin(pt, pt.c.id_solicitud == SolicitudAtencion.id_solicitud)
-            .outerjoin(triaje_vet, triaje_vet.id_triaje == pt.c.id_triaje)
-            .outerjoin(Veterinario, Veterinario.id_veterinario == triaje_vet.id_veterinario)
-        )
-
-        if estado:
-            query = query.filter(SolicitudAtencion.estado == estado)
-
-        if search and search.strip():
-            like = f"%{search.strip()}%"
-            query = query.filter(or_(Mascota.nombre.ilike(like), nombre_duenio.ilike(like)))
-
-        total = query.count()
-
-        rows = (
-            query.order_by(SolicitudAtencion.fecha_hora_solicitud.desc())
-            .offset((page - 1) * per_page)
-            .limit(per_page)
-            .all()
-        )
-
-        solicitudes = [
-            {
-                "id_solicitud": s.id_solicitud,
-                "id_mascota": s.id_mascota,
-                "id_recepcionista": s.id_recepcionista,
-                "fecha_hora_solicitud": s.fecha_hora_solicitud,
-                "tipo_solicitud": s.tipo_solicitud,
-                "estado": s.estado,
-                "nombre_mascota": nombre_mascota or "Desconocida",
-                "nombre_dueño": (nombre_dueno or "").strip() or "Sin dueño asignado",
-                "nombre_veterinario": (nombre_veterinario or "").strip() or "Sin asignar",
-            }
-            for s, nombre_mascota, nombre_dueno, nombre_veterinario in rows
-        ]
 
         return {
             "solicitudes": solicitudes,
@@ -247,10 +169,7 @@ async def get_veterinario_de_solicitud(
     Si el trigger no asignó ninguno, devuelve 'Sin asignar'.
     """
     try:
-        veterinario = db.query(Veterinario) \
-            .join(Triaje, Triaje.id_veterinario == Veterinario.id_veterinario) \
-            .filter(Triaje.id_solicitud == solicitud_id) \
-            .first()
+        veterinario = solicitud_queries.get_veterinario_asignado(db, solicitud_id=solicitud_id)
 
         if not veterinario:
             return {"id_veterinario": None, "nombre_veterinario": "Sin asignar"}
@@ -288,7 +207,7 @@ async def delete_solicitud(
     # El trigger crea un triaje automáticamente al insertar la solicitud y la FK es
     # NO ACTION, por lo que el borrado directo fallaba con 500. Se devuelve un 409
     # claro y se dirige a 'Cancelar' (estado Cancelada) para no perder historia clínica.
-    tiene_triaje = db.query(Triaje).filter(Triaje.id_solicitud == solicitud_id).first()
+    tiene_triaje = triaje_crud.get_by_solicitud(db, solicitud_id=solicitud_id)
     if tiene_triaje:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -311,48 +230,20 @@ async def get_solicitudes_by_veterinario(
     Obtener solicitudes de atención relacionadas con el veterinario por id_usuario.
     """
     try:
-        # 1️⃣ Buscar el veterinario
-        veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+        veterinario = veterinario_crud.get_by_usuario(db, id_usuario=id_usuario)
         if not veterinario:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Veterinario no encontrado"
             )
 
-        # 2️⃣ Buscar los triajes hechos por ese veterinario
-        triajes = db.query(Triaje).filter(Triaje.id_veterinario == veterinario.id_veterinario).all()
-
-        # 3️⃣ Obtener los IDs de solicitudes asignadas por triaje
-        solicitud_ids = [triaje.id_solicitud for triaje in triajes]
-
-        # 3️⃣.b Solicitudes sin triaje (no asignadas por el trigger). Si el trigger no
-        # encontró un veterinario disponible, la solicitud queda sin triaje y sería
-        # invisible para todos; se incluyen aquí para que el veterinario pueda verlas.
-        solicitudes_sin_triaje_ids = db.query(SolicitudAtencion.id_solicitud).filter(
-            not_(SolicitudAtencion.id_solicitud.in_(
-                db.query(Triaje.id_solicitud)
-            )),
-            SolicitudAtencion.estado == 'Pendiente'
-        ).all()
-        solicitud_ids_sin_triaje = [s.id_solicitud for s in solicitudes_sin_triaje_ids]
-
-        # 3️⃣.c Unir ambos conjuntos (triaje del vet + sin triaje)
-        solicitud_ids = list(set(solicitud_ids) | set(solicitud_ids_sin_triaje))
-        if not solicitud_ids:
-            return []
-
-        # 4️⃣ Consulta base de solicitudes
-        query = db.query(SolicitudAtencion).filter(SolicitudAtencion.id_solicitud.in_(solicitud_ids))
-
-        # 5️⃣ Filtros opcionales
-        if estado:
-            query = query.filter(SolicitudAtencion.estado == estado)
-        if tipo_solicitud:
-            query = query.filter(SolicitudAtencion.tipo_solicitud == tipo_solicitud)
-
-        solicitudes = query.limit(limit).all()
-
-        return solicitudes
+        return solicitud_queries.listar_por_veterinario(
+            db,
+            id_veterinario=veterinario.id_veterinario,
+            estado=estado,
+            tipo_solicitud=tipo_solicitud,
+            limit=limit,
+        )
 
     except HTTPException:
         raise

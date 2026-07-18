@@ -7,6 +7,10 @@ from app.schemas.veterinario_schema import VeterinarioCreate, VeterinarioUpdate
 
 class CRUDVeterinario(CRUDBase[Veterinario, VeterinarioCreate, VeterinarioUpdate]):
     
+    def get_by_usuario(self, db: Session, *, id_usuario: int) -> Optional[Veterinario]:
+        """Obtener veterinario por id_usuario"""
+        return db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+
     def get_by_dni(self, db: Session, *, dni: str) -> Optional[Veterinario]:
         """Obtener veterinario por DNI"""
         return db.query(Veterinario).filter(Veterinario.dni == dni).first()
