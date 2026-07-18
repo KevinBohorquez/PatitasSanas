@@ -6,7 +6,6 @@ from typing import Optional
 from app.config.database import get_db
 from app.crud.usuario_crud import usuario
 from app.crud.auth_crud import auth
-from app.models.usuario import Usuario
 from app.schemas.usuario_schema import (
     UsuarioCreate, UsuarioUpdate, UsuarioLogin, PasswordChange, PasswordReset,
     UsuarioResponse, UsuarioWithProfileResponse, UsuarioListResponse,
@@ -141,21 +140,10 @@ async def get_usuarios(
     try:
         skip = (page - 1) * per_page
 
-        query = db.query(Usuario)
-
-        if tipo_usuario:
-            query = query.filter(Usuario.tipo_usuario == tipo_usuario)
-
-        if estado:
-            query = query.filter(Usuario.estado == estado)
-        elif activos_solo:
-            query = query.filter(Usuario.estado == "Activo")
-
-        total = query.count()
-        usuarios = query.order_by(Usuario.fecha_creacion.desc()) \
-            .offset(skip) \
-            .limit(per_page) \
-            .all()
+        usuarios, total = usuario.get_paginated(
+            db, skip=skip, limit=per_page,
+            tipo_usuario=tipo_usuario, estado=estado, activos_solo=activos_solo
+        )
 
         return {
             "usuarios": usuarios,
