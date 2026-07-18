@@ -7,7 +7,7 @@ import os
 
 from app.config.database import get_db
 from app.crud.dashboard_crud import dashboard
-from app.models import Cita, Mascota, Cliente, ClienteMascota, ServicioSolicitado, Consulta, Veterinario, Usuario, HistorialClinico, Raza, Diagnostico
+from app.queries import reportes_queries
 from app.services.pdf.appointments_pdf import generar_pdf_citas_diarias
 from app.services.pdf.medical_history_pdf import generar_pdf_historial_clinico
 
@@ -32,21 +32,7 @@ async def descargar_reporte_citas_pdf(
         inicio_dt = datetime.combine(fecha_inicio, time.min) if fecha_inicio else None
         fin_dt = datetime.combine(fecha_fin, time(23, 59, 59)) if fecha_fin else None
 
-        query = db.query(Cita, Mascota, Cliente, Veterinario, Usuario).select_from(Cita) \
-            .outerjoin(Mascota, Cita.id_mascota == Mascota.id_mascota) \
-            .outerjoin(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota) \
-            .outerjoin(Cliente, ClienteMascota.id_cliente == Cliente.id_cliente) \
-            .outerjoin(ServicioSolicitado, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
-            .outerjoin(Consulta, ServicioSolicitado.id_consulta == Consulta.id_consulta) \
-            .outerjoin(Veterinario, Consulta.id_veterinario == Veterinario.id_veterinario) \
-            .outerjoin(Usuario, Veterinario.id_usuario == Usuario.id_usuario)
-
-        if inicio_dt:
-            query = query.filter(Cita.fecha_hora_programada >= inicio_dt)
-        if fin_dt:
-            query = query.filter(Cita.fecha_hora_programada <= fin_dt)
-
-        resultados = query.order_by(Cita.fecha_hora_programada.asc()).all()
+        resultados = reportes_queries.listar_citas_reporte(db, inicio_dt=inicio_dt, fin_dt=fin_dt)
 
         citas_data = []
         citas_vistas = set()
@@ -125,12 +111,8 @@ async def descargar_historial_clinico_pdf(
             )
 
         # 1. Obtener información de la mascota
-        mascota_db = db.query(Mascota, Raza, Cliente).select_from(Mascota) \
-            .outerjoin(Raza, Mascota.id_raza == Raza.id_raza) \
-            .outerjoin(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota) \
-            .outerjoin(Cliente, ClienteMascota.id_cliente == Cliente.id_cliente) \
-            .filter(Mascota.id_mascota == mascota_id).first()
-            
+        mascota_db = reportes_queries.get_mascota_reporte(db, mascota_id=mascota_id)
+
         if not mascota_db:
             raise HTTPException(status_code=404, detail="Mascota no encontrada")
             
@@ -148,19 +130,9 @@ async def descargar_historial_clinico_pdf(
         inicio_dt = datetime.combine(fecha_inicio, time.min) if fecha_inicio else None
         fin_dt = datetime.combine(fecha_fin, time(23, 59, 59)) if fecha_fin else None
 
-        historial_query = db.query(HistorialClinico, Consulta, Diagnostico, Veterinario, Usuario).select_from(HistorialClinico) \
-            .outerjoin(Consulta, HistorialClinico.id_consulta == Consulta.id_consulta) \
-            .outerjoin(Diagnostico, HistorialClinico.id_diagnostico == Diagnostico.id_diagnostico) \
-            .outerjoin(Veterinario, HistorialClinico.id_veterinario == Veterinario.id_veterinario) \
-            .outerjoin(Usuario, Veterinario.id_usuario == Usuario.id_usuario) \
-            .filter(HistorialClinico.id_mascota == mascota_id)
-
-        if inicio_dt:
-            historial_query = historial_query.filter(HistorialClinico.fecha_evento >= inicio_dt)
-        if fin_dt:
-            historial_query = historial_query.filter(HistorialClinico.fecha_evento <= fin_dt)
-
-        registros_db = historial_query.order_by(HistorialClinico.fecha_evento.desc()).all()
+        registros_db = reportes_queries.listar_historial_reporte(
+            db, mascota_id=mascota_id, inicio_dt=inicio_dt, fin_dt=fin_dt
+        )
             
         historial_data = []
         for reg in registros_db:
