@@ -2,7 +2,7 @@
 Script de prueba para verificar el envío de correos (SMTP).
 
 Uso:
-    python test_email.py destino@ejemplo.com
+    python scripts/smoke_email.py destino@ejemplo.com
 
 Requisitos:
     - Backend/.env con SMTP_USER, SMTP_PASSWORD y SMTP_FROM configurados
@@ -29,7 +29,7 @@ from app.services.notifications.email_service import send_reminder_email
 def main():
     destino = sys.argv[1] if len(sys.argv) > 1 else os.getenv("SMTP_USER")
     if not destino:
-        print("❌ Indica un correo destino: python test_email.py tucorreo@gmail.com")
+        print("❌ Indica un correo destino: python scripts/smoke_email.py tucorreo@gmail.com")
         sys.exit(1)
 
     sender = (os.getenv('BREVO_SENDER_EMAIL') or os.getenv('SMTP_FROM')

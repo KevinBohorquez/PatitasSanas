@@ -23,7 +23,7 @@ async def subir_imagen_mascota(file: UploadFile = File(...), nombre: str = Form(
     """Sube una imagen a Google Drive y devuelve el enlace. `nombre` es el nombre base
     (sin extensión) con el que se guardará el archivo, para identificarlo fácilmente."""
     import os as _os
-    from app.services.drive.drive_uploader import subir_imagen
+    from app.services.storage.drive_oauth import subir_imagen
     if not (file.content_type or '').startswith('image/'):
         raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
     contenido = await file.read()
