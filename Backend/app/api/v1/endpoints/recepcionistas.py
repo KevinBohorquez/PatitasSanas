@@ -5,6 +5,12 @@ from typing import Optional
 
 from app.config.database import get_db
 from app.models.recepcionista import Recepcionista
+from app.schemas.recepcionista_schema import (
+    RecepcionistaCreate,
+    RecepcionistaUpdate,
+    RecepcionistaResponse
+)
+from app.crud.recepcionista_crud import recepcionista
 
 router = APIRouter()
 
@@ -199,17 +205,6 @@ async def debug_recepcionista_info(db: Session = Depends(get_db)):
             "error": f"Error al obtener información: {str(e)}"
         }
 
-
-# Agregar estos imports al archivo app/api/v1/endpoints/recepcionistas.py existente
-from app.schemas.recepcionista_schema import (
-    RecepcionistaCreate,
-    RecepcionistaUpdate,
-    RecepcionistaResponse
-)
-from app.crud.recepcionista_crud import recepcionista
-
-
-# Agregar estos endpoints al router existente
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=RecepcionistaResponse)
 async def create_recepcionista(

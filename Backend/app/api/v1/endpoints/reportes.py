@@ -6,6 +6,7 @@ from datetime import datetime, date, time
 import os
 
 from app.config.database import get_db
+from app.crud.dashboard_crud import dashboard
 from app.models import Cita, Mascota, Cliente, ClienteMascota, ServicioSolicitado, Consulta, Veterinario, Usuario, HistorialClinico, Raza, Diagnostico
 from app.services.pdf.appointments_pdf import generar_pdf_citas_diarias
 from app.services.pdf.medical_history_pdf import generar_pdf_historial_clinico
@@ -95,8 +96,7 @@ async def descargar_reporte_citas_pdf(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-from app.crud.dashboard_crud import dashboard
+
 
 @router.get("/consultas-por-mes")
 def get_consultas_por_mes(
