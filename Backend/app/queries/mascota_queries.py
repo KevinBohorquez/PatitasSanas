@@ -8,7 +8,7 @@ no son persistencia de una sola entidad y por eso viven fuera del CRUD.
 from typing import List, Optional, Tuple
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -180,6 +180,24 @@ def get_ultima_atencion(db: Session, *, mascota_id: int):
         .order_by(SolicitudAtencion.fecha_hora_solicitud.desc())
         .first()
     )
+
+
+def get_id_mascota_de_consulta(db: Session, *, consulta_id: int) -> Optional[int]:
+    """
+    id_mascota asociado a una consulta, resuelto por la cadena
+    Consulta -> Triaje -> Solicitud_atencion. Devuelve None si no se encuentra.
+    """
+    row = db.execute(
+        text("""
+        SELECT sa.id_mascota
+        FROM Consulta c
+        JOIN Triaje t ON c.id_triaje = t.id_triaje
+        JOIN Solicitud_atencion sa ON t.id_solicitud = sa.id_solicitud
+        WHERE c.id_consulta = :consulta_id
+        """),
+        {"consulta_id": consulta_id}
+    ).fetchone()
+    return row[0] if row else None
 
 
 def get_cliente_servicio(db: Session, *, id_mascota: int) -> List[dict]:

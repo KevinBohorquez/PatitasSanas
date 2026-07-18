@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
-from sqlalchemy import text
 from starlette import status
 
 from app.config.database import get_db
@@ -10,6 +9,7 @@ from app.crud.consulta import servicio_solicitado as ss_crud, consulta as consul
 from app.crud.catalogo import servicio as servicio_crud
 from app.crud.veterinario_crud import veterinario as veterinario_crud
 from app.crud.usuario_crud import usuario as usuario_crud
+from app.queries import mascota_queries
 
 from app.models import Cita, ServicioSolicitado, ResultadoServicio
 
@@ -138,24 +138,13 @@ async def create_servicio_cita(
             )
 
         # Obtener id_mascota a través de joins: Consulta -> Triaje -> Solicitud_atencion -> Mascota
-        result = db.execute(
-            text("""
-            SELECT sa.id_mascota 
-            FROM Consulta c
-            JOIN Triaje t ON c.id_triaje = t.id_triaje
-            JOIN Solicitud_atencion sa ON t.id_solicitud = sa.id_solicitud
-            WHERE c.id_consulta = :consulta_id
-            """),
-            {"consulta_id": consulta_id}
-        ).fetchone()
+        id_mascota = mascota_queries.get_id_mascota_de_consulta(db, consulta_id=consulta_id)
 
-        if not result:
+        if id_mascota is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No se pudo obtener la mascota asociada a la consulta"
             )
-
-        id_mascota = result[0]
 
         # Crear el diccionario para Servicio_Solicitado
         servicio_solicitado_dict = {
