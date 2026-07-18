@@ -801,7 +801,7 @@ async def create_diagnostico(
             )
 
         # Verificar que la patología existe
-        from app.crud.catalogo_crud import patologia
+        from app.crud.catalogo import patologia
         patologia_obj = patologia.get(db, diagnostico_data.id_patologia)
         if not patologia_obj:
             raise HTTPException(

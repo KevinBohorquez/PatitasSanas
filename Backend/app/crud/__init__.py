@@ -15,8 +15,8 @@ from .veterinario_crud import veterinario
 from .recepcionista_crud import recepcionista
 
 # CRUD Catálogos (Usando los completos)
-from .catalogo_crud import (
-    raza, tipo_animal, especialidad, 
+from .catalogo import (
+    raza, tipo_animal, especialidad,
     tipo_servicio, servicio, patologia, cliente_mascota
 )
 

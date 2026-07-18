@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.config.database import get_db
-from app.crud.catalogo_crud import especialidad
+from app.crud.catalogo import especialidad
 from app.schemas.catalogo_schemas import (
     EspecialidadCreate, EspecialidadResponse
 )

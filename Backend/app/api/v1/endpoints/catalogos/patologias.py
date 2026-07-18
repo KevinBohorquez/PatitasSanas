@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.config.database import get_db
-from app.crud.catalogo_crud import patologia
+from app.crud.catalogo import patologia
 from app.schemas.catalogo_schemas import (
     PatologiaCreate, PatologiaResponse
 )

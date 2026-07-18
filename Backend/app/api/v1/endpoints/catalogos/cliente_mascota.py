@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.config.database import get_db
-from app.crud.catalogo_crud import cliente_mascota
+from app.crud.catalogo import cliente_mascota
 from app.models.cliente_mascota import ClienteMascota
 from app.schemas.catalogo_schemas import (
     ClienteMascotaCreate, ClienteMascotaResponse
