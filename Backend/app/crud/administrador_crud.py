@@ -149,6 +149,16 @@ class CRUDAdministrador(CRUDBase[Administrador, AdministradorCreate, Administrad
         return db.query(Administrador).join(Usuario, Administrador.id_usuario == Usuario.id_usuario) \
             .filter(Usuario.estado == "Activo").all()
 
+    def get_paginated(self, db: Session, *, skip: int = 0, limit: int = 20,
+                      genero: Optional[str] = None) -> Tuple[List[Administrador], int]:
+        """Listar administradores con filtro opcional de género y paginación (orden por fecha_ingreso desc)."""
+        query = db.query(Administrador)
+        if genero:
+            query = query.filter(Administrador.genero == genero)
+        total = query.count()
+        items = query.order_by(Administrador.fecha_ingreso.desc()).offset(skip).limit(limit).all()
+        return items, total
+
     def get_by_genero(self, db: Session, *, genero: str) -> List[Administrador]:
         """Obtener administradores por género"""
         return db.query(Administrador).filter(Administrador.genero == genero).all()
