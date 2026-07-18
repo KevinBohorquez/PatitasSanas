@@ -111,17 +111,3 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def exists(self, db: Session, *, id: Any) -> bool:
         """Verificar si existe"""
         return self.get(db, id) is not None
-
-    def get_active(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
-        """Obtener solo registros activos"""
-        query = db.query(self.model)
-        if hasattr(self.model, 'estado'):
-            query = query.filter(self.model.estado == "Activo")
-        return query.offset(skip).limit(limit).all()
-
-    def count_active(self, db: Session) -> int:
-        """Contar registros activos"""
-        query = db.query(self.model)
-        if hasattr(self.model, 'estado'):
-            query = query.filter(self.model.estado == "Activo")
-        return query.count()

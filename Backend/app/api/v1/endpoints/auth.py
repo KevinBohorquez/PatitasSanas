@@ -40,7 +40,6 @@ async def login(
             )
 
         usuario = auth_result["usuario"]
-        perfil = auth_result["perfil"]
 
         # Preparar información de respuesta
         user_info = {

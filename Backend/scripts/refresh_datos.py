@@ -27,7 +27,6 @@ from app.models.solicitud_atencion import SolicitudAtencion
 from app.models.triaje import Triaje
 from app.models.consulta import Consulta
 from app.models.diagnostico import Diagnostico
-from app.models.tratamiento import Tratamiento
 from app.models.servicio_solicitado import ServicioSolicitado
 from app.models.cita import Cita
 from app.models.resultado_servicio import ResultadoServicio

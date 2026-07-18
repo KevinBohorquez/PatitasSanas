@@ -7,7 +7,7 @@ def build_reminder_html(
     veterinario_nombre: str | None = None,
     servicio_nombre: str | None = None,
 ) -> str:
-    alerta = "Tienes una cita en menos de 4 horas." if horas_antes <= 4 else f"Tienes una cita programada para mañana."
+    alerta = "Tienes una cita en menos de 4 horas." if horas_antes <= 4 else "Tienes una cita programada para mañana."
 
     filas_extra = ""
     if servicio_nombre:

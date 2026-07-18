@@ -22,9 +22,6 @@ class CRUDMovimientoFinanciero(CRUDBase[MovimientoFinanciero, MovimientoFinancie
         return db.query(MovimientoFinanciero).filter(MovimientoFinanciero.categoria == categoria)\
             .order_by(desc(MovimientoFinanciero.fecha_movimiento)).all()
 
-    def get_by_cita(self, db: Session, *, cita_id: int) -> Optional[MovimientoFinanciero]:
-        return db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_cita == cita_id).first()
-
     def get_by_fecha_range(
         self, db: Session, *, fecha_desde: date, fecha_hasta: date
     ) -> List[MovimientoFinanciero]:

@@ -1,6 +1,6 @@
 # app/crud/auth_crud.py
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any, Tuple, List
+from typing import Optional, Dict, Any, Tuple
 from app.models.usuario import Usuario
 from app.models.administrador import Administrador
 from app.models.veterinario import Veterinario
@@ -152,16 +152,6 @@ class CRUDAuth:
         
         return True, "Contraseña reseteada exitosamente"
     
-    def get_login_attempts(self, db: Session, *, username: str, minutes: int = 15) -> int:
-        """Obtener intentos de login fallidos (simulado - implementar con tabla de logs)"""
-        # Por ahora retornamos 0, pero aquí implementarías lógica de logs
-        return 0
-    
-    def block_user_temporarily(self, db: Session, *, user_id: int, minutes: int = 30) -> bool:
-        """Bloquear usuario temporalmente (implementar con tabla de bloqueos)"""
-        # Implementación futura con tabla de bloqueos temporales
-        return True
-    
     def validate_user_status(self, db: Session, *, user_id: int) -> Tuple[bool, str]:
         """Validar estado del usuario"""
         usuario = db.query(Usuario).filter(Usuario.id_usuario == user_id).first()
@@ -220,11 +210,6 @@ class CRUDAuth:
         """Cerrar sesión del usuario (implementar con tabla de sesiones)"""
         # Aquí implementarías lógica para invalidar tokens/sesiones
         return True
-    
-    def get_active_sessions(self, db: Session) -> List[Dict[str, Any]]:
-        """Obtener sesiones activas (implementar con tabla de sesiones)"""
-        # Implementación futura con tabla de sesiones activas
-        return []
 
 
 # Instancia única

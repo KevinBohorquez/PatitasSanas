@@ -68,18 +68,6 @@ class CRUDCliente(CRUDBase[Cliente, ClienteCreate, ClienteUpdate]):
             query = query.filter(Cliente.id_cliente != exclude_id)
         return query.first() is not None
 
-    def get_clientes_with_mascotas_count(self, db: Session) -> List[dict]:
-        """Obtener clientes con conteo de mascotas"""
-        from app.models.mascota import Mascota
-        return db.query(
-            Cliente.id_cliente,
-            Cliente.nombre,
-            Cliente.apellido_paterno,
-            Cliente.email,
-            Cliente.genero,  # Incluir género en la consulta
-            db.func.count(Mascota.id_mascota).label('total_mascotas')
-        ).outerjoin(Mascota).group_by(Cliente.id_cliente).all()
-
     def get_clientes_by_genero(self, db: Session, *, genero: str) -> List[Cliente]:
         """Obtener clientes filtrados por género"""
         return db.query(Cliente).filter(Cliente.genero == genero).all()
