@@ -1,21 +1,13 @@
 # app/api/v1/endpoints/veterinarios.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import case, func
+from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.config.database import get_db
-# ✅ TEMPORAL: Usar el patrón que funciona en clientes
-from app.crud import veterinario  # ← Si existe este import
-from app.models import ResultadoServicio, Cita, Mascota, ServicioSolicitado, Servicio
-from app.models.veterinario import Veterinario
-from app.models.especialidad import Especialidad
-from app.models.usuario import Usuario
-from app.models.solicitud_atencion import SolicitudAtencion
-from app.models.triaje import Triaje
+from app.crud import veterinario
+from app.crud.catalogo import especialidad as especialidad_crud
+from app.queries import veterinario_queries
 from app.schemas import VeterinarioResponse, VeterinarioCreate, VeterinarioUpdate
-
-# from app.schemas.veterinario_schema import (...)  # ← Comentado temporalmente
 
 router = APIRouter()
 
@@ -37,23 +29,11 @@ async def get_veterinarios(
     try:
         skip = (page - 1) * per_page
 
-        query = db.query(Veterinario)
-
-        # Aplicar filtros opcionales
-        if especialidad:
-            query = query.join(Veterinario.especialidad).filter(Especialidad.descripcion.ilike(f"%{especialidad}%"))
-        if tipo_veterinario:
-            query = query.filter(Veterinario.tipo_veterinario == tipo_veterinario)
-        if disposicion:
-            query = query.filter(Veterinario.disposicion == disposicion)
-        if turno:
-            query = query.filter(Veterinario.turno == turno)
-        if solo_activos:
-            query = query.join(Usuario, Veterinario.id_usuario == Usuario.id_usuario) \
-                .filter(Usuario.estado == "Activo")
-
-        total = query.count()
-        veterinarios = query.offset(skip).limit(per_page).all()
+        veterinarios, total = veterinario.get_paginated(
+            db, skip=skip, limit=per_page,
+            especialidad=especialidad, tipo_veterinario=tipo_veterinario,
+            disposicion=disposicion, turno=turno, solo_activos=solo_activos
+        )
 
         return {
             "veterinarios": veterinarios,
@@ -89,24 +69,9 @@ async def get_veterinarios_disponibles(
     no intente parsear "disponibles" como un id entero (causaría un 422).
     """
     try:
-        # Orden por disposición: primero los Libres, luego Ocupados, luego el resto.
-        orden_disposicion = case(
-            (Veterinario.disposicion == "Libre", 0),
-            (Veterinario.disposicion == "Ocupado", 1),
-            else_=2,
+        veterinarios = veterinario.get_disponibles(
+            db, turno=turno, especialidad_id=especialidad_id
         )
-
-        # Solo veterinarios cuyo usuario está Activo (consistente con SC-036).
-        query = db.query(Veterinario) \
-            .join(Usuario, Usuario.id_usuario == Veterinario.id_usuario) \
-            .filter(Usuario.estado == "Activo")
-
-        if turno:
-            query = query.filter(Veterinario.turno == turno)
-        if especialidad_id:
-            query = query.filter(Veterinario.id_especialidad == especialidad_id)
-
-        veterinarios = query.order_by(orden_disposicion, Veterinario.id_veterinario).all()
 
         return {
             "veterinarios_disponibles": veterinarios,
@@ -133,7 +98,7 @@ async def get_veterinario(
     Obtener un veterinario específico por ID
     """
     try:
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.id_veterinario == veterinario_id).first()
+        veterinario_obj = veterinario.get(db, veterinario_id)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -167,7 +132,7 @@ async def get_veterinario_by_dni(
                 detail="DNI debe tener exactamente 8 dígitos"
             )
 
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.dni == dni).first()
+        veterinario_obj = veterinario.get_by_dni(db, dni=dni)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -195,7 +160,7 @@ async def get_veterinario_by_email(
     Obtener veterinario por email
     """
     try:
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.email == email).first()
+        veterinario_obj = veterinario.get_by_email(db, email=email)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -223,7 +188,7 @@ async def get_veterinario_by_codigo_cmvp(
     Obtener veterinario por código CMVP
     """
     try:
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.codigo_CMVP == codigo_cmvp).first()
+        veterinario_obj = veterinario.get_by_codigo_cmvp(db, codigo_cmvp=codigo_cmvp)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -256,17 +221,16 @@ async def get_veterinarios_by_especialidad(
         skip = (page - 1) * per_page
 
         # Verificar que la especialidad existe
-        especialidad_obj = db.query(Especialidad).filter(Especialidad.id_especialidad == especialidad_id).first()
+        especialidad_obj = especialidad_crud.get(db, especialidad_id)
         if not especialidad_obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Especialidad no encontrada"
             )
 
-        query = db.query(Veterinario).filter(Veterinario.id_especialidad == especialidad_id)
-
-        total = query.count()
-        veterinarios = query.offset(skip).limit(per_page).all()
+        veterinarios, total = veterinario.get_by_especialidad(
+            db, especialidad_id=especialidad_id, skip=skip, limit=per_page
+        )
 
         return {
             "especialidad": {
@@ -299,9 +263,7 @@ async def create_veterinario(
     """
     try:
         # Verificar que la especialidad existe
-        especialidad_obj = db.query(Especialidad).filter(
-            Especialidad.id_especialidad == veterinario_data.id_especialidad
-        ).first()
+        especialidad_obj = especialidad_crud.get(db, veterinario_data.id_especialidad)
 
         if not especialidad_obj:
             raise HTTPException(
@@ -364,9 +326,7 @@ async def update_veterinario(
 
         # Verificar especialidad si se está actualizando
         if veterinario_data.id_especialidad:
-            especialidad_obj = db.query(Especialidad).filter(
-                Especialidad.id_especialidad == veterinario_data.id_especialidad
-            ).first()
+            especialidad_obj = especialidad_crud.get(db, veterinario_data.id_especialidad)
 
             if not especialidad_obj:
                 raise HTTPException(
@@ -455,7 +415,7 @@ async def update_veterinario_disposicion(
     """
     try:
         # Buscar al veterinario usando el id_usuario
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+        veterinario_obj = veterinario.get_by_usuario(db, id_usuario=id_usuario)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -491,7 +451,7 @@ async def update_veterinario_disposicion_libre(
     """
     try:
         # Buscar al veterinario usando el id_usuario
-        veterinario_obj = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+        veterinario_obj = veterinario.get_by_usuario(db, id_usuario=id_usuario)
 
         if not veterinario_obj:
             raise HTTPException(
@@ -518,37 +478,11 @@ async def update_veterinario_disposicion_libre(
 @router.get("/resultados-citas/{id_usuario}")
 def get_resultados_y_citas(id_usuario: int, db: Session = Depends(get_db)):
     # Buscar al veterinario por id_usuario
-    veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
-    if not veterinario:
+    vet = veterinario.get_by_usuario(db, id_usuario=id_usuario)
+    if not vet:
         raise HTTPException(status_code=404, detail="Veterinario no encontrado")
 
-    # Hacer JOIN con ResultadoServicio y Cita
-    resultados = (
-        db.query(ResultadoServicio)
-        .join(Cita, ResultadoServicio.id_cita == Cita.id_cita)
-        .filter(ResultadoServicio.id_veterinario == veterinario.id_veterinario)
-        .options(joinedload(ResultadoServicio.cita))
-        .all()
-    )
-
-    # Retornar un JSON con toda la info
-    return [
-        {
-            "id_resultado": r.id_resultado,
-            "resultado": r.resultado,
-            "interpretacion": r.interpretacion,
-            "archivo_adjunto": r.archivo_adjunto,
-            "fecha_realizacion": r.fecha_realizacion,
-            "cita": {
-                "id_cita": r.cita.id_cita,
-                "fecha_hora_programada": r.cita.fecha_hora_programada,
-                "estado_cita": r.cita.estado_cita,
-                "requiere_ayuno": r.cita.requiere_ayuno,
-                "observaciones": r.cita.observaciones,
-            },
-        }
-        for r in resultados
-    ]
+    return veterinario_queries.get_resultados_citas(db, id_veterinario=vet.id_veterinario)
 
 
 @router.get("/citas-programadas/{id_usuario}")
@@ -559,34 +493,11 @@ def get_citas_programadas(id_usuario: int, db: Session = Depends(get_db)):
     Resultado_servicio), incluye las citas creadas por el recepcionista que antes
     no llegaban al veterinario.
     """
-    veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
-    if not veterinario:
+    vet = veterinario.get_by_usuario(db, id_usuario=id_usuario)
+    if not vet:
         raise HTTPException(status_code=404, detail="Veterinario no encontrado")
 
-    citas = (
-        db.query(Cita)
-        .filter(
-            Cita.id_veterinario == veterinario.id_veterinario,
-            Cita.estado_cita == "Programada",
-        )
-        .order_by(Cita.fecha_hora_programada.asc())
-        .all()
-    )
-
-    # Mismo envoltorio { "cita": {...} } que /resultados-citas para reutilizar el
-    # render del frontend (que pide mascota/servicio/veterinario por id_cita).
-    return [
-        {
-            "cita": {
-                "id_cita": c.id_cita,
-                "fecha_hora_programada": c.fecha_hora_programada,
-                "estado_cita": c.estado_cita,
-                "requiere_ayuno": c.requiere_ayuno,
-                "observaciones": c.observaciones,
-            }
-        }
-        for c in citas
-    ]
+    return veterinario_queries.get_citas_programadas(db, id_veterinario=vet.id_veterinario)
 
 
 @router.get("/dashboard/{id_usuario}")
@@ -596,117 +507,7 @@ def get_dashboard_veterinario(id_usuario: int, db: Session = Depends(get_db)):
     perfil (especialidad, turno, disposición), próxima cita, número de citas
     pendientes de atender, solicitudes asignadas y últimas atenciones.
     """
-    vet = (
-        db.query(Veterinario, Especialidad.descripcion)
-        .outerjoin(Especialidad, Especialidad.id_especialidad == Veterinario.id_especialidad)
-        .filter(Veterinario.id_usuario == id_usuario)
-        .first()
-    )
-    if not vet:
+    data = veterinario_queries.get_dashboard(db, id_usuario=id_usuario)
+    if data is None:
         raise HTTPException(status_code=404, detail="Veterinario no encontrado")
-    vet_obj, especialidad_desc = vet
-    vet_id = vet_obj.id_veterinario
-
-    # Próxima cita programada del veterinario (con mascota y servicio).
-    prox = (
-        db.query(Cita, Mascota.nombre, Servicio.nombre_servicio)
-        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
-        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
-        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
-        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Programada")
-        .order_by(Cita.fecha_hora_programada.asc())
-        .first()
-    )
-    proxima_cita = None
-    if prox:
-        c, masc_nombre, serv_nombre = prox
-        proxima_cita = {
-            "id_cita": c.id_cita,
-            "fecha_hora_programada": c.fecha_hora_programada,
-            "mascota": masc_nombre,
-            "servicio": serv_nombre,
-            "requiere_ayuno": c.requiere_ayuno,
-        }
-
-    # Pendientes de atender: citas programadas asignadas al veterinario.
-    pendientes = (
-        db.query(func.count(Cita.id_cita))
-        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Programada")
-        .scalar()
-    )
-
-    # Solicitudes asignadas: las de los triajes que hizo el veterinario.
-    triaje_solicitud_ids = [
-        row[0] for row in db.query(Triaje.id_solicitud).filter(Triaje.id_veterinario == vet_id).all()
-    ]
-    # Solo las que aún no han sido atendidas (excluye Completada y Cancelada).
-    estados_no_atendidos = ["Pendiente", "En triaje", "En atencion"]
-    solicitudes_items = []
-    total_solicitudes = 0
-    if triaje_solicitud_ids:
-        total_solicitudes = (
-            db.query(func.count(SolicitudAtencion.id_solicitud))
-            .filter(
-                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
-                SolicitudAtencion.estado.in_(estados_no_atendidos),
-            )
-            .scalar()
-        )
-        filas = (
-            db.query(SolicitudAtencion, Mascota.nombre)
-            .outerjoin(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota)
-            .filter(
-                SolicitudAtencion.id_solicitud.in_(triaje_solicitud_ids),
-                SolicitudAtencion.estado.in_(estados_no_atendidos),
-            )
-            .order_by(SolicitudAtencion.fecha_hora_solicitud.desc())
-            .limit(8)
-            .all()
-        )
-        solicitudes_items = [
-            {
-                "id_solicitud": s.id_solicitud,
-                "mascota": masc,
-                "tipo_solicitud": s.tipo_solicitud,
-                "estado": s.estado,
-                "fecha": s.fecha_hora_solicitud,
-            }
-            for s, masc in filas
-        ]
-
-    # Últimas atenciones: citas ya atendidas por el veterinario.
-    atendidas = (
-        db.query(Cita, Mascota.nombre, Servicio.nombre_servicio)
-        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
-        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
-        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
-        .filter(Cita.id_veterinario == vet_id, Cita.estado_cita == "Atendida")
-        .order_by(Cita.fecha_hora_programada.desc())
-        .limit(5)
-        .all()
-    )
-    ultimas_atenciones = [
-        {
-            "id_cita": c.id_cita,
-            "fecha": c.fecha_hora_programada,
-            "mascota": masc,
-            "servicio": serv,
-        }
-        for c, masc, serv in atendidas
-    ]
-
-    return {
-        "veterinario": {
-            "nombre": f"{vet_obj.nombre} {vet_obj.apellido_paterno}".strip(),
-            "especialidad": especialidad_desc,
-            "turno": vet_obj.turno,
-            "disposicion": vet_obj.disposicion,
-        },
-        "proxima_cita": proxima_cita,
-        "pendientes_atender": pendientes or 0,
-        "solicitudes_asignadas": {
-            "total": total_solicitudes or 0,
-            "items": solicitudes_items,
-        },
-        "ultimas_atenciones": ultimas_atenciones,
-    }
+    return data
