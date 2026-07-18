@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.config.database import get_db
-from app.models.recepcionista import Recepcionista
 from app.schemas.recepcionista_schema import (
     RecepcionistaCreate,
     RecepcionistaUpdate,
@@ -29,16 +28,9 @@ async def get_recepcionistas(
     try:
         skip = (page - 1) * per_page
 
-        query = db.query(Recepcionista)
-
-        # Aplicar filtros opcionales
-        if turno:
-            query = query.filter(Recepcionista.turno == turno)
-        if genero:
-            query = query.filter(Recepcionista.genero == genero)
-
-        total = query.count()
-        recepcionistas = query.offset(skip).limit(per_page).all()
+        recepcionistas, total = recepcionista.get_paginated(
+            db, skip=skip, limit=per_page, turno=turno, genero=genero
+        )
 
         return {
             "recepcionistas": recepcionistas,
@@ -64,7 +56,7 @@ async def get_recepcionista(
     Obtener una recepcionista específica por ID
     """
     try:
-        recepcionista_obj = db.query(Recepcionista).filter(Recepcionista.id_recepcionista == recepcionista_id).first()
+        recepcionista_obj = recepcionista.get(db, recepcionista_id)
 
         if not recepcionista_obj:
             raise HTTPException(
@@ -98,7 +90,7 @@ async def get_recepcionista_by_dni(
                 detail="DNI debe tener exactamente 8 dígitos"
             )
 
-        recepcionista_obj = db.query(Recepcionista).filter(Recepcionista.dni == dni).first()
+        recepcionista_obj = recepcionista.get_by_dni(db, dni=dni)
 
         if not recepcionista_obj:
             raise HTTPException(
@@ -126,7 +118,7 @@ async def get_recepcionista_by_email(
     Obtener recepcionista por email
     """
     try:
-        recepcionista_obj = db.query(Recepcionista).filter(Recepcionista.email == email).first()
+        recepcionista_obj = recepcionista.get_by_email(db, email=email)
 
         if not recepcionista_obj:
             raise HTTPException(
@@ -158,10 +150,9 @@ async def get_recepcionistas_by_turno(
     try:
         skip = (page - 1) * per_page
 
-        query = db.query(Recepcionista).filter(Recepcionista.turno == turno)
-
-        total = query.count()
-        recepcionistas = query.offset(skip).limit(per_page).all()
+        recepcionistas, total = recepcionista.get_paginated(
+            db, skip=skip, limit=per_page, turno=turno
+        )
 
         return {
             "turno": turno,
@@ -190,7 +181,7 @@ async def debug_recepcionista_info(db: Session = Depends(get_db)):
         columns = [{"Field": row[0], "Type": row[1], "Null": row[2], "Key": row[3]} for row in result]
 
         # Contar registros
-        total_count = db.query(Recepcionista).count()
+        total_count = recepcionista.count(db)
 
         return {
             "table_info": {

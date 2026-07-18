@@ -1,12 +1,24 @@
 # app/crud/recepcionista_crud.py
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List, Tuple
 from app.crud.base_crud import CRUDBase
 from app.models.recepcionista import Recepcionista
 from app.schemas.recepcionista_schema import RecepcionistaCreate, RecepcionistaUpdate
 
 
 class CRUDRecepcionista(CRUDBase[Recepcionista, RecepcionistaCreate, RecepcionistaUpdate]):
+
+    def get_paginated(self, db: Session, *, skip: int = 0, limit: int = 20,
+                      turno: Optional[str] = None, genero: Optional[str] = None) -> Tuple[List[Recepcionista], int]:
+        """Listar recepcionistas con filtros opcionales (turno, género) y paginación."""
+        query = db.query(Recepcionista)
+        if turno:
+            query = query.filter(Recepcionista.turno == turno)
+        if genero:
+            query = query.filter(Recepcionista.genero == genero)
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+        return items, total
 
     def get_by_dni(self, db: Session, *, dni: str) -> Optional[Recepcionista]:
         """Obtener recepcionista por DNI"""
