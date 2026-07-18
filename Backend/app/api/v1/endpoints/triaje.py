@@ -7,7 +7,6 @@ from app.config.database import get_db
 from app.crud.consulta import (
     triaje, solicitud_atencion
 )
-from app.models import Triaje
 
 from app.schemas.consulta_schema import (
     TriajeResponse, TriajeCreate, TriajeUpdate
@@ -254,7 +253,7 @@ async def get_triaje_por_consulta_id(
     Obtener un triaje específico por ID de consulta
     """
     try:
-        consulta_obj = db.query(Triaje).filter(Triaje.id_solicitud == id_solicitud).first()
+        consulta_obj = triaje.get_by_solicitud(db, solicitud_id=id_solicitud)
         if not consulta_obj:
             raise HTTPException(
                 status_code=404,
