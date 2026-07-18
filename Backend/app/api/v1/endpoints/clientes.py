@@ -52,20 +52,15 @@ async def get_clientes(
     """
     skip = (page - 1) * per_page
 
-    query = db.query(Cliente)  # ✅ Usar Cliente directamente
-    if estado:
-        query = query.filter(Cliente.estado == estado)
-    
-    if genero:
-        if genero not in ['F', 'M']:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El género debe ser F (Femenino) o M (Masculino)"
-            )
-        query = query.filter(Cliente.genero == genero)
+    if genero and genero not in ['F', 'M']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El género debe ser F (Femenino) o M (Masculino)"
+        )
 
-    total = query.count()
-    clientes = query.offset(skip).limit(per_page).all()
+    clientes, total = cliente.get_paginated(
+        db, skip=skip, limit=per_page, estado=estado, genero=genero
+    )
 
     return {
         "clientes": clientes,

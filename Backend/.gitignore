@@ -61,3 +61,6 @@ credentials/
 
 # Backups de BD (contienen datos de producción; NO subir)
 backups/
+
+# Snapshots de caracterizacion (datos reales, no versionar)
+tests/snapshots/
