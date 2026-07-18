@@ -1,7 +1,7 @@
 // pages/AdminDashboard.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import AppBar from '../components/common/AppBar';
+import AppBar from '../components/common/AppBar/AppBar';
 import Sidebar from '../components/common/Sidebar';
 import Dashboard from '../components/admin/Dashboard';
 import UserManagement from '../components/admin/UserManagement';
@@ -93,7 +93,7 @@ export default AdminDashboard;
 /*
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import AppBar from '../components/common/AppBar';
+import AppBar from '../components/common/AppBar/AppBar';
 import Sidebar from '../components/common/Sidebar';
 import UserManagement from '../components/admin/UserManagement';
 import VetManagement from '../components/admin/VetManagement';

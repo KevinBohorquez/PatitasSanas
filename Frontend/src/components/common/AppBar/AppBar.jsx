@@ -1,8 +1,8 @@
 // components/common/AppBar.jsx
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
-import '../../styles/AppBar.css';
-import { confirm } from '../../utils/confirm';
+import { useAuth } from '../../../context/AuthContext';
+import './AppBar.css';
+import { confirm } from '../../../utils/confirm';
 
 const AppBar = ({ title, subtitle }) => {
   const { logout } = useAuth();

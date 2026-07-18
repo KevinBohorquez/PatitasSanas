@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../common/Modal/Modal';
 import AtenderCita from './AtenderCita';
 import { useAuth } from "../../context/AuthContext";
 import { toast } from '../../utils/toast';

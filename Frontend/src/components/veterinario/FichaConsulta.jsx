@@ -1,7 +1,7 @@
 // components/veterinario/FichaConsulta.jsx
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
-import Modal from '../common/Modal';
+import Modal from '../common/Modal/Modal';
 import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../common/Modal/Modal';
 import './MascotasManagement.css';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';

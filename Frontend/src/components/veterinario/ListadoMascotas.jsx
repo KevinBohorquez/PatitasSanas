@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../common/Modal/Modal';
 import './ListadoMascotas.css';
 import HistorialClinicoModal from './HistorialClinico'; // Este archivo puede reutilizarse como base para mostrar información del historial
 import Loader from '../common/Loader/Loader';

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import AppBar from '../components/common/AppBar';
+import AppBar from '../components/common/AppBar/AppBar';
 import Sidebar from '../components/common/Sidebar';
 import SolicitudesAtencion from '../components/veterinario/SolicitudesAtencion';
 import CitasProgramadas from '../components/veterinario/CitasProgramadas';
