@@ -106,42 +106,6 @@ class CRUDMascota(CRUDBase[Mascota, MascotaCreate, MascotaUpdate]):
 
         return result
 
-    def asociar_cliente(self, db: Session, *, mascota_id: int, cliente_id: int) -> bool:
-        """Asociar una mascota a un cliente"""
-        # Verificar que no existe ya la relación
-        existing = db.query(ClienteMascota).filter(
-            ClienteMascota.id_mascota == mascota_id,
-            ClienteMascota.id_cliente == cliente_id
-        ).first()
-
-        if existing:
-            return False
-
-        # Crear la relación
-        relacion = ClienteMascota(
-            id_cliente=cliente_id,
-            id_mascota=mascota_id
-        )
-        db.add(relacion)
-        db.commit()
-
-        return True
-
-    def desasociar_cliente(self, db: Session, *, mascota_id: int, cliente_id: int) -> bool:
-        """Desasociar una mascota de un cliente"""
-        relacion = db.query(ClienteMascota).filter(
-            ClienteMascota.id_mascota == mascota_id,
-            ClienteMascota.id_cliente == cliente_id
-        ).first()
-
-        if not relacion:
-            return False
-
-        db.delete(relacion)
-        db.commit()
-
-        return True
-
     def remove(self, db: Session, *, id: int) -> Optional[Mascota]:
         """Eliminar mascota permanentemente"""
         # Primero eliminar todas las relaciones cliente-mascota
