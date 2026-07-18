@@ -24,6 +24,12 @@ class CRUDCita(CRUDBase[Cita, CitaCreate, CitaUpdate]):
         return db.query(Cita).filter(Cita.estado_cita == estado_cita) \
             .order_by(Cita.fecha_hora_programada).all()
 
+    def get_by_servicio_solicitado(self, db: Session, *, servicio_solicitado_id: int,
+                                   limit: int = 50) -> List[Cita]:
+        """Obtener citas de un servicio solicitado"""
+        return db.query(Cita).filter(Cita.id_servicio_solicitado == servicio_solicitado_id) \
+            .order_by(Cita.fecha_hora_programada).limit(limit).all()
+
     def get_por_fecha(self, db: Session, *, fecha: date) -> List[Cita]:
         """Obtener citas de una fecha específica"""
         return db.query(Cita).filter(func.date(Cita.fecha_hora_programada) == fecha) \

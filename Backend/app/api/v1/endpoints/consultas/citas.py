@@ -1,13 +1,13 @@
 # app/api/v1/endpoints/consultas/citas.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from typing import List, Optional
 
 from app.config.database import get_db
-from app.crud.consulta import cita
+from app.crud.consulta import cita, resultado_servicio
 from app.crud.veterinario_crud import veterinario
-from app.models import Cita, ResultadoServicio, ServicioSolicitado, Servicio, Veterinario, Mascota
+from app.crud.movimiento_financiero_crud import movimiento_financiero
+from app.queries import cita_queries
 from app.schemas.consulta_schema import CitaResponse, CitaCreate
 
 router = APIRouter()
@@ -83,9 +83,9 @@ async def get_citas(
         elif mascota_id:
             citas = cita.get_by_mascota(db, mascota_id=mascota_id)
         elif servicio_solicitado_id:
-            citas = db.query(cita.model).filter(
-                cita.model.id_servicio_solicitado == servicio_solicitado_id
-            ).order_by(cita.model.fecha_hora_programada).limit(limit).all()
+            citas = cita.get_by_servicio_solicitado(
+                db, servicio_solicitado_id=servicio_solicitado_id, limit=limit
+            )
         else:
             citas = cita.get_multi(db, limit=limit)
 
@@ -141,57 +141,9 @@ async def get_citas_enriquecidas(
     (claves), así que no hay riesgo de multiplicar filas.
     """
     try:
-        nombre_vet = func.concat_ws(" ", Veterinario.nombre, Veterinario.apellido_paterno)
-
-        query = (
-            db.query(
-                Cita,
-                Mascota.nombre.label("nombre_mascota"),
-                Servicio.nombre_servicio.label("nombre_servicio"),
-                nombre_vet.label("nombre_veterinario"),
-            )
-            .join(Mascota, Mascota.id_mascota == Cita.id_mascota)
-            .outerjoin(
-                ServicioSolicitado,
-                ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado,
-            )
-            .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
-            .outerjoin(Veterinario, Veterinario.id_veterinario == Cita.id_veterinario)
+        citas, total = cita_queries.listar_enriquecidas(
+            db, page=page, per_page=per_page, search=search, estado=estado
         )
-
-        if estado:
-            query = query.filter(Cita.estado_cita == estado)
-        if search and search.strip():
-            query = query.filter(Mascota.nombre.ilike(f"%{search.strip()}%"))
-
-        total = query.count()
-
-        # Orden: la cita más reciente (recién creada) primero. Cita no tiene timestamp de
-        # creación, así que se usa id_cita desc como proxy — igual criterio "lo último
-        # primero" que el listado de solicitudes.
-        rows = (
-            query.order_by(Cita.id_cita.desc())
-            .offset((page - 1) * per_page)
-            .limit(per_page)
-            .all()
-        )
-
-        citas = [
-            {
-                "id_cita": c.id_cita,
-                "id_mascota": c.id_mascota,
-                "id_servicio_solicitado": c.id_servicio_solicitado,
-                "id_veterinario": c.id_veterinario,
-                "fecha_hora_programada": c.fecha_hora_programada,
-                "estado_cita": c.estado_cita,
-                "requiere_ayuno": c.requiere_ayuno,
-                "observaciones": c.observaciones,
-                "nombre_mascota": nombre_mascota or "Desconocida",
-                "nombre_servicio": nombre_servicio or "Sin servicio",
-                "nombre_veterinario": (nombre_veterinario or "").strip() or "Sin asignar",
-            }
-            for c, nombre_mascota, nombre_servicio, nombre_veterinario in rows
-        ]
 
         return {
             "citas": citas,
@@ -259,11 +211,10 @@ async def delete_cita(
     # SC-039 / SC-044 (F20 / F28): no borrar una cita con dependientes. La cascada del
     # ORM eliminaba el Resultado_servicio en silencio (pérdida del registro clínico), y
     # el Movimiento_Financiero (FK NO ACTION) hacía fallar el borrado con 500.
-    from app.models.movimiento_financiero import MovimientoFinanciero
     dependientes = []
-    if db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first():
+    if resultado_servicio.get_by_cita(db, cita_id=cita_id):
         dependientes.append("un resultado de servicio")
-    if db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_cita == cita_id).first():
+    if movimiento_financiero.get_by_cita(db, cita_id=cita_id):
         dependientes.append("un movimiento financiero")
     if dependientes:
         raise HTTPException(
@@ -278,26 +229,17 @@ async def delete_cita(
 @router.get("/citaServicio/{cita_id}")
 async def get_cita_servicio_by_id(cita_id: int, db: Session = Depends(get_db)):
     try:
-        # Importar los modelos necesarios
-        from app.models.cita import Cita
-        from app.models.servicio import Servicio
-        from app.models.servicio_solicitado import ServicioSolicitado  # Asegúrate de importar este modelo
+        cita_row = cita_queries.get_con_servicio(db, cita_id=cita_id)
 
-        # Realizar la consulta para obtener la cita con el nombre del servicio
-        cita_obj = db.query(Cita, Servicio.nombre_servicio) \
-            .join(ServicioSolicitado, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
-            .join(Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio) \
-            .filter(Cita.id_cita == cita_id).first()
-
-        if not cita_obj:
+        if not cita_row:
             raise HTTPException(status_code=404, detail="Cita no encontrada")
 
         # Devolver la respuesta con los detalles de la cita y el nombre del servicio
         return {
-            "id_cita": cita_obj.Cita.id_cita,
-            "fecha_hora_programada": cita_obj.Cita.fecha_hora_programada,
-            "estado_cita": cita_obj.Cita.estado_cita,
-            "nombre_servicio": cita_obj.nombre_servicio  # Nombre del servicio asociado
+            "id_cita": cita_row.Cita.id_cita,
+            "fecha_hora_programada": cita_row.Cita.fecha_hora_programada,
+            "estado_cita": cita_row.Cita.estado_cita,
+            "nombre_servicio": cita_row.nombre_servicio  # Nombre del servicio asociado
         }
 
     except HTTPException:
@@ -309,31 +251,17 @@ async def get_cita_servicio_by_id(cita_id: int, db: Session = Depends(get_db)):
 @router.get("/citaVeterinario/{cita_id}")
 async def get_cita_veterinario_by_id(cita_id: int, db: Session = Depends(get_db)):
     try:
-        # Obtener la cita con el servicio asociado y veterinario
-        cita = db.query(
-                Cita.id_cita,
-                Cita.fecha_hora_programada,
-                Cita.estado_cita,
-                Servicio.nombre_servicio,
-                Veterinario.nombre.label("veterinario_nombre"),
-                Veterinario.apellido_paterno.label("veterinario_apellido")
-            ) \
-            .join(ServicioSolicitado, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
-            .join(Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio) \
-            .join(ResultadoServicio, ResultadoServicio.id_cita == Cita.id_cita) \
-            .join(Veterinario, ResultadoServicio.id_veterinario == Veterinario.id_veterinario) \
-            .filter(Cita.id_cita == cita_id) \
-            .first()
+        cita_row = cita_queries.get_con_veterinario(db, cita_id=cita_id)
 
-        if not cita:
+        if not cita_row:
             raise HTTPException(status_code=404, detail="Cita no encontrada")
 
         return {
-            "id_cita": cita.id_cita,
-            "fecha_hora_programada": cita.fecha_hora_programada,
-            "estado_cita": cita.estado_cita,
-            "nombre_servicio": cita.nombre_servicio,
-            "veterinario": f"{cita.veterinario_nombre} {cita.veterinario_apellido}"
+            "id_cita": cita_row.id_cita,
+            "fecha_hora_programada": cita_row.fecha_hora_programada,
+            "estado_cita": cita_row.estado_cita,
+            "nombre_servicio": cita_row.nombre_servicio,
+            "veterinario": f"{cita_row.veterinario_nombre} {cita_row.veterinario_apellido}"
         }
 
     except HTTPException:
@@ -345,9 +273,7 @@ async def get_cita_veterinario_by_id(cita_id: int, db: Session = Depends(get_db)
 @router.get("/citaMascota/{cita_id}")
 async def get_mascota_from_cita(cita_id: int, db: Session = Depends(get_db)):
     try:
-        # Realizar el JOIN entre la tabla Cita y Mascota
-        result = db.query(Cita.id_cita, Mascota.nombre).join(Mascota, Cita.id_mascota == Mascota.id_mascota) \
-            .filter(Cita.id_cita == cita_id).first()
+        result = cita_queries.get_con_mascota(db, cita_id=cita_id)
 
         if not result:
             raise HTTPException(status_code=404, detail="Cita o mascota no encontrada")

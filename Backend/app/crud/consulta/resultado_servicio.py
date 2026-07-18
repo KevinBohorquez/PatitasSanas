@@ -1,7 +1,7 @@
 # app/crud/consulta/resultado_servicio.py
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
-from typing import List
+from typing import List, Optional
 from datetime import date, timedelta
 from app.crud.base_crud import CRUDBase
 from app.models.resultado_servicio import ResultadoServicio
@@ -10,6 +10,10 @@ from app.schemas.consulta_schema import ResultadoServicioCreate
 
 # ===== RESULTADO SERVICIO COMPLETO =====
 class CRUDResultadoServicio(CRUDBase[ResultadoServicio, ResultadoServicioCreate, None]):
+
+    def get_by_cita(self, db: Session, *, cita_id: int) -> Optional[ResultadoServicio]:
+        """Obtener el resultado de servicio asociado a una cita"""
+        return db.query(ResultadoServicio).filter(ResultadoServicio.id_cita == cita_id).first()
 
     def get_by_veterinario(self, db: Session, *, veterinario_id: int) -> List[ResultadoServicio]:
         """Obtener resultados realizados por un veterinario"""

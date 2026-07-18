@@ -7,7 +7,6 @@ from datetime import datetime, date
 from app.config.database import get_db
 from app.crud.consulta import consulta, diagnostico, tratamiento, historial_clinico, triaje, solicitud_atencion
 from app.crud.veterinario_crud import veterinario
-from app.models.consulta import Consulta
 from app.schemas.consulta_schema import ConsultaCreate, ConsultaResponse, ConsultaSearch, ConsultaUpdate
 from app.schemas.base_schema import MessageResponse
 
@@ -81,7 +80,7 @@ async def get_estadisticas_consultas(
             )
             consultas_periodo, total_periodo = consulta.search_consultas(db, search_params=search_params)
         else:
-            total_periodo = db.query(Consulta).count()
+            total_periodo = consulta.count(db)
 
         # Diagnósticos más frecuentes
         diagnosticos_frecuentes = diagnostico.get_mas_frecuentes(db, limit=5)
