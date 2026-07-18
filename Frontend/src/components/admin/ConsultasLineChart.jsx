@@ -1,8 +1,9 @@
 // src/components/admin/ConsultasLineChart.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Loader from '../common/Loader/Loader';
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = '';
 
 // ─── Datos de fallback para cuando la API no tiene registros aún ──────────────
 const MESES_LABELS = [
@@ -59,9 +60,9 @@ const ConsultasLineChart = () => {
     setLoading(true);
     setError(null);
     try {
-      // El endpoint del dashboard_crud: GET /api/v1/reportes/consultas-por-mes?año=XXXX
+      // El endpoint del dashboard_crud: GET /reportes/consultas-por-mes?año=XXXX
       // Si ese endpoint no existe aún, se prueba con el dashboard genérico
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_BASE_URL}/reportes/consultas-por-mes?año=${targetYear}`,
         { headers: { 'Content-Type': 'application/json' } }
       );

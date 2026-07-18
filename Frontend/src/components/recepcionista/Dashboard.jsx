@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
 
@@ -13,7 +14,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Obtener datos del backend
   useEffect(() => {
@@ -25,7 +26,7 @@ const Dashboard = () => {
     setError(null);
 
     try {
-      const mascotasResponse = await fetch(`${BASE_URL}/mascotas/`, {
+      const mascotasResponse = await apiFetch(`${BASE_URL}/mascotas/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -33,7 +34,7 @@ const Dashboard = () => {
         },
       });
 
-      const clientesResponse = await fetch(`${BASE_URL}/clientes/`, {
+      const clientesResponse = await apiFetch(`${BASE_URL}/clientes/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -41,7 +42,7 @@ const Dashboard = () => {
         },
       });
 
-      const SolicitudesResponse = await fetch(`${BASE_URL}/solicitudes/`, {
+      const SolicitudesResponse = await apiFetch(`${BASE_URL}/solicitudes/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -49,7 +50,7 @@ const Dashboard = () => {
         },
       });
 
-      const CitasResponse = await fetch(`${BASE_URL}/consultas/cita`, {
+      const CitasResponse = await apiFetch(`${BASE_URL}/consultas/cita`, {
         method: 'GET',
         mode: 'cors',
         headers: {

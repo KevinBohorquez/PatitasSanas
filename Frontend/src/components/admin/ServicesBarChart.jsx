@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -17,7 +18,7 @@ const ServicesBarChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/v1/dashboard/servicios-mas-solicitados?limit=5');
+        const response = await apiFetch('/dashboard/servicios-mas-solicitados?limit=5');
         const data = await response.json();
 
         const labels = data.map(item => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido');

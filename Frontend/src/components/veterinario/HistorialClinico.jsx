@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import './HistorialClinico.css';
 import Loader from '../common/Loader/Loader';
 import EmptyState from '../common/EmptyState/EmptyState';
@@ -16,8 +17,8 @@ const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(
-        `/api/v1/consultas/historialDetallado/${mascotaId}?limit=50`
+      const response = await apiFetch(
+        `/consultas/historialDetallado/${mascotaId}?limit=50`
       );
       if (!response.ok) {
         throw new Error('Error al cargar el historial clínico');

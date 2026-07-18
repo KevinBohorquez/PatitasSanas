@@ -1,5 +1,6 @@
 // src/components/admin/ServicesManagement.jsx - CÓDIGO FINAL COMPLETO
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ServicesManagement.css';
@@ -32,10 +33,10 @@ const ServicesManagement = () => {
   const getApiBaseUrl = () => {
     // Si estamos en Netlify, usar proxy local
     if (window.location.hostname.includes('netlify.app')) {
-      return '/api/v1/catalogos';
+      return '/catalogos';
     }
     // En otros casos, usar la URL completa
-    return '/api/v1/catalogos';
+    return '/catalogos';
   };
   
   const API_BASE = getApiBaseUrl();
@@ -51,7 +52,7 @@ const ServicesManagement = () => {
   // Obtener tipos de servicio
   const fetchTiposServicio = async () => {
     try {
-      const response = await fetch(`${TIPOS_SERVICIO_URL}/`);
+      const response = await apiFetch(`${TIPOS_SERVICIO_URL}/`);
       
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -71,7 +72,7 @@ const ServicesManagement = () => {
     setLoading(true);
     try {
       
-      const response = await fetch(`${SERVICIOS_URL}/`, {
+      const response = await apiFetch(`${SERVICIOS_URL}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ const ServicesManagement = () => {
   // Crear nuevo servicio
   const createServicio = async (servicioData) => {
     try {
-      const response = await fetch(`${SERVICIOS_URL}/`, {
+      const response = await apiFetch(`${SERVICIOS_URL}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ const ServicesManagement = () => {
   // Actualizar servicio
   const updateServicio = async (servicioId, servicioData) => {
     try {
-      const response = await fetch(`${SERVICIOS_URL}/${servicioId}`, {
+      const response = await apiFetch(`${SERVICIOS_URL}/${servicioId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +152,7 @@ const ServicesManagement = () => {
   // Eliminar servicio
   const deleteServicio = async (servicioId) => {
     try {
-      const response = await fetch(`${SERVICIOS_URL}/${servicioId}`, {
+      const response = await apiFetch(`${SERVICIOS_URL}/${servicioId}`, {
         method: 'DELETE'
       });
 

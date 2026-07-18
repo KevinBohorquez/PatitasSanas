@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = '';
 
 const KPICards = () => {
   const [kpiData, setKpiData] = useState({
@@ -17,11 +18,11 @@ const KPICards = () => {
       setError(null);
 
       const [tasaResponse, ingresosResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/dashboard/tasa-asistencia`, {
+        apiFetch(`${API_BASE_URL}/dashboard/tasa-asistencia`, {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
         }),
-        fetch(`${API_BASE_URL}/dashboard/ingresos-por-servicio`, {
+        apiFetch(`${API_BASE_URL}/dashboard/ingresos-por-servicio`, {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
         }),

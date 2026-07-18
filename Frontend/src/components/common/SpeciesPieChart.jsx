@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
@@ -28,7 +29,7 @@ const SpeciesPieChart = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('/api/v1/dashboard/mascotas-por-especie');
+      const response = await apiFetch('/dashboard/mascotas-por-especie');
       const data = await response.json();
       const perros = data.find((item) => item.especie === 'Perro')?.total || 0;
       const gatos = data.find((item) => item.especie === 'Gato')?.total || 0;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import '../veterinario/HistorialClinico.css';
 import '../cronograma/Cronograma.css';
 import CronogramaSemana from '../cronograma/CronogramaSemana';
@@ -18,7 +19,7 @@ const CronogramaView = () => {
     (async () => {
       try {
         setLoading(true); setError(null);
-        const res = await fetch(`/api/v1/horarios/dia/${fecha}`);
+        const res = await apiFetch(`/horarios/dia/${fecha}`);
         if (!res.ok) throw new Error('No se pudo cargar el cronograma');
         setData(await res.json());
       } catch (err) { setError(err.message); } finally { setLoading(false); }

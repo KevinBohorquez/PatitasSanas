@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import './FlujoCaja.css';
 import Loader from '../common/Loader/Loader';
 
-const API_BASE_URL = '/api/v1/movimientos-financieros';
+const API_BASE_URL = '/movimientos-financieros';
 
 const FlujoCaja = () => {
   const [movimientos, setMovimientos] = useState([]);
@@ -29,7 +30,7 @@ const FlujoCaja = () => {
       if (tipo && tipo !== 'todos') {
         url += `?tipo=${tipo}`;
       }
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       if (!response.ok) throw new Error('Error al cargar movimientos');
       const data = await response.json();
       setMovimientos(data);
@@ -42,7 +43,7 @@ const FlujoCaja = () => {
 
   const fetchResumen = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/resumen`);
+      const response = await apiFetch(`${API_BASE_URL}/resumen`);
       if (!response.ok) throw new Error('Error al cargar resumen');
       const data = await response.json();
       setResumen(data);
@@ -124,7 +125,7 @@ const FlujoCaja = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/`, {
+      const response = await apiFetch(`${API_BASE_URL}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

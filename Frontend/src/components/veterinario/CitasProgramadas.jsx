@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import AtenderCita from './AtenderCita';
@@ -22,9 +23,9 @@ const CitasProgramadas = () => {
       // SC-016 / F4: listar por Cita.id_veterinario (incluye las citas creadas
       // por el recepcionista, que antes no aparecían por depender de Resultado_servicio).
       const url = vista === 'atendidas'
-        ? `/api/v1/veterinarios/resultados-citas/${user.id}`
-        : `/api/v1/veterinarios/citas-programadas/${user.id}`;
-      const response = await fetch(url);
+        ? `/veterinarios/resultados-citas/${user.id}`
+        : `/veterinarios/citas-programadas/${user.id}`;
+      const response = await apiFetch(url);
       if (!response.ok) {
         throw new Error('Error al cargar citas');
       }
@@ -37,20 +38,20 @@ const CitasProgramadas = () => {
           const fechaObj = new Date(cita.fecha_hora_programada);
 
           // Fetch mascota
-          const mascotaRes = await fetch(
-            `/api/v1/consultas/citaMascota/${cita.id_cita}`
+          const mascotaRes = await apiFetch(
+            `/consultas/citaMascota/${cita.id_cita}`
           );
           const mascotaData = await mascotaRes.json();
 
           // Fetch servicio
-          const servicioRes = await fetch(
-            `/api/v1/consultas/citaServicio/${cita.id_cita}`
+          const servicioRes = await apiFetch(
+            `/consultas/citaServicio/${cita.id_cita}`
           );
           const servicioData = await servicioRes.json();
 
           // Fetch veterinario
-          const veterinarioRes = await fetch(
-            `/api/v1/consultas/citaVeterinario/${cita.id_cita}`
+          const veterinarioRes = await apiFetch(
+            `/consultas/citaVeterinario/${cita.id_cita}`
           );
           const veterinarioData = await veterinarioRes.json();
 

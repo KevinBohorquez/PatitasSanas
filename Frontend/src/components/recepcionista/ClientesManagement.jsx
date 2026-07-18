@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ClientesManagement.css';
@@ -36,7 +37,7 @@ const ClientesManagement = () => {
     estado: 'Activo'
   });
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Cargar clientes
   useEffect(() => {
@@ -162,7 +163,7 @@ const ClientesManagement = () => {
     try {
       // SC-019 / F25: pedir hasta el máximo del backend para no truncar el listado
       // a la primera página (se pagina en el cliente sobre los resultados filtrados).
-      const response = await fetch(`${BASE_URL}/clientes/?per_page=100`, {
+      const response = await apiFetch(`${BASE_URL}/clientes/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -187,7 +188,7 @@ const ClientesManagement = () => {
   // Obtener mascotas de un cliente
   const fetchMascotasCliente = async (clienteId) => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/cliente-mascota/cliente/${clienteId}`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/cliente-mascota/cliente/${clienteId}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -257,7 +258,7 @@ const ClientesManagement = () => {
     if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido_paterno}?` }))) {
       setLoading(true);
       try {
-        const response = await fetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
+        const response = await apiFetch(`${BASE_URL}/clientes/${cliente.id_cliente}`, {
           method: 'DELETE',
           mode: 'cors',
           headers: {
@@ -316,7 +317,7 @@ const ClientesManagement = () => {
       let response;
 
       if (modalType === 'add') {
-        response = await fetch(`${BASE_URL}/clientes/`, {
+        response = await apiFetch(`${BASE_URL}/clientes/`, {
           method: 'POST',
           mode: 'cors',
           headers: {
@@ -326,7 +327,7 @@ const ClientesManagement = () => {
           body: JSON.stringify(clienteData),
         });
       } else if (modalType === 'edit') {
-        response = await fetch(`${BASE_URL}/clientes/${selectedCliente.id_cliente}`, {
+        response = await apiFetch(`${BASE_URL}/clientes/${selectedCliente.id_cliente}`, {
           method: 'PUT',
           mode: 'cors',
           headers: {

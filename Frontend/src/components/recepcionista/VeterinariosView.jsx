@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import './VeterinariosView.css';
 import { toast } from '../../utils/toast';
@@ -15,7 +16,7 @@ const VeterinariosView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [especialidadFilter, setEspecialidadFilter] = useState('todos');
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Cargar datos
   useEffect(() => {
@@ -57,7 +58,7 @@ const VeterinariosView = () => {
   const fetchVeterinarios = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/veterinarios/`, {
+      const response = await apiFetch(`${BASE_URL}/veterinarios/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -90,7 +91,7 @@ const VeterinariosView = () => {
   // Obtener todas las especialidades
   const fetchEspecialidades = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/especialidades/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/especialidades/`, {
         method: 'GET',
         mode: 'cors',
         headers: {

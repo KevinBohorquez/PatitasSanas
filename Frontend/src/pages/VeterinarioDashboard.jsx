@@ -1,5 +1,6 @@
 // pages/VeterinarioDashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import AppBar from '../components/common/AppBar';
 import Sidebar from '../components/common/Sidebar';
@@ -22,7 +23,7 @@ const InicioVeterinario = ({ user, onNavigate }) => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/v1/veterinarios/dashboard/${user.id}`);
+        const res = await apiFetch(`/veterinarios/dashboard/${user.id}`);
         if (!res.ok) throw new Error('No se pudo cargar el panel');
         setData(await res.json());
       } catch (err) {

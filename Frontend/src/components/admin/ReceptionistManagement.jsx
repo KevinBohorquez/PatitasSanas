@@ -1,5 +1,6 @@
 // src/components/admin/ReceptionistManagement.jsx - CÓDIGO LIMPIO SIGUIENDO PATRÓN USERMANAGEMENT
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import './ReceptionistManagement.css';
@@ -39,7 +40,7 @@ const ReceptionistManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Función para generar username automático
   const generateUsername = (nombre) => {
@@ -51,7 +52,7 @@ const ReceptionistManagement = () => {
   // Función para crear usuario base
   const createUser = async (userData) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ const ReceptionistManagement = () => {
   // Función para crear recepcionista (requiere id_usuario)
   const createRecepcionista = async (recepData) => {
     try {
-      const response = await fetch(`${BASE_URL}/recepcionistas/`, {
+      const response = await apiFetch(`${BASE_URL}/recepcionistas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +147,7 @@ const ReceptionistManagement = () => {
   // Función para actualizar recepcionista
   const updateRecepcionista = async (recepId, recepData) => {
     try {
-      const response = await fetch(`${BASE_URL}/recepcionistas/${recepId}`, {
+      const response = await apiFetch(`${BASE_URL}/recepcionistas/${recepId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +171,7 @@ const ReceptionistManagement = () => {
   // Función para actualizar usuario (username)
   const updateUser = async (userId, userData) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +195,7 @@ const ReceptionistManagement = () => {
   // Función para cambiar contraseña (usando endpoint de usuarios)
   const changePassword = async (userId, newPassword) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}/reset-password`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}/reset-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +221,7 @@ const ReceptionistManagement = () => {
   // Función para desactivar usuario (soft delete)
   const deactivateUser = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}/deactivate`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}/deactivate`, {
         method: 'PATCH'
       });
 
@@ -239,7 +240,7 @@ const ReceptionistManagement = () => {
   // Función para obtener información de usuario
   const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -271,7 +272,7 @@ const ReceptionistManagement = () => {
         url += `&turno=${turno}`;
       }
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

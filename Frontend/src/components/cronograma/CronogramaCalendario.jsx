@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import './Cronograma.css';
 import { CONFIG_VET } from './cronogramaConfig';
 
@@ -21,7 +22,7 @@ const CronogramaCalendario = ({ config = CONFIG_VET }) => {
     (async () => {
       try {
         setLoading(true); setError(null);
-        const r = await fetch(`${config.base}/mes/${anio}/${mes}`);
+        const r = await apiFetch(`${config.base}/mes/${anio}/${mes}`);
         if (!r.ok) throw new Error('No se pudo cargar el mes');
         setData(await r.json());
       } catch (e) { setError(e.message); } finally { setLoading(false); }

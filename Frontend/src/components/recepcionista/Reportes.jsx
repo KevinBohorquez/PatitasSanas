@@ -1,5 +1,6 @@
 // components/recepcionista/Reportes.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import './Reportes.css';
 import Loader from '../common/Loader/Loader';
 
@@ -11,7 +12,7 @@ const Reportes = () => {
   const [clientesPorGenero, setClientesPorGenero] = useState({});
   const [razasPopulares, setRazasPopulares] = useState([]);
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   useEffect(() => {
     fetchAllReports();
@@ -38,7 +39,7 @@ const Reportes = () => {
 
   const fetchServiciosPopulares = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/servicios/populares/top`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/servicios/populares/top`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -59,7 +60,7 @@ const Reportes = () => {
 
   const fetchMascotasPorSexo = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/stats/por-sexo`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/stats/por-sexo`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -80,7 +81,7 @@ const Reportes = () => {
 
   const fetchClientesPorGenero = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/clientes/stats/genero`, {
+      const response = await apiFetch(`${BASE_URL}/clientes/stats/genero`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -101,7 +102,7 @@ const Reportes = () => {
 
   const fetchRazasPopulares = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/razas/populares/top?limit=5`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/razas/populares/top?limit=5`, {
         method: 'GET',
         mode: 'cors',
         headers: {

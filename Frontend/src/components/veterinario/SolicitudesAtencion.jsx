@@ -1,5 +1,6 @@
 // components/veterinario/SolicitudesAtencion.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Loader from '../common/Loader/Loader';
@@ -26,8 +27,8 @@ const SolicitudesAtencion = () => {
   const updateVeterinarioDisposicion = async (idUsuario) => {
     try {
       
-      const response = await fetch(
-        `/api/v1/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
+      const response = await apiFetch(
+        `/veterinarios/veterinario/usuario/${idUsuario}/disposicion`,
         {
           method: 'PUT',
           headers: {
@@ -56,7 +57,7 @@ const SolicitudesAtencion = () => {
       // SC-060 / F43: se usa /details (no /{id}) porque el endpoint simple NO
       // devuelve el cliente. Sin él, más abajo caíamos a un fallback erróneo que
       // usaba el id de la mascota como si fuera id de cliente (dueño equivocado).
-      const response = await fetch(`/api/v1/mascotas/${mascotaId}/details`);
+      const response = await apiFetch(`/mascotas/${mascotaId}/details`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -68,7 +69,7 @@ const SolicitudesAtencion = () => {
   // Función para obtener datos de cliente por ID
   const fetchCliente = async (clienteId) => {
     try {
-      const response = await fetch(`/api/v1/clientes/${clienteId}`);
+      const response = await apiFetch(`/clientes/${clienteId}`);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -86,8 +87,8 @@ const SolicitudesAtencion = () => {
 
         setLoading(true);
 
-        const response = await fetch(
-          `/api/v1/solicitudes/veterinario/${user.id}`
+        const response = await apiFetch(
+          `/solicitudes/veterinario/${user.id}`
         );
 
         if (!response.ok) {
@@ -233,7 +234,7 @@ const SolicitudesAtencion = () => {
     // recepción no veía el cambio y se perdía al recargar.
     try {
       if (consultaId) {
-        const resp = await fetch(`/api/v1/consultas/${consultaId}/finalizar`, {
+        const resp = await apiFetch(`/consultas/${consultaId}/finalizar`, {
           method: 'PATCH'
         });
         if (resp.ok) {
