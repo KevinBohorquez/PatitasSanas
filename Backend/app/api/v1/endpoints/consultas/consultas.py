@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import datetime, date
 
 from app.config.database import get_db
-from app.crud.consulta_crud import consulta, diagnostico, tratamiento, historial_clinico, triaje, solicitud_atencion
+from app.crud.consulta import consulta, diagnostico, tratamiento, historial_clinico, triaje, solicitud_atencion
 from app.crud.veterinario_crud import veterinario
 from app.models.consulta import Consulta
 from app.schemas.consulta_schema import ConsultaCreate, ConsultaResponse, ConsultaSearch, ConsultaUpdate

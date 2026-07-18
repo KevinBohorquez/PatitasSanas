@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.crud.consulta_crud import consulta, tratamiento, historial_clinico, triaje, solicitud_atencion
+from app.crud.consulta import consulta, tratamiento, historial_clinico, triaje, solicitud_atencion
 from app.schemas.consulta_schema import TratamientoCreate, TratamientoResponse
 
 router = APIRouter()

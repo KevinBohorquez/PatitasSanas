@@ -5,7 +5,7 @@ from typing import List
 from datetime import datetime, date
 
 from app.config.database import get_db
-from app.crud.consulta_crud import consulta, diagnostico, historial_clinico, triaje, solicitud_atencion
+from app.crud.consulta import consulta, diagnostico, historial_clinico, triaje, solicitud_atencion
 from app.models import Diagnostico, Tratamiento, Patologia
 from app.schemas.consulta_schema import DiagnosticoCreate, DiagnosticoResponse, DiagnosticoCompletoUpdate
 

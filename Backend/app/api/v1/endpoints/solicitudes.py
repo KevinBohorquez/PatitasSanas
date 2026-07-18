@@ -6,7 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.config.database import get_db
-from app.crud.consulta_crud import (
+from app.crud.consulta import (
     solicitud_atencion
 )
 from app.models import Triaje, Veterinario, SolicitudAtencion

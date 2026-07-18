@@ -21,7 +21,7 @@ from .catalogo import (
 )
 
 # CRUD Procesos Clínicos
-from .consulta_crud import (
+from .consulta import (
     solicitud_atencion, triaje, consulta,
     diagnostico, tratamiento, cita, servicio_solicitado,
     resultado_servicio, historial_clinico

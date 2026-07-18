@@ -5,7 +5,7 @@ from sqlalchemy import func
 from typing import List, Optional
 
 from app.config.database import get_db
-from app.crud.consulta_crud import cita
+from app.crud.consulta import cita
 from app.crud.veterinario_crud import veterinario
 from app.models import Cita, ResultadoServicio, ServicioSolicitado, Servicio, Veterinario, Mascota
 from app.schemas.consulta_schema import CitaResponse, CitaCreate
@@ -32,7 +32,7 @@ async def create_cita(
 
         # Verificar que el servicio solicitado existe
         if cita_data.id_servicio_solicitado:
-            from app.crud.consulta_crud import servicio_solicitado
+            from app.crud.consulta import servicio_solicitado
             servicio_obj = servicio_solicitado.get(db, cita_data.id_servicio_solicitado)
             if not servicio_obj:
                 raise HTTPException(

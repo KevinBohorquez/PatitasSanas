@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.config.database import get_db
-from app.crud.consulta_crud import (
+from app.crud.consulta import (
     triaje, solicitud_atencion
 )
 from app.models import Triaje
@@ -25,7 +25,7 @@ async def create_triaje(
     """
     try:
         # Verificar que la solicitud existe
-        from app.crud.consulta_crud import solicitud_atencion
+        from app.crud.consulta import solicitud_atencion
         solicitud_obj = solicitud_atencion.get(db, triaje_data.id_solicitud)
         if not solicitud_obj:
             raise HTTPException(

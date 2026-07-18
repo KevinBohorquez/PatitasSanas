@@ -42,7 +42,7 @@ async def update_resultado_servicio(cita_id: int, resultado_servicio_update: Res
     resultado_servicio.fecha_realizacion = resultado_servicio_update.fecha_realizacion
 
     # Marcar cita como atendida y registrar ingreso automaticamente (HU-13)
-    from app.crud.consulta_crud import cita as cita_crud
+    from app.crud.consulta import cita as cita_crud
     cita_crud.marcar_atendida(db, cita_id=cita_id)
 
     # SC-042 / F24: al registrar el resultado, el examen avanza a 'Completado'.
