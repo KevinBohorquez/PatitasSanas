@@ -294,10 +294,8 @@ async def delete_servicio(
 
         # Verificar si el servicio está siendo usado
         try:
-            from app.models.servicio_solicitado import ServicioSolicitado
-            servicios_solicitados = db.query(ServicioSolicitado).filter(
-                ServicioSolicitado.id_servicio == servicio_id
-            ).count()
+            from app.crud.consulta import servicio_solicitado
+            servicios_solicitados = servicio_solicitado.count_by_servicio(db, servicio_id=servicio_id)
 
             if servicios_solicitados > 0:
                 raise HTTPException(

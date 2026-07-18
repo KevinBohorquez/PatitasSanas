@@ -5,7 +5,6 @@ from typing import List
 
 from app.config.database import get_db
 from app.crud.catalogo import cliente_mascota
-from app.models.cliente_mascota import ClienteMascota
 from app.schemas.catalogo_schemas import (
     ClienteMascotaCreate, ClienteMascotaResponse
 )
@@ -182,7 +181,7 @@ async def get_all_relations_with_details(
             db, skip=skip, limit=per_page
         )
 
-        total = db.query(ClienteMascota).count()
+        total = cliente_mascota.count(db)
 
         return {
             "relaciones": relaciones_info,

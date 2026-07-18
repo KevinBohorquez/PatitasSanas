@@ -15,6 +15,10 @@ class CRUDServicioSolicitado(CRUDBase[ServicioSolicitado, ServicioSolicitadoCrea
         return db.query(ServicioSolicitado).filter(ServicioSolicitado.id_consulta == consulta_id) \
             .order_by(desc(ServicioSolicitado.fecha_solicitado)).all()
 
+    def count_by_servicio(self, db: Session, *, servicio_id: int) -> int:
+        """Contar cuántos servicios solicitados usan un servicio dado."""
+        return db.query(ServicioSolicitado).filter(ServicioSolicitado.id_servicio == servicio_id).count()
+
     def get_by_estado(self, db: Session, *, estado_examen: str) -> List[ServicioSolicitado]:
         """Obtener servicios por estado de examen"""
         return db.query(ServicioSolicitado).filter(ServicioSolicitado.estado_examen == estado_examen) \
