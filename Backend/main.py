@@ -132,10 +132,6 @@ async def health_check(db: Session = Depends(get_db)):
 async def get_system_stats(db: Session = Depends(get_db)):
     """Estadísticas generales del sistema"""
     try:
-        stats = {}
-        # ... (Tu lógica de stats sigue igual aquí) ...
-        # (Omitido para brevedad, mantener tu código original aquí)
-        
         return {
             "timestamp": datetime.now().isoformat(),
             "system_info": {"environment": os.getenv("ENVIRONMENT", "development")}
@@ -174,7 +170,6 @@ async def not_found_handler(request, exc):
     )
 
 if __name__ == "__main__":
-    import os
     import uvicorn
 
     host = os.getenv("HOST", "0.0.0.0")
