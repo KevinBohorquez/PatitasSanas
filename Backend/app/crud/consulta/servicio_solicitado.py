@@ -4,11 +4,27 @@ from sqlalchemy import desc
 from typing import List, Optional
 from app.crud.base_crud import CRUDBase
 from app.models.servicio_solicitado import ServicioSolicitado
+from app.models.cita import Cita
 from app.schemas.consulta_schema import ServicioSolicitadoCreate
 
 
 # ===== SERVICIO SOLICITADO COMPLETO =====
 class CRUDServicioSolicitado(CRUDBase[ServicioSolicitado, ServicioSolicitadoCreate, None]):
+
+    def get_all(self, db: Session) -> List[ServicioSolicitado]:
+        """Obtener todos los servicios solicitados."""
+        return db.query(ServicioSolicitado).all()
+
+    def get_con_cita(self, db: Session) -> List[ServicioSolicitado]:
+        """Servicios solicitados que tienen una cita asociada."""
+        return db.query(ServicioSolicitado) \
+            .join(Cita, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado).all()
+
+    def get_con_cita_by_id(self, db: Session, *, id_servicio_solicitado: int) -> Optional[ServicioSolicitado]:
+        """Un servicio solicitado con cita asociada, por id."""
+        return db.query(ServicioSolicitado) \
+            .join(Cita, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
+            .filter(ServicioSolicitado.id_servicio_solicitado == id_servicio_solicitado).first()
 
     def get_by_consulta(self, db: Session, *, consulta_id: int) -> List[ServicioSolicitado]:
         """Obtener servicios solicitados de una consulta"""
