@@ -186,7 +186,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard-recepcionista">
+    <div className="dashboard-admin">
       <div className="welcome-section">
         <div className="welcome-content">
           <div className="welcome-text">
