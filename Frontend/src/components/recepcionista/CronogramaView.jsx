@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../../api/client';
+import React, { useState } from 'react';
+import { useFetch } from '../../hooks/useFetch';
 import '../veterinario/HistorialClinico.css';
 import '../cronograma/Cronograma.css';
 import CronogramaSemana from '../cronograma/CronogramaSemana';
@@ -10,21 +10,11 @@ const hoyISO = () => new Date().toISOString().slice(0, 10);
 const CronogramaView = () => {
   const [tab, setTab] = useState('dia');
   const [fecha, setFecha] = useState(hoyISO());
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (tab !== 'dia') return;
-    (async () => {
-      try {
-        setLoading(true); setError(null);
-        const res = await apiFetch(`/horarios/dia/${fecha}`);
-        if (!res.ok) throw new Error('No se pudo cargar el cronograma');
-        setData(await res.json());
-      } catch (err) { setError(err.message); } finally { setLoading(false); }
-    })();
-  }, [fecha, tab]);
+  const { data, loading, error } = useFetch(`/horarios/dia/${fecha}`, {
+    deps: [fecha, tab],
+    enabled: tab === 'dia',
+    errorMessage: 'No se pudo cargar el cronograma',
+  });
 
   return (
     <div className="form-section">

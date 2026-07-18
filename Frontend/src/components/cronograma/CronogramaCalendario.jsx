@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../../api/client';
+import React, { useState } from 'react';
 import './Cronograma.css';
 import { CONFIG_VET } from './cronogramaConfig';
+import { useFetch } from '../../hooks/useFetch';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -13,21 +13,11 @@ const CronogramaCalendario = ({ config = CONFIG_VET }) => {
   const now = new Date();
   const [anio, setAnio] = useState(now.getFullYear());
   const [mes, setMes] = useState(now.getMonth() + 1);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [hover, setHover] = useState(null); // { info, x, y }
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true); setError(null);
-        const r = await apiFetch(`${config.base}/mes/${anio}/${mes}`);
-        if (!r.ok) throw new Error('No se pudo cargar el mes');
-        setData(await r.json());
-      } catch (e) { setError(e.message); } finally { setLoading(false); }
-    })();
-  }, [anio, mes, config.base]);
+  const { data, loading, error } = useFetch(`${config.base}/mes/${anio}/${mes}`, {
+    deps: [anio, mes, config.base],
+    errorMessage: 'No se pudo cargar el mes',
+  });
 
   const cambiarMes = (delta) => {
     let m = mes + delta, a = anio;
