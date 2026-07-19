@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchDiagnosticoInfo = async () => {
       try {
-        const response = await fetch(`/api/v1/consultas/diagnostico/${diagnosticoId}/info`);
+        const response = await apiFetch(`/consultas/diagnostico/${diagnosticoId}/info`);
         
         if (response.ok) {
           const data = await response.json();
@@ -42,7 +43,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
             estadoPatologia: diagnostico.estado_patologia || 'Activa',
             gravedadPatologia: diagnostico.gravedad || 'Leve',
             fechaInicio: diagnostico.fecha_inicio_tratamiento || '',
-            tipoTratamiento: diagnostico.tipo_tratamiento || 'Medicamento',
+            tipoTratamiento: diagnostico.tipo_tratamiento || 'Medicamentoso',
             eficaciaTratamiento: diagnostico.eficacia_tratamiento || 'Muy buena'
           });
 
@@ -51,7 +52,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
           setError('No se encontró el diagnóstico');
           setLoading(false);
         }
-      } catch (err) {
+      } catch {
         setError('Error al cargar los datos');
         setLoading(false);
       }
@@ -101,8 +102,8 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       };
 
 
-      const response = await fetch(
-        `/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
+      const response = await apiFetch(
+        `/consultas/diagnostico/${diagnosticoId}/completo`,
         {
           method: 'PUT',
           headers: {
@@ -113,7 +114,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       );
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         toast.success('Diagnóstico actualizado correctamente');
         
         // Llamar a onSave para cerrar modal y refrescar datos

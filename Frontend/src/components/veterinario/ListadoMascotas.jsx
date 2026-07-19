@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './ListadoMascotas.css';
 import HistorialClinicoModal from './HistorialClinico'; // Este archivo puede reutilizarse como base para mostrar información del historial
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ListadoMascotas = () => {
   const [mascotas, setMascotas] = useState([]);
@@ -15,15 +16,14 @@ const ListadoMascotas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado para manejar la visibilidad del modal
-  const [mascotaId, setMascotaId] = useState(null); // Estado para almacenar la ID de la mascota
   const [selectedMascota, setSelectedMascota] = useState(null); // Guardar la mascota seleccionada
 
   // Función para cargar las mascotas desde el endpoint
   const fetchMascotas = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        '/api/v1/mascotas/?page=1&per_page=20'
+      const response = await apiFetch(
+        '/mascotas/?page=1&per_page=20'
       );
       if (!response.ok) {
         throw new Error('Error al cargar las mascotas');
@@ -33,20 +33,20 @@ const ListadoMascotas = () => {
       // Mapeamos las mascotas con la información adicional
       const mappedMascotas = await Promise.all(data.mascotas.map(async (mascota) => {
         // Obtenemos la información de especie y raza de cada mascota
-        const mascotaInfoResponse = await fetch(
-          `/api/v1/mascotas/info/${mascota.id_mascota}`
+        const mascotaInfoResponse = await apiFetch(
+          `/mascotas/info/${mascota.id_mascota}`
         );
         const mascotaInfo = await mascotaInfoResponse.json();
 
         // Obtenemos la próxima cita de la mascota
-        const proximaCitaResponse = await fetch(
-          `/api/v1/mascotas/proxima-cita/${mascota.id_mascota}`
+        const proximaCitaResponse = await apiFetch(
+          `/mascotas/proxima-cita/${mascota.id_mascota}`
         );
         const proximaCitaData = await proximaCitaResponse.json();
 
         // Obtenemos la última atención de la mascota
-        const ultimaAtencionResponse = await fetch(
-          `/api/v1/mascotas/ultima-atencion/${mascota.id_mascota}`
+        const ultimaAtencionResponse = await apiFetch(
+          `/mascotas/ultima-atencion/${mascota.id_mascota}`
         );
         const ultimaAtencionData = await ultimaAtencionResponse.json();
 

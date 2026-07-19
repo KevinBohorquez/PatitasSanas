@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
 import './ServiciosView.css';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ServiciosView = () => {
   const [servicios, setServicios] = useState([]);
@@ -15,7 +16,7 @@ const ServiciosView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Cargar datos
   useEffect(() => {
@@ -55,7 +56,7 @@ const ServiciosView = () => {
   const fetchServicios = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/servicios/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/servicios/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -90,7 +91,7 @@ const ServiciosView = () => {
   // Obtener todos los tipos de servicio
   const fetchTiposServicio = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/tipos-servicio/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/tipos-servicio/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -119,7 +120,7 @@ const ServiciosView = () => {
     { 
       key: 'numero', 
       header: 'N°',
-      render: (servicio, index) => {
+      render: (servicio) => {
         // Calcular el índice basado en la lista filtrada
         const filteredIndex = filteredServicios.findIndex(s => s.id_servicio === servicio.id_servicio);
         return String(filteredIndex + 1);

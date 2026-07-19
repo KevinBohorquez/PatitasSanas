@@ -1,14 +1,70 @@
 # app/crud/veterinario_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
-from typing import List, Optional, Tuple
+from sqlalchemy import case
+from typing import Optional, List, Tuple
 from app.crud.base_crud import CRUDBase
 from app.models.veterinario import Veterinario
 from app.models.especialidad import Especialidad
-from app.schemas.veterinario_schema import VeterinarioCreate, VeterinarioUpdate, VeterinarioSearch
+from app.models.usuario import Usuario
+from app.schemas.veterinario_schema import VeterinarioCreate, VeterinarioUpdate
 
 class CRUDVeterinario(CRUDBase[Veterinario, VeterinarioCreate, VeterinarioUpdate]):
-    
+
+    def get_paginated(self, db: Session, *, skip: int = 0, limit: int = 20,
+                      especialidad: Optional[str] = None, tipo_veterinario: Optional[str] = None,
+                      disposicion: Optional[str] = None, turno: Optional[str] = None,
+                      solo_activos: Optional[bool] = None) -> Tuple[List[Veterinario], int]:
+        """Listar veterinarios con filtros opcionales y paginación."""
+        query = db.query(Veterinario)
+
+        if especialidad:
+            query = query.join(Veterinario.especialidad).filter(Especialidad.descripcion.ilike(f"%{especialidad}%"))
+        if tipo_veterinario:
+            query = query.filter(Veterinario.tipo_veterinario == tipo_veterinario)
+        if disposicion:
+            query = query.filter(Veterinario.disposicion == disposicion)
+        if turno:
+            query = query.filter(Veterinario.turno == turno)
+        if solo_activos:
+            query = query.join(Usuario, Veterinario.id_usuario == Usuario.id_usuario) \
+                .filter(Usuario.estado == "Activo")
+
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+        return items, total
+
+    def get_disponibles(self, db: Session, *, turno: Optional[str] = None,
+                        especialidad_id: Optional[int] = None) -> List[Veterinario]:
+        """Veterinarios ACTIVOS ordenados por disposición (Libre -> Ocupado -> resto)."""
+        orden_disposicion = case(
+            (Veterinario.disposicion == "Libre", 0),
+            (Veterinario.disposicion == "Ocupado", 1),
+            else_=2,
+        )
+
+        query = db.query(Veterinario) \
+            .join(Usuario, Usuario.id_usuario == Veterinario.id_usuario) \
+            .filter(Usuario.estado == "Activo")
+
+        if turno:
+            query = query.filter(Veterinario.turno == turno)
+        if especialidad_id:
+            query = query.filter(Veterinario.id_especialidad == especialidad_id)
+
+        return query.order_by(orden_disposicion, Veterinario.id_veterinario).all()
+
+    def get_by_especialidad(self, db: Session, *, especialidad_id: int,
+                            skip: int = 0, limit: int = 20) -> Tuple[List[Veterinario], int]:
+        """Veterinarios de una especialidad, paginados."""
+        query = db.query(Veterinario).filter(Veterinario.id_especialidad == especialidad_id)
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+        return items, total
+
+    def get_by_usuario(self, db: Session, *, id_usuario: int) -> Optional[Veterinario]:
+        """Obtener veterinario por id_usuario"""
+        return db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+
     def get_by_dni(self, db: Session, *, dni: str) -> Optional[Veterinario]:
         """Obtener veterinario por DNI"""
         return db.query(Veterinario).filter(Veterinario.dni == dni).first()
@@ -20,79 +76,6 @@ class CRUDVeterinario(CRUDBase[Veterinario, VeterinarioCreate, VeterinarioUpdate
     def get_by_codigo_cmvp(self, db: Session, *, codigo_cmvp: str) -> Optional[Veterinario]:
         """Obtener veterinario por código CMVP"""
         return db.query(Veterinario).filter(Veterinario.codigo_CMVP == codigo_cmvp).first()
-
-
-    def get_by_especialidad(self, db: Session, *, especialidad_id: int) -> List[Veterinario]:
-        """Obtener veterinarios por especialidad"""
-        return db.query(Veterinario).filter(Veterinario.id_especialidad == especialidad_id).all()
-
-    def get_by_turno(self, db: Session, *, turno: str) -> List[Veterinario]:
-        """Obtener veterinarios por turno"""
-        return db.query(Veterinario).filter(Veterinario.turno == turno).all()
-
-    def get_disponibles(self, db: Session) -> List[Veterinario]:
-        """Obtener veterinarios disponibles (libres y activos)"""
-        return db.query(Veterinario).filter(
-            and_(
-                Veterinario.disposicion == "Libre"
-            )
-        ).all()
-
-    def get_with_especialidad(self, db: Session, *, veterinario_id: int) -> Optional[dict]:
-        """Obtener veterinario con detalles de especialidad"""
-        result = db.query(
-            Veterinario,
-            Especialidad.descripcion.label('especialidad_descripcion')
-        ).join(Especialidad, Veterinario.id_especialidad == Especialidad.id_especialidad)\
-         .filter(Veterinario.id_veterinario == veterinario_id).first()
-        
-        if result:
-            return {
-                "veterinario": result.Veterinario,
-                "especialidad_descripcion": result.especialidad_descripcion
-            }
-        return None
-
-    def search_veterinarios(self, db: Session, *, search_params: VeterinarioSearch) -> Tuple[List[Veterinario], int]:
-        """Buscar veterinarios con filtros múltiples"""
-        query = db.query(Veterinario)
-        
-        # Aplicar filtros
-        if search_params.nombre:
-            nombre_filter = f"%{search_params.nombre}%"
-            query = query.filter(
-                or_(
-                    Veterinario.nombre.ilike(nombre_filter),
-                    Veterinario.apellido_paterno.ilike(nombre_filter),
-                    Veterinario.apellido_materno.ilike(nombre_filter)
-                )
-            )
-        
-        if search_params.dni:
-            query = query.filter(Veterinario.dni == search_params.dni)
-        
-        if search_params.id_especialidad:
-            query = query.filter(Veterinario.id_especialidad == search_params.id_especialidad)
-        
-        if search_params.tipo_veterinario:
-            query = query.filter(Veterinario.tipo_veterinario == search_params.tipo_veterinario)
-
-        
-        if search_params.disposicion:
-            query = query.filter(Veterinario.disposicion == search_params.disposicion)
-        
-        if search_params.turno:
-            query = query.filter(Veterinario.turno == search_params.turno)
-        
-        # Contar total
-        total = query.count()
-        
-        # Aplicar paginación
-        veterinarios = query.order_by(Veterinario.fecha_ingreso.desc())\
-                           .offset((search_params.page - 1) * search_params.per_page)\
-                           .limit(search_params.per_page).all()
-        
-        return veterinarios, total
 
     def exists_by_dni(self, db: Session, *, dni: str, exclude_id: Optional[int] = None) -> bool:
         """Verificar si existe un veterinario con ese DNI"""
@@ -123,14 +106,6 @@ class CRUDVeterinario(CRUDBase[Veterinario, VeterinarioCreate, VeterinarioUpdate
             db.commit()
             db.refresh(veterinario)
         return veterinario
-
-    def get_estadisticas_por_turno(self, db: Session) -> dict:
-        """Obtener estadísticas de veterinarios por turno"""
-        return {
-            "mañana": db.query(Veterinario).filter(Veterinario.turno == "Mañana").count(),
-            "tarde": db.query(Veterinario).filter(Veterinario.turno == "Tarde").count(),
-            "noche": db.query(Veterinario).filter(Veterinario.turno == "Noche").count()
-        }
 
 # Instancia única
 veterinario = CRUDVeterinario(Veterinario)

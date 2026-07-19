@@ -15,13 +15,13 @@ from .veterinario_crud import veterinario
 from .recepcionista_crud import recepcionista
 
 # CRUD Catálogos (Usando los completos)
-from .catalogo_crud import (
-    raza, tipo_animal, especialidad, 
+from .catalogo import (
+    raza, tipo_animal, especialidad,
     tipo_servicio, servicio, patologia, cliente_mascota
 )
 
 # CRUD Procesos Clínicos
-from .consulta_crud import (
+from .consulta import (
     solicitud_atencion, triaje, consulta,
     diagnostico, tratamiento, cita, servicio_solicitado,
     resultado_servicio, historial_clinico

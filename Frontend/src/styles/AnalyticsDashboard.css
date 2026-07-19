@@ -144,3 +144,27 @@
   transition: background 0.2s;
 }
 .analytics-retry:hover { background: #c0392b; }
+
+/* Tarjetas KPI: imagenes reducidas + mismo estilo de letra que las tarjetas del dashboard */
+.kpi-cards-section .stat-icon {
+  max-width: 110px;
+  max-height: 110px;
+  width: auto;
+  height: auto;
+}
+
+.kpi-cards-section .stat-value {
+  font-family: "Lilita One", sans-serif;
+  font-size: 2.4rem;
+  color: #62bbd6;
+  text-shadow:
+    -1px -1px 0 #013644,
+     1px -1px 0 #013644,
+    -1px  1px 0 #013644,
+     1px  1px 0 #013644;
+}
+
+.kpi-cards-section .stat-title {
+  font-family: "Lilita One", sans-serif;
+  color: #364f53;
+}

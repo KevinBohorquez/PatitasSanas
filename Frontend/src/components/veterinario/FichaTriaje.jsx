@@ -1,8 +1,9 @@
 // components/veterinario/FichaTriaje.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 
 const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
@@ -35,7 +36,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       setLoading(true);
       // Usando el ID de la solicitud como triaje_id
       // Si tienes una relación diferente, ajusta según tu modelo de datos
-      const response = await fetch(`/api/v1/triaje/consulta/${solicitud.id}`);
+      const response = await apiFetch(`/triaje/consulta/${solicitud.id}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -133,7 +134,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
       
       if (triageData) {
         // Actualizar triaje existente
-        response = await fetch(`/api/v1/triaje/triaje/${triageData.id_triaje}`, {
+        response = await apiFetch(`/triaje/triaje/${triageData.id_triaje}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         });
       } else {
         // Crear nuevo triaje
-        response = await fetch('/api/v1/triaje/', {
+        response = await apiFetch('/triaje/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -158,7 +159,7 @@ const FichaTriaje = ({ solicitud, onComplete, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudieron guardar los datos del triaje'));
       }
 
-      const result = await response.json();
+      await response.json();
       onComplete();
     } catch (error) {
       console.error('Error completo:', error);

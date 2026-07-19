@@ -1,42 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './HistorialClinico.css';
-import Loader from '../common/Loader/Loader';
-import EmptyState from '../common/EmptyState/EmptyState';
+import Loader from '../ui/Loader/Loader';
+import EmptyState from '../ui/EmptyState/EmptyState';
+import { useFetch } from '../../hooks/useFetch';
 
 const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {
-  const [consultas, setConsultas] = useState([]); // Historial detallado por consulta
   const [selectedIndex, setSelectedIndex] = useState(0); // Consulta seleccionada en el panel
   const [showDiagnostico, setShowDiagnostico] = useState(false); // Modal de diagnóstico completo
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Cargar el historial clínico detallado (una entrada por consulta, con edad/peso/observaciones
-  // y sus diagnósticos con patología).
-  const fetchHistorialDetallado = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(
-        `/api/v1/consultas/historialDetallado/${mascotaId}?limit=50`
-      );
-      if (!response.ok) {
-        throw new Error('Error al cargar el historial clínico');
-      }
-      const data = await response.json();
-      setConsultas(data);
-      setSelectedIndex(0); // Por defecto se muestra la consulta más reciente
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (mascotaId) {
-      fetchHistorialDetallado();
-    }
-  }, [mascotaId]);
+  // Historial detallado por consulta (edad/peso/observaciones + diagnósticos con patología).
+  const { data, loading, error } = useFetch(
+    `/consultas/historialDetallado/${mascotaId}?limit=50`,
+    {
+      deps: [mascotaId],
+      enabled: !!mascotaId,
+      errorMessage: 'Error al cargar el historial clínico',
+      onSuccess: () => setSelectedIndex(0), // muestra la consulta más reciente
+    },
+  );
+  const consultas = data ?? [];
 
   if (!isOpen) return null;
 

@@ -1,14 +1,13 @@
-# app/api/v1/endpoints/consultas.py - VERSIÓN CORREGIDA
+# app/api/v1/endpoints/solicitudes.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
 from app.config.database import get_db
-from app.crud.consulta_crud import (
-    solicitud_atencion
-)
-from app.models import Triaje, Veterinario, SolicitudAtencion
+from app.crud.consulta import solicitud_atencion, triaje as triaje_crud
+from app.crud.veterinario_crud import veterinario as veterinario_crud
+from app.queries import solicitud_queries
 
 from app.schemas.consulta_schema import (
     SolicitudAtencionResponse, SolicitudAtencionCreate
@@ -85,7 +84,7 @@ async def get_solicitudes_atencion(
         elif mascota_id:
             solicitudes = solicitud_atencion.get_by_mascota(db, mascota_id=mascota_id)
         else:
-            solicitudes = solicitud_atencion.get_multi(db, limit=limit)
+            solicitudes = solicitud_atencion.get_multi(db, limit=limit, order_by='-fecha_hora_solicitud')
 
         return solicitudes[:limit]
 
@@ -93,6 +92,42 @@ async def get_solicitudes_atencion(
         raise HTTPException(
             status_code=500,
             detail=f"Error al obtener solicitudes: {str(e)}"
+        )
+
+
+@router.get("/enriquecidas")
+async def get_solicitudes_enriquecidas(
+        db: Session = Depends(get_db),
+        page: int = Query(1, ge=1, description="Número de página"),
+        per_page: int = Query(10, ge=1, le=100, description="Elementos por página"),
+        search: Optional[str] = Query(None, description="Buscar por nombre de mascota o dueño"),
+        estado: Optional[str] = Query(None, description="Filtrar por estado de la solicitud"),
+):
+    """
+    Lista de solicitudes ya enriquecida (mascota, dueño y veterinario) resuelta en UNA
+    sola consulta con JOINs, paginada y filtrada en el servidor.
+
+    Reemplaza el patrón N+1 del frontend (1 + N*3 peticiones HTTP: mascota, cliente y
+    veterinario por cada fila) por una única respuesta, y mueve la búsqueda/filtro/orden
+    al servidor para escalar a muchos registros.
+    """
+    try:
+        solicitudes, total = solicitud_queries.listar_enriquecidas(
+            db, page=page, per_page=per_page, search=search, estado=estado
+        )
+
+        return {
+            "solicitudes": solicitudes,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener solicitudes enriquecidas: {str(e)}"
         )
 
 
@@ -134,10 +169,7 @@ async def get_veterinario_de_solicitud(
     Si el trigger no asignó ninguno, devuelve 'Sin asignar'.
     """
     try:
-        veterinario = db.query(Veterinario) \
-            .join(Triaje, Triaje.id_veterinario == Veterinario.id_veterinario) \
-            .filter(Triaje.id_solicitud == solicitud_id) \
-            .first()
+        veterinario = solicitud_queries.get_veterinario_asignado(db, solicitud_id=solicitud_id)
 
         if not veterinario:
             return {"id_veterinario": None, "nombre_veterinario": "Sin asignar"}
@@ -175,7 +207,7 @@ async def delete_solicitud(
     # El trigger crea un triaje automáticamente al insertar la solicitud y la FK es
     # NO ACTION, por lo que el borrado directo fallaba con 500. Se devuelve un 409
     # claro y se dirige a 'Cancelar' (estado Cancelada) para no perder historia clínica.
-    tiene_triaje = db.query(Triaje).filter(Triaje.id_solicitud == solicitud_id).first()
+    tiene_triaje = triaje_crud.get_by_solicitud(db, solicitud_id=solicitud_id)
     if tiene_triaje:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -198,34 +230,20 @@ async def get_solicitudes_by_veterinario(
     Obtener solicitudes de atención relacionadas con el veterinario por id_usuario.
     """
     try:
-        # 1️⃣ Buscar el veterinario
-        veterinario = db.query(Veterinario).filter(Veterinario.id_usuario == id_usuario).first()
+        veterinario = veterinario_crud.get_by_usuario(db, id_usuario=id_usuario)
         if not veterinario:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Veterinario no encontrado"
             )
 
-        # 2️⃣ Buscar los triajes hechos por ese veterinario
-        triajes = db.query(Triaje).filter(Triaje.id_veterinario == veterinario.id_veterinario).all()
-        if not triajes:
-            return []
-
-        # 3️⃣ Obtener los IDs de solicitudes
-        solicitud_ids = [triaje.id_solicitud for triaje in triajes]
-
-        # 4️⃣ Consulta base de solicitudes
-        query = db.query(SolicitudAtencion).filter(SolicitudAtencion.id_solicitud.in_(solicitud_ids))
-
-        # 5️⃣ Filtros opcionales
-        if estado:
-            query = query.filter(SolicitudAtencion.estado == estado)
-        if tipo_solicitud:
-            query = query.filter(SolicitudAtencion.tipo_solicitud == tipo_solicitud)
-
-        solicitudes = query.limit(limit).all()
-
-        return solicitudes
+        return solicitud_queries.listar_por_veterinario(
+            db,
+            id_veterinario=veterinario.id_veterinario,
+            estado=estado,
+            tipo_solicitud=tipo_solicitud,
+            limit=limit,
+        )
 
     except HTTPException:
         raise

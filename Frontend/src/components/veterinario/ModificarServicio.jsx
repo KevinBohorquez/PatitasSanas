@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -14,7 +15,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
     observaciones: ''
   });
 
-  const [loading, setLoading] = useState(false); 
+  const [loading] = useState(false);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [veterinarios, setVeterinarios] = useState([]);
@@ -24,7 +25,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchVeterinarios = async () => {
       try {
-        const response = await fetch('/api/v1/veterinarios/?page=1&per_page=20&solo_activos=true');
+        const response = await apiFetch('/veterinarios/?page=1&per_page=20&solo_activos=true');
         
         if (response.ok) {
           const veterinariosData = await response.json();
@@ -40,7 +41,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
 
     const fetchServicios = async () => {
       try {
-        const response = await fetch('/api/v1/catalogos/servicios/?activos_solo=true');
+        const response = await apiFetch('/catalogos/servicios/?activos_solo=true');
         
         if (response.ok) {
           const serviciosData = await response.json();
@@ -107,8 +108,8 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
 
 
       // Usar el consultaId correctamente en la URL
-      const response = await fetch(
-        `/api/v1/servicio_solicitado/consultas/${consultaId}/servicio-cita`,
+      const response = await apiFetch(
+        `/servicio_solicitado/consultas/${consultaId}/servicio-cita`,
         {
           method: 'POST',
           headers: {
@@ -123,7 +124,7 @@ const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudo crear el servicio'));
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast.success('Servicio creado correctamente');
       onSave();

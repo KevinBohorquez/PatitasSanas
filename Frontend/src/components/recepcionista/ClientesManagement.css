@@ -520,6 +520,53 @@
     grid-template-columns: 1fr;
     gap: 10px;
   }
+
+  /* ---- Tarjeta móvil igual que en Veterinarios ----
+     Cabecera con tres secciones: Nombre Apellido (izquierda, se recorta según
+     el responsive) | DNI (derecha) | chevron al extremo. Texto blanco y sin
+     panel blanco (las tarjetas flotan sobre el fondo). */
+  .clientes-management .data-table td:first-child {
+    color: #fff;
+    position: relative;
+  }
+
+  .clientes-management .cell-mobile-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Sección 1 — nombre y apellido: mitad izquierda, alineado a la izquierda. */
+  .clientes-management .card-hd-main {
+    flex: 1 1 0;
+    text-align: left;
+  }
+
+  /* Sección 2 — DNI: mitad derecha, alineado a la izquierda (el gap entre nombre
+     y DNI queda en el medio del card). */
+  .clientes-management .card-hd-side {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: left;
+  }
+
+  /* Sección 3 — chevron: fuera del flujo, fijado al extremo derecho. */
+  .clientes-management .data-table td:first-child::after {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    margin-left: 0;
+    transform: translateY(-50%);
+  }
+
+  .clientes-management .data-table tr.expanded td:first-child::after {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  /* Contenedor como en Mascotas/Solicitudes/Citas: panel blanco con el padding
+     reducido en móvil (mismo tratamiento que .citas-table-section). */
+  .clients-table-section {
+    padding: 15px;
+  }
 }
 
 @media (max-width: 480px) {

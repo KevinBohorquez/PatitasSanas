@@ -1,12 +1,13 @@
 // components/veterinario/FichaConsulta.jsx
 import React, { useState, useEffect } from 'react';
-import Modal from '../common/Modal';
+import { apiFetch } from '../../api/client';
+import Modal from '../ui/Modal/Modal';
 import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 
 const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
@@ -26,7 +27,6 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [consultaData, setConsultaData] = useState(null);
-  const [triageData, setTriageData] = useState(null);
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [diagnosticoId, setDiagnosticoId] = useState(null);
 
@@ -39,12 +39,11 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/v1/triaje/consulta/${solicitud.id}`);
+      const response = await apiFetch(`/triaje/consulta/${solicitud.id}`);
       
       if (response.ok) {
         const triageResult = await response.json();
-        setTriageData(triageResult);
-        
+
         const consulta = await fetchConsultaData(triageResult.id_triaje);
         // SC-041 / F22: los diagnósticos se piden por id_consulta, no por id_triaje.
         await fetchDiagnosticos(consulta?.id_consulta);
@@ -64,7 +63,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       // SC-040 / F21: obtener la consulta del triaje directamente. Antes se traía
       // la primera página de /consultas/ (20 por página) y se filtraba en memoria,
       // lo que fallaba al superar 20 consultas si la del triaje no estaba en esa página.
-      const response = await fetch(`/api/v1/consultas/triaje/${idTriaje}`);
+      const response = await apiFetch(`/consultas/triaje/${idTriaje}`);
 
       if (response.ok) {
         // El endpoint devuelve la consulta del triaje, o null si aún no existe.
@@ -107,7 +106,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
       return;
     }
     try {
-      const response = await fetch(`/api/v1/consultas/diagnosticos/${idConsulta}`);
+      const response = await apiFetch(`/consultas/diagnosticos/${idConsulta}`);
       
       if (response.ok) {
         const diagnosticosData = await response.json();
@@ -131,8 +130,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
   
   const actualizarDisposicion = async () => {
       try {
-        const response = await fetch(
-          `/api/v1/veterinarios/veterinario/usuario/${user.id}/disposicionLibre`,
+        const response = await apiFetch(
+          `/veterinarios/veterinario/usuario/${user.id}/disposicionLibre`,
           {
             method: 'PUT',
             headers: {
@@ -147,7 +146,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           throw new Error(`Error ${response.status}: ${errorText}`);
         }
 
-        const result = await response.json();
+        await response.json();
       } catch (error) {
         console.error('Error al actualizar disposición:', error);
         toast.error(`Error al actualizar disposición del veterinario: ${error.message}`);
@@ -187,8 +186,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
         if (consultaData) {
           // Si existe, ACTUALIZAR
-          const url = `/api/v1/consultas/${consultaData.id_consulta}`;
-          response = await fetch(url, {
+          const url = `/consultas/${consultaData.id_consulta}`;
+          response = await apiFetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -203,7 +202,7 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
           throw new Error(formatApiError(errorBody, 'No se pudo guardar la consulta'));
         }
 
-        const result = await response.json();
+        await response.json();
 
         // 🚀 Aquí actualizas la disposición:
         await actualizarDisposicion();
@@ -234,8 +233,8 @@ const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {
 
     try {
       
-      const response = await fetch(
-        `/api/v1/consultas/diagnostico/${consultaData.id_consulta}`,
+      const response = await apiFetch(
+        `/consultas/diagnostico/${consultaData.id_consulta}`,
         {
           method: 'POST',
           headers: {

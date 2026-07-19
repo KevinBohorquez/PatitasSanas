@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
+import { useFetch } from '../../hooks/useFetch';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -24,21 +25,13 @@ const CenterTextPlugin = {
 ChartJS.register(CenterTextPlugin);
 
 const SpeciesPieChart = () => {
-  const [speciesData, setSpeciesData] = useState({ perros: 0, gatos: 0 });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch('/api/v1/dashboard/mascotas-por-especie');
-      const data = await response.json();
-      const perros = data.find((item) => item.especie === 'Perro')?.total || 0;
-      const gatos = data.find((item) => item.especie === 'Gato')?.total || 0;
-      setSpeciesData({
-        perros,
-        gatos
-      });
-    };
-    fetchData();
-  }, []);
+  const { data } = useFetch('/dashboard/mascotas-por-especie', {
+    transform: (d) => ({
+      perros: d.find((item) => item.especie === 'Perro')?.total || 0,
+      gatos: d.find((item) => item.especie === 'Gato')?.total || 0,
+    }),
+  });
+  const speciesData = data ?? { perros: 0, gatos: 0 };
 
   const total = speciesData.perros + speciesData.gatos;
   const pctDogs = total > 0 ? Math.round((speciesData.perros / total) * 100) : 0;

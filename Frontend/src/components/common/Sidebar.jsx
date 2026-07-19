@@ -78,10 +78,10 @@ const Sidebar = ({ items = [], activeItem, onItemClick }) => {
     setCurrentPage(Math.round(el.scrollLeft / el.clientWidth));
   };
 
-  // Agrupar las opciones en páginas de 4 (rejilla 2x2) para el menú móvil.
+  // Agrupar las opciones en páginas de 6 (rejilla 2 columnas x 3 filas) para el menú móvil.
   const pages = [];
-  for (let i = 0; i < items.length; i += 4) {
-    pages.push(items.slice(i, i + 4));
+  for (let i = 0; i < items.length; i += 6) {
+    pages.push(items.slice(i, i + 6));
   }
 
   return (
@@ -150,15 +150,16 @@ const Sidebar = ({ items = [], activeItem, onItemClick }) => {
               </div>
             ))}
           </div>
-
-          {pages.length > 1 && (
-            <div className="mobile-nav-dots">
-              {pages.map((_, di) => (
-                <span key={di} className={`mobile-nav-dot ${currentPage === di ? 'active' : ''}`} />
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* Puntos indicadores: fuera del panel para fijarlos al fondo de la pantalla */}
+        {pages.length > 1 && (
+          <div className="mobile-nav-dots" onClick={(e) => e.stopPropagation()}>
+            {pages.map((_, di) => (
+              <span key={di} className={`mobile-nav-dot ${currentPage === di ? 'active' : ''}`} />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

@@ -1,15 +1,9 @@
-# pruebita 2
 # main.py - Sistema Veterinaria API COMPLETO
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse  # <--- [IMPORTANTE] Agregar esto
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 import os
-from datetime import datetime
-
-from app.config.database import get_db
 
 # ✅ IMPORTAR TODOS LOS ROUTERS
 from app.api.v1.endpoints.auth import router as auth_router
@@ -30,6 +24,7 @@ from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.movimientos_financieros import router as movimientos_financieros_router
 from app.api.v1.endpoints.horarios import router as horarios_router
 from app.api.v1.endpoints.horarios_recep import router as horarios_recep_router
+from app.api.v1.endpoints.system import router as system_router
 
 from app.services.notifications.reminder_scheduler import start_scheduler, stop_scheduler
 
@@ -79,6 +74,7 @@ app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["📊 das
 app.include_router(movimientos_financieros_router, prefix="/api/v1/movimientos-financieros", tags=["💰 finanzas"])
 app.include_router(horarios_router, prefix="/api/v1/horarios", tags=["📅 cronograma"])
 app.include_router(horarios_recep_router, prefix="/api/v1/horarios-recep", tags=["📅 cronograma recep"])
+app.include_router(system_router, tags=["⚙️ sistema"])
 
 
 @app.on_event("startup")
@@ -91,60 +87,7 @@ async def shutdown_event():
     stop_scheduler()
 
 
-# ===== ENDPOINTS PRINCIPALES =====
-
-# --- AGREGA ESTO AQUÍ ---
-@app.get("/api/v1/")
-async def v1_root():
-    return {"message": "Bienvenido a la API v1", "docs": "/docs"}
-# ------------------------
-
-@app.get("/")
-async def root():
-    """Endpoint raíz con información de la API"""
-    return {
-        "message": "🏥 Sistema Veterinaria API COMPLETO funcionando!",
-        "version": "2.0.0",
-        "status": "✅ Operativo",
-        "timestamp": datetime.now().isoformat(),
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
-
-@app.get("/health")
-async def health_check(db: Session = Depends(get_db)):
-    """Endpoint de salud del sistema"""
-    try:
-        # Verificar conexión a la base de datos
-        db.execute(text("SELECT 1"))
-        db_status = "✅ Conectada"
-    except Exception as e:
-        db_status = f"❌ Error: {str(e)}"
-        
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "database": db_status,
-        "version": "2.0.0"
-    }
-
-@app.get("/stats")
-async def get_system_stats(db: Session = Depends(get_db)):
-    """Estadísticas generales del sistema"""
-    try:
-        stats = {}
-        # ... (Tu lógica de stats sigue igual aquí) ...
-        # (Omitido para brevedad, mantener tu código original aquí)
-        
-        return {
-            "timestamp": datetime.now().isoformat(),
-            "system_info": {"environment": os.getenv("ENVIRONMENT", "development")}
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener estadísticas: {str(e)}")
-
-
-# ===== MANEJO DE ERRORES GLOBALES (CORREGIDO) =====
+# ===== MANEJO DE ERRORES GLOBALES =====
 
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request, exc):
@@ -174,7 +117,6 @@ async def not_found_handler(request, exc):
     )
 
 if __name__ == "__main__":
-    import os
     import uvicorn
 
     host = os.getenv("HOST", "0.0.0.0")

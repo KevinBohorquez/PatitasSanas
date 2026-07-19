@@ -1,8 +1,7 @@
 // src/components/admin/ConsultasLineChart.jsx
-import React, { useState, useEffect } from 'react';
-import Loader from '../common/Loader/Loader';
-
-const API_BASE_URL = '/api/v1';
+import React, { useState } from 'react';
+import Loader from '../ui/Loader/Loader';
+import { useFetch } from '../../hooks/useFetch';
 
 // ─── Datos de fallback para cuando la API no tiene registros aún ──────────────
 const MESES_LABELS = [
@@ -49,46 +48,24 @@ const ConsultasLineChart = () => {
   const currentYear = new Date().getFullYear();
 
   const [año, setAño] = useState(currentYear);
-  const [rawData, setRawData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
   const [tooltip, setTooltip] = useState(null); // { x, y, mes, total }
 
-  // ── fetch ──────────────────────────────────────────────────────────────────
-  const fetchData = async (targetYear) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // El endpoint del dashboard_crud: GET /api/v1/reportes/consultas-por-mes?año=XXXX
-      // Si ese endpoint no existe aún, se prueba con el dashboard genérico
-      const res = await fetch(
-        `${API_BASE_URL}/reportes/consultas-por-mes?año=${targetYear}`,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-
-      // Normalizar: la API devuelve [{ mes: "Enero", total_consultas: 5 }, ...]
-      // Completamos los 12 meses aunque no todos tengan datos
-      const mapa = {};
-      json.forEach(item => { mapa[item.mes] = item.total_consultas; });
-
-      const completo = MESES_COMPLETOS.map(mes => ({
-        mes,
-        total_consultas: mapa[mes] ?? 0,
-      }));
-      setRawData(completo);
-    } catch (err) {
-      // Si la API falla, mostramos mensaje pero no datos inventados
-      setError('No se pudo cargar los datos. Verifica que el servidor esté activo.');
-      setRawData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchData(año); }, [año]);
+  // ── carga vía hook reutilizable ──────────────────────────────────────────────
+  // GET /reportes/consultas-por-mes?año=XXXX ; se normaliza a los 12 meses.
+  const { data, loading, error, refetch } = useFetch(
+    `/reportes/consultas-por-mes?año=${año}`,
+    {
+      deps: [año],
+      init: { headers: { 'Content-Type': 'application/json' } },
+      errorMessage: 'No se pudo cargar los datos. Verifica que el servidor esté activo.',
+      transform: (json) => {
+        const mapa = {};
+        json.forEach((item) => { mapa[item.mes] = item.total_consultas; });
+        return MESES_COMPLETOS.map((mes) => ({ mes, total_consultas: mapa[mes] ?? 0 }));
+      },
+    },
+  );
+  const rawData = data ?? [];
 
   // ── Derivados ──────────────────────────────────────────────────────────────
   const points  = rawData.length > 1 ? buildPoints(rawData) : [];
@@ -158,7 +135,7 @@ const ConsultasLineChart = () => {
       {!loading && error && (
         <div style={{ ...styles.estado, ...styles.estadoError }}>
           <p style={styles.estadoTexto}>{error}</p>
-          <button style={styles.retryBtn} onClick={() => fetchData(año)}>
+          <button style={styles.retryBtn} onClick={refetch}>
             Reintentar
           </button>
         </div>

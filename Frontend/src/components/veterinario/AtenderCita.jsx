@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { formatApiError } from '../../utils/apiError';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {
@@ -19,8 +20,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
   const fetchResultadoServicio = async (citaId) => {
     try {
       
-      const response = await fetch(
-        `/api/v1/consultas/resultado_servicio/${citaId}`
+      const response = await apiFetch(
+        `/consultas/resultado_servicio/${citaId}`
       );
       
       if (!response.ok) {
@@ -111,8 +112,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
       if (formData.archivoAdjuntoFile) {
         const fd = new FormData();
         fd.append('archivo', formData.archivoAdjuntoFile);
-        const upRes = await fetch(
-          `/api/v1/consultas/resultado_servicio/${cita.id}/adjunto`,
+        const upRes = await apiFetch(
+          `/consultas/resultado_servicio/${cita.id}/adjunto`,
           { method: 'POST', body: fd }
         );
         if (!upRes.ok) {
@@ -132,8 +133,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
         fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`
       };
 
-      const response = await fetch(
-        `/api/v1/consultas/resultado_servicio/${cita.id}`,
+      const response = await apiFetch(
+        `/consultas/resultado_servicio/${cita.id}`,
         {
           method: 'PUT',
           headers: {
@@ -148,8 +149,8 @@ const AtenderCita = ({ cita, onComplete, onCancel }) => {
         throw new Error(formatApiError(errorBody, 'No se pudo guardar el resultado de la cita'));
       }
 
-      const data = await response.json();
-      
+      await response.json();
+
       toast.success('Cita atendida exitosamente', { title: 'Cita guardada' });
       onComplete();
       

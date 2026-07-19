@@ -1,0 +1,55 @@
+// routes/AppRoutes.jsx
+// Configuración de rutas de la aplicación, separada de App.jsx (que solo monta los
+// providers globales y el Router). Rutas públicas (selección de rol, login) y
+// rutas protegidas por rol vía <ProtectedRoute>.
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import RoleSelection from '../pages/RoleSelection';
+import Login from '../pages/Login';
+import AdminDashboard from '../pages/AdminDashboard';
+import VeterinarioDashboard from '../pages/VeterinarioDashboard';
+import RecepcionistaDashboard from '../pages/RecepcionistaDashboard';
+import ProtectedRoute from '../components/common/ProtectedRoute';
+
+const AppRoutes = () => (
+  <Routes>
+    {/* Ruta inicial - Selección de rol */}
+    <Route path="/" element={<RoleSelection />} />
+
+    {/* Login con parámetro de rol */}
+    <Route path="/login/:role" element={<Login />} />
+
+    {/* Rutas protegidas por rol */}
+    <Route
+      path="/admin"
+      element={
+        <ProtectedRoute allowedRoles={['administrador']}>
+          <AdminDashboard />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/veterinario"
+      element={
+        <ProtectedRoute allowedRoles={['veterinario']}>
+          <VeterinarioDashboard />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/recepcionista"
+      element={
+        <ProtectedRoute allowedRoles={['recepcionista']}>
+          <RecepcionistaDashboard />
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Redirección por defecto para rutas no encontradas */}
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+);
+
+export default AppRoutes;

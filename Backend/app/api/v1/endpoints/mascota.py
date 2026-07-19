@@ -1,19 +1,18 @@
-# app/api/v1/endpoints/mascotas.py (CORREGIDO)
+# app/api/v1/endpoints/mascota.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
 from typing import List
 from app.config.database import get_db
 from app.crud import mascota, cliente
-from app.models import SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal, Raza, Cliente
+from app.crud.catalogo import raza
+from app.queries import mascota_queries
 from app.models.mascota import Mascota
 from app.models.cliente_mascota import ClienteMascota
 from app.schemas import (
     MascotaCreate, MascotaUpdate, MascotaResponse, MascotaSearch
 )
 from app.api.deps import get_mascota_or_404
-from datetime import datetime
 
 router = APIRouter()
 
@@ -23,7 +22,7 @@ async def subir_imagen_mascota(file: UploadFile = File(...), nombre: str = Form(
     """Sube una imagen a Google Drive y devuelve el enlace. `nombre` es el nombre base
     (sin extensión) con el que se guardará el archivo, para identificarlo fácilmente."""
     import os as _os
-    from app.services.drive.drive_uploader import subir_imagen
+    from app.services.storage.drive_oauth import subir_imagen
     if not (file.content_type or '').startswith('image/'):
         raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
     contenido = await file.read()
@@ -57,10 +56,7 @@ async def create_mascota(
         )
 
     # Verificar que la raza existe (SC-037 / F18: debe responder 400, no 500).
-    # Antes se usaba SQL crudo dentro de un try/except que tragaba tanto un posible
-    # error de consulta como el propio HTTPException(400), dejando la validación
-    # muerta: con una raza inexistente la FK fallaba después y devolvía un 500.
-    raza_obj = db.query(Raza).filter(Raza.id_raza == mascota_data.id_raza).first()
+    raza_obj = raza.get(db, mascota_data.id_raza)
     if not raza_obj:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -92,51 +88,9 @@ async def get_mascotas(
     """
     Obtener lista de mascotas con paginación
     """
-    skip = (page - 1) * per_page
-
-    query = db.query(Mascota)
-
-    if sexo:
-        query = query.filter(Mascota.sexo == sexo)
-
-    if id_raza:
-        query = query.filter(Mascota.id_raza == id_raza)
-
-    total = query.count()
-    mascotas = query.offset(skip).limit(per_page).all()
-
-    # Convertir a diccionarios con información adicional
-    result = []
-    for mascota in mascotas:
-        # Buscar cliente asociado
-        cliente_info = None
-        cliente_mascota = db.query(ClienteMascota).filter(
-            ClienteMascota.id_mascota == mascota.id_mascota
-        ).first()
-
-        if cliente_mascota:
-            from app.models.clientes import Cliente
-            cliente = db.query(Cliente).filter(
-                Cliente.id_cliente == cliente_mascota.id_cliente
-            ).first()
-            if cliente:
-                cliente_info = {
-                    "id_cliente": cliente.id_cliente,
-                    "nombre": f"{cliente.nombre} {cliente.apellido_paterno}"
-                }
-
-        result.append({
-            "id_mascota": mascota.id_mascota,
-            "nombre": mascota.nombre,
-            "sexo": mascota.sexo,
-            "color": mascota.color,
-            "edad_anios": mascota.edad_anios,
-            "edad_meses": mascota.edad_meses,
-            "esterilizado": mascota.esterilizado,
-            "imagen": mascota.imagen,
-            "id_raza": mascota.id_raza,
-            "cliente": cliente_info
-        })
+    result, total = mascota_queries.listar_con_cliente_especie(
+        db, page=page, per_page=per_page, sexo=sexo, id_raza=id_raza
+    )
 
     return {
         "mascotas": result,
@@ -172,40 +126,9 @@ async def get_mascota_with_details(
             detail="Mascota no encontrada"
         )
 
-    # Buscar cliente asociado
-    cliente_info = None
-    cliente_mascota = db.query(ClienteMascota).filter(
-        ClienteMascota.id_mascota == mascota_id
-    ).first()
-
-    if cliente_mascota:
-        from app.models.clientes import Cliente
-        cliente = db.query(Cliente).filter(
-            Cliente.id_cliente == cliente_mascota.id_cliente
-        ).first()
-        if cliente:
-            cliente_info = {
-                "id_cliente": cliente.id_cliente,
-                "nombre": cliente.nombre,
-                "apellidos": f"{cliente.apellido_paterno} {cliente.apellido_materno}",
-                "telefono": cliente.telefono,
-                "email": cliente.email
-            }
-
-    # Buscar información de raza
-    raza_info = None
-    try:
-        raza_result = db.execute(
-            "SELECT nombre_raza, especie FROM Raza WHERE id_raza = :id_raza",
-            {"id_raza": mascota_obj.id_raza}
-        ).fetchone()
-        if raza_result:
-            raza_info = {
-                "nombre_raza": raza_result.nombre_raza,
-                "especie": raza_result.especie
-            }
-    except Exception:
-        pass
+    extra = mascota_queries.get_cliente_y_raza(
+        db, mascota_id=mascota_id, id_raza=mascota_obj.id_raza
+    )
 
     return {
         "id_mascota": mascota_obj.id_mascota,
@@ -217,8 +140,8 @@ async def get_mascota_with_details(
         "esterilizado": mascota_obj.esterilizado,
         "imagen": mascota_obj.imagen,
         "id_raza": mascota_obj.id_raza,
-        "cliente": cliente_info,
-        "raza": raza_info
+        "cliente": extra["cliente"],
+        "raza": extra["raza"]
     }
 
 
@@ -238,12 +161,10 @@ async def update_mascota(
             detail="Mascota no encontrada"
         )
 
-    # Validar raza si se está actualizando (SC-037 / F18: mismo patrón que create_mascota,
-    # debe responder 400, no 500). Antes se usaba SQL crudo dentro de un try/except que
-    # tragaba tanto un posible error de consulta como el propio HTTPException(400).
+    # Validar raza si se está actualizando (SC-037 / F18: debe responder 400, no 500).
     update_data = mascota_data.dict(exclude_unset=True)
     if "id_raza" in update_data:
-        raza_obj = db.query(Raza).filter(Raza.id_raza == update_data["id_raza"]).first()
+        raza_obj = raza.get(db, update_data["id_raza"])
         if not raza_obj:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -259,39 +180,23 @@ async def get_mascota_by_id(mascota_id: int, db: Session = Depends(get_db)):
     Obtener los detalles de una mascota específica: nombre, especie, raza, género, color, etc.
     """
     try:
-        # Obtener la mascota por id
-        mascota = db.query(
-            Mascota.id_mascota,
-            Mascota.nombre,
-            Raza.nombre_raza.label('raza'),
-            TipoAnimal.descripcion.label('especie'),
-            Mascota.sexo.label('genero'),
-            Mascota.color,
-            Mascota.edad_anios,
-            Mascota.edad_meses,
-            Mascota.esterilizado,
-            Mascota.imagen
-        ).join(
-            Raza, Mascota.id_raza == Raza.id_raza
-        ).join(
-            TipoAnimal, Raza.id_raza == TipoAnimal.id_raza
-        ).filter(Mascota.id_mascota == mascota_id).first()
+        mascota_row = mascota_queries.get_info(db, mascota_id=mascota_id)
 
-        if not mascota:
+        if not mascota_row:
             raise HTTPException(status_code=404, detail="Mascota no encontrada")
 
         # Formatear la respuesta
         result = {
-            "id_mascota": mascota.id_mascota,
-            "nombre": mascota.nombre,
-            "especie": mascota.especie,
-            "raza": mascota.raza,
-            "genero": mascota.genero,
-            "color": mascota.color,
-            "edad_anios": mascota.edad_anios,
-            "edad_meses": mascota.edad_meses,
-            "esterilizado": mascota.esterilizado,
-            "imagen": mascota.imagen
+            "id_mascota": mascota_row.id_mascota,
+            "nombre": mascota_row.nombre,
+            "especie": mascota_row.especie,
+            "raza": mascota_row.raza,
+            "genero": mascota_row.genero,
+            "color": mascota_row.color,
+            "edad_anios": mascota_row.edad_anios,
+            "edad_meses": mascota_row.edad_meses,
+            "esterilizado": mascota_row.esterilizado,
+            "imagen": mascota_row.imagen
         }
 
         return result
@@ -401,23 +306,7 @@ async def get_proxima_cita_mascota(
     Obtener la próxima cita programada de una mascota específica
     """
     try:
-        # JOIN para obtener la próxima cita (fecha futura más cercana)
-        proxima_cita = db.query(
-            Cita.id_cita,
-            Cita.fecha_hora_programada,
-            Cita.estado_cita,
-            Servicio.nombre_servicio
-        ).join(
-            ServicioSolicitado, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado
-        ).join(
-            Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio
-        ).filter(
-            Cita.id_mascota == mascota_id,
-            Cita.estado_cita == 'Programada',
-            Cita.fecha_hora_programada > datetime.now()  # Solo citas futuras
-        ).order_by(
-            Cita.fecha_hora_programada.asc()  # La más próxima primero
-        ).first()
+        proxima_cita = mascota_queries.get_proxima_cita(db, mascota_id=mascota_id)
 
         if not proxima_cita:
             return {
@@ -452,24 +341,7 @@ async def get_ultima_atencion_mascota(
     Obtener la última atención recibida por una mascota específica
     """
     try:
-        # JOIN para obtener la última solicitud de atención
-        ultima_atencion = db.query(
-            SolicitudAtencion.id_solicitud,
-            SolicitudAtencion.fecha_hora_solicitud,
-            SolicitudAtencion.tipo_solicitud,
-            SolicitudAtencion.estado,
-            func.concat(
-                Recepcionista.nombre, ' ',
-                Recepcionista.apellido_paterno
-            ).label('recepcionista')
-        ).join(
-            Recepcionista, SolicitudAtencion.id_recepcionista == Recepcionista.id_recepcionista
-        ).filter(
-            SolicitudAtencion.id_mascota == mascota_id,
-            SolicitudAtencion.estado.in_(['Completada', 'En atencion'])  # Solo atenciones reales
-        ).order_by(
-            SolicitudAtencion.fecha_hora_solicitud.desc()  # La más reciente primero
-        ).first()
+        ultima_atencion = mascota_queries.get_ultima_atencion(db, mascota_id=mascota_id)
 
         if not ultima_atencion:
             return {
@@ -500,31 +372,12 @@ async def get_ultima_atencion_mascota(
 @router.get("/mascota_cliente_servicio/{id_mascota}", response_model=List[dict])
 async def get_mascota_cliente_servicio(id_mascota: int, db: Session = Depends(get_db)):
     try:
-        # Realizamos la consulta con los JOIN correctos
-        result = db.query(Mascota, Cliente, Servicio, ServicioSolicitado) \
-            .join(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota) \
-            .join(Cliente, ClienteMascota.id_cliente == Cliente.id_cliente) \
-            .join(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Mascota.id_mascota) \
-            .join(Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio) \
-            .filter(Mascota.id_mascota == id_mascota) \
-            .all()
+        data = mascota_queries.get_cliente_servicio(db, id_mascota=id_mascota)
 
-        if not result:
+        if not data:
             raise HTTPException(status_code=404, detail="Mascota no encontrada o no tiene servicios asociados")
 
-        # Procesamos y devolvemos la respuesta mapeada en el formato deseado
-        return [
-            {
-                "id_mascota": m.id_mascota,
-                "nombre_mascota": m.nombre,
-                "id_cliente": c.id_cliente,
-                "nombre_cliente": f"{c.nombre} {c.apellido_paterno} {c.apellido_materno}",
-                "id_servicio_solicitado": ss.id_servicio_solicitado if ss else None,  # Manejo de NULL
-                "nombre_servicio": s.nombre_servicio if s else None,  # Nombre del servicio
-                "id_servicio": s.id_servicio if s else None,  # ID del servicio
-            }
-            for m, c, s, ss in result
-        ]
+        return data
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener datos: {str(e)}")

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import '../veterinario/HistorialClinico.css';
 import '../cronograma/Cronograma.css';
 import CronogramaSemana from '../cronograma/CronogramaSemana';
@@ -29,13 +30,13 @@ const CronogramaManagement = ({ config = CONFIG_VET }) => {
   const [excForm, setExcForm] = useState({ id: '', fecha: hoyISO(), trabaja: true, turno: 'Mañana' });
 
   const cargarPersonas = async () => {
-    const r = await fetch(personUrl);
+    const r = await apiFetch(personUrl);
     const d = await r.json();
     setPersonas(d[personArrayKey] || []);
   };
-  const cargarRecurrentes = async () => setRecurrentes(await (await fetch(`${base}/recurrente`)).json());
-  const cargarExcepciones = async () => setExcepciones(await (await fetch(`${base}/excepcion`)).json());
-  const cargarRoster = async (f) => setRoster(await (await fetch(`${base}/dia/${f}`)).json());
+  const cargarRecurrentes = async () => setRecurrentes(await (await apiFetch(`${base}/recurrente`)).json());
+  const cargarExcepciones = async () => setExcepciones(await (await apiFetch(`${base}/excepcion`)).json());
+  const cargarRoster = async (f) => setRoster(await (await apiFetch(`${base}/dia/${f}`)).json());
 
   useEffect(() => {
     cargarPersonas(); cargarRecurrentes(); cargarExcepciones();
@@ -44,7 +45,7 @@ const CronogramaManagement = ({ config = CONFIG_VET }) => {
   useEffect(() => { cargarRoster(rosterFecha); /* eslint-disable-line */ }, [rosterFecha, base]);
 
   const post = async (url, body) => {
-    const r = await fetch(url, {
+    const r = await apiFetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
     if (!r.ok) {
@@ -79,7 +80,7 @@ const CronogramaManagement = ({ config = CONFIG_VET }) => {
   };
 
   const borrar = async (url, recargar) => {
-    await fetch(url, { method: 'DELETE' });
+    await apiFetch(url, { method: 'DELETE' });
     await recargar(); await cargarRoster(rosterFecha);
   };
 

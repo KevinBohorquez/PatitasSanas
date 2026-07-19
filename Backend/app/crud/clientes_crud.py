@@ -8,6 +8,18 @@ from app.schemas.clientes_schema import ClienteCreate, ClienteUpdate, ClienteSea
 
 class CRUDCliente(CRUDBase[Cliente, ClienteCreate, ClienteUpdate]):
 
+    def get_paginated(self, db: Session, *, skip: int = 0, limit: int = 20,
+                      estado: Optional[str] = None, genero: Optional[str] = None) -> Tuple[List[Cliente], int]:
+        """Listar clientes con filtros opcionales (estado, género) y paginación."""
+        query = db.query(Cliente)
+        if estado:
+            query = query.filter(Cliente.estado == estado)
+        if genero:
+            query = query.filter(Cliente.genero == genero)
+        total = query.count()
+        items = query.offset(skip).limit(limit).all()
+        return items, total
+
     def get_by_dni(self, db: Session, *, dni: str) -> Optional[Cliente]:
         """Obtener cliente por DNI"""
         return db.query(Cliente).filter(Cliente.dni == dni).first()
@@ -67,18 +79,6 @@ class CRUDCliente(CRUDBase[Cliente, ClienteCreate, ClienteUpdate]):
         if exclude_id:
             query = query.filter(Cliente.id_cliente != exclude_id)
         return query.first() is not None
-
-    def get_clientes_with_mascotas_count(self, db: Session) -> List[dict]:
-        """Obtener clientes con conteo de mascotas"""
-        from app.models.mascota import Mascota
-        return db.query(
-            Cliente.id_cliente,
-            Cliente.nombre,
-            Cliente.apellido_paterno,
-            Cliente.email,
-            Cliente.genero,  # Incluir género en la consulta
-            db.func.count(Mascota.id_mascota).label('total_mascotas')
-        ).outerjoin(Mascota).group_by(Cliente.id_cliente).all()
 
     def get_clientes_by_genero(self, db: Session, *, genero: str) -> List[Cliente]:
         """Obtener clientes filtrados por género"""

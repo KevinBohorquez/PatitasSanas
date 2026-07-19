@@ -1,7 +1,8 @@
 import pytest
 from sqlalchemy.sql.elements import TextClause
 
-from main import get_cors_origins, health_check
+from main import get_cors_origins
+from app.api.v1.endpoints.system import health_check
 
 
 def test_get_cors_origins_usa_variable_entorno(monkeypatch):
