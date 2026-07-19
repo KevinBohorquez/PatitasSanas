@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { formatApiError } from '../../utils/apiError';
 
 const AtenderCita = ({ cita, onComplete, onCancel }) => {

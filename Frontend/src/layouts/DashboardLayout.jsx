@@ -4,7 +4,7 @@
 // dashboards; ahora cada uno solo aporta sus items de menú, el nombre a mostrar y
 // el contenido de la vista activa.
 import React from 'react';
-import AppBar from '../components/common/AppBar/AppBar';
+import AppBar from '../components/ui/AppBar/AppBar';
 import Sidebar from '../components/common/Sidebar';
 import '../styles/Dashboard.css';
 

@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal/Modal';
+import Modal from '../ui/Modal/Modal';
 import './ServicesManagement.css';
 import { toast } from '../../utils/toast';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const ServicesManagement = () => {

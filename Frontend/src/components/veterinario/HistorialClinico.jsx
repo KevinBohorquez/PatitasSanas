@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './HistorialClinico.css';
-import Loader from '../common/Loader/Loader';
-import EmptyState from '../common/EmptyState/EmptyState';
+import Loader from '../ui/Loader/Loader';
+import EmptyState from '../ui/EmptyState/EmptyState';
 import { useFetch } from '../../hooks/useFetch';
 
 const HistorialClinicoModal = ({ isOpen, mascotaId, onClose }) => {

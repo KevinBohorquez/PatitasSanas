@@ -1,6 +1,6 @@
 // src/components/admin/ConsultasLineChart.jsx
 import React, { useState } from 'react';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { useFetch } from '../../hooks/useFetch';
 
 // ─── Datos de fallback para cuando la API no tiene registros aún ──────────────

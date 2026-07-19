@@ -1,4 +1,4 @@
-// components/common/AppBar.jsx
+// components/ui/AppBar.jsx
 import React from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import './AppBar.css';

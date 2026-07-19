@@ -1,4 +1,4 @@
-// components/common/EmptyState/EmptyState.jsx
+// components/ui/EmptyState/EmptyState.jsx
 // Estado vacío con la mascota de PatitasSanas (gatito durmiendo).
 // Uso:  <EmptyState title="Sin solicitudes" message="No hay solicitudes pendientes." />
 import emptyCat from '../../../assets/mascots/empty.webp';

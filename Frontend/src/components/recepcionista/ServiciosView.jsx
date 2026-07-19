@@ -4,7 +4,7 @@ import Table from '../common/Table';
 import './ServiciosView.css';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ServiciosView = () => {
   const [servicios, setServicios] = useState([]);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ModificarServicio = ({ consultaId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({

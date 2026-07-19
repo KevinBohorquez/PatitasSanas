@@ -1,4 +1,4 @@
-// components/common/ConfirmDialog/ConfirmDialog.jsx
+// components/ui/ConfirmDialog/ConfirmDialog.jsx
 // Diálogo de confirmación con mascota de PatitasSanas. Reemplaza a window.confirm().
 import { useEffect, useRef } from 'react';
 import confirmCat from '../../../assets/mascots/confirm.webp';

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import './Reportes.css';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const Reportes = () => {
   const [loading, setLoading] = useState(true);

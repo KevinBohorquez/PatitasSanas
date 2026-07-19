@@ -1,13 +1,13 @@
 // components/veterinario/FichaConsulta.jsx
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
-import Modal from '../common/Modal/Modal';
+import Modal from '../ui/Modal/Modal';
 import ModificarDiagnostico from './ModificarDiagnostico';
 import ModificarServicio from './ModificarServicio';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 
 const FichaConsulta = ({ solicitud, onComplete, onCancel }) => {

@@ -8,7 +8,7 @@ import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
 import SpeciesPieChart from '../common/SpeciesPieChart';
 import KPICards from '../common/KPICards';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';

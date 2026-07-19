@@ -1,4 +1,4 @@
-// components/common/Loader/Loader.jsx
+// components/ui/Loader/Loader.jsx
 // Indicador de carga con la mascota de PatitasSanas (perrito corriendo animado).
 //
 // Uso:
