@@ -110,9 +110,11 @@ const CitasManagement = () => {
     }
   };
 
+  // Mascotas con su dueño ya enriquecidas por el backend (1 sola petición en vez de
+  // 1 + N a /catalogos/cliente-mascota/mascota/{id}).
   const fetchMascotas = async () => {
     try {
-      const response = await apiFetch(`${BASE_URL}/mascotas/`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/selector`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -122,39 +124,7 @@ const CitasManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        const mascotasData = data.mascotas || data;
-        
-        const mascotasConDueño = await Promise.all(
-          mascotasData.map(async (mascota) => {
-            try {
-              const clienteResponse = await apiFetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
-                method: 'GET',
-                mode: 'cors',
-                headers: { 'Accept': 'application/json' },
-              });
-              
-              let nombreDueño = 'Sin dueño';
-              if (clienteResponse.ok) {
-                const clienteData = await clienteResponse.json();
-                if (clienteData.clientes && clienteData.clientes.length > 0) {
-                  nombreDueño = clienteData.clientes[0].nombre_completo;
-                }
-              }
-              
-              return {
-                ...mascota,
-                nombre_dueño: nombreDueño
-              };
-            } catch {
-              return {
-                ...mascota,
-                nombre_dueño: 'Error'
-              };
-            }
-          })
-        );
-        
-        setMascotas(mascotasConDueño);
+        setMascotas(data.mascotas || []);
       }
     } catch (error) {
       console.error('Error al cargar mascotas:', error);

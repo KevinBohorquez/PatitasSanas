@@ -150,6 +150,50 @@ def listar_enriquecidas(
     return items, total
 
 
+def listar_para_selector(db: Session) -> List[dict]:
+    """
+    Todas las mascotas con su especie y su dueño principal (cliente de menor id_cliente),
+    resueltas en UNA sola consulta con JOINs. Alimenta los selectores "Mascota (Dueño)" de
+    los formularios de Nueva Solicitud / Nueva Cita, reemplazando el patrón N+1 del front
+    (1 fetch a /catalogos/cliente-mascota/mascota/{id} por mascota).
+    """
+    # Cliente principal por mascota = el de menor id_cliente asociado.
+    cp = (
+        db.query(
+            ClienteMascota.id_mascota.label("id_mascota"),
+            func.min(ClienteMascota.id_cliente).label("id_cliente"),
+        )
+        .group_by(ClienteMascota.id_mascota)
+        .subquery()
+    )
+
+    rows = (
+        db.query(
+            Mascota.id_mascota,
+            Mascota.nombre,
+            TipoAnimal.descripcion.label("especie"),
+            func.concat_ws(
+                " ", Cliente.nombre, Cliente.apellido_paterno, Cliente.apellido_materno
+            ).label("nombre_dueno"),
+        )
+        .outerjoin(TipoAnimal, TipoAnimal.id_raza == Mascota.id_raza)
+        .outerjoin(cp, cp.c.id_mascota == Mascota.id_mascota)
+        .outerjoin(Cliente, Cliente.id_cliente == cp.c.id_cliente)
+        .order_by(Mascota.nombre)
+        .all()
+    )
+
+    return [
+        {
+            "id_mascota": r.id_mascota,
+            "nombre": r.nombre,
+            "especie": r.especie,
+            "nombre_dueño": r.nombre_dueno or "Sin dueño asignado",
+        }
+        for r in rows
+    ]
+
+
 def get_cliente_y_raza(db: Session, *, mascota_id: int, id_raza: int) -> dict:
     """Cliente principal y datos de raza de una mascota (para el detalle)."""
     cliente_info = None

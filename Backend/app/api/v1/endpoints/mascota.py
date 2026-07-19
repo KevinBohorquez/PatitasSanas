@@ -133,6 +133,27 @@ async def get_mascotas_enriquecidas(
         )
 
 
+@router.get("/selector")
+async def get_mascotas_selector(db: Session = Depends(get_db)):
+    """
+    Todas las mascotas con su especie y dueño principal, en UNA sola consulta, para los
+    selectores "Mascota (Dueño)" de los formularios de Nueva Solicitud / Nueva Cita.
+
+    Reemplaza el patrón N+1 del front (1 fetch a /catalogos/cliente-mascota/mascota/{id}
+    por mascota → ~N peticiones por apertura del formulario).
+
+    IMPORTANTE: debe declararse ANTES de "/{mascota_id}" para que FastAPI no intente
+    parsear "selector" como un id (causaría un 422).
+    """
+    try:
+        return {"mascotas": mascota_queries.listar_para_selector(db)}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener mascotas para selector: {str(e)}"
+        )
+
+
 @router.get("/{mascota_id}", response_model=MascotaResponse)
 async def get_mascota(
         mascota_obj: Mascota = Depends(get_mascota_or_404)
