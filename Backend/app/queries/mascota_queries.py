@@ -12,7 +12,7 @@ from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.models import (
-    SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal,
+    SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal, Raza,
 )
 from app.models.mascota import Mascota
 from app.models.cliente_mascota import ClienteMascota
@@ -76,6 +76,78 @@ def listar_con_cliente_especie(
         })
 
     return result, total
+
+
+def listar_enriquecidas(
+    db: Session, *, page: int = 1, per_page: int = 20
+) -> Tuple[List[dict], int]:
+    """
+    Mascotas paginadas con especie, raza, próxima cita y última atención resueltas en
+    UNA sola consulta con JOINs/subconsultas. Reemplaza el patrón N+1 del frontend
+    (1 + N*3 peticiones: /info, /proxima-cita y /ultima-atencion por mascota) en el
+    listado del veterinario. Devuelve (items, total).
+    """
+    now = datetime.now()
+
+    # Próxima cita por mascota: la fecha programada futura más cercana.
+    pc = (
+        db.query(
+            Cita.id_mascota.label("id_mascota"),
+            func.min(Cita.fecha_hora_programada).label("proxima_cita"),
+        )
+        .filter(Cita.estado_cita == "Programada", Cita.fecha_hora_programada > now)
+        .group_by(Cita.id_mascota)
+        .subquery()
+    )
+
+    # Última atención por mascota: la solicitud real (completada/en atención) más reciente.
+    ua = (
+        db.query(
+            SolicitudAtencion.id_mascota.label("id_mascota"),
+            func.max(SolicitudAtencion.fecha_hora_solicitud).label("ultima_atencion"),
+        )
+        .filter(SolicitudAtencion.estado.in_(["Completada", "En atencion"]))
+        .group_by(SolicitudAtencion.id_mascota)
+        .subquery()
+    )
+
+    query = (
+        db.query(
+            Mascota.id_mascota,
+            Mascota.nombre,
+            Mascota.sexo,
+            Mascota.color,
+            TipoAnimal.descripcion.label("especie"),
+            Raza.nombre_raza.label("raza"),
+            pc.c.proxima_cita,
+            ua.c.ultima_atencion,
+        )
+        .outerjoin(Raza, Raza.id_raza == Mascota.id_raza)
+        .outerjoin(TipoAnimal, TipoAnimal.id_raza == Mascota.id_raza)
+        .outerjoin(pc, pc.c.id_mascota == Mascota.id_mascota)
+        .outerjoin(ua, ua.c.id_mascota == Mascota.id_mascota)
+        .order_by(Mascota.id_mascota)
+    )
+
+    total = db.query(func.count(Mascota.id_mascota)).scalar()
+
+    rows = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    items = [
+        {
+            "id_mascota": r.id_mascota,
+            "nombre": r.nombre,
+            "sexo": r.sexo,
+            "color": r.color,
+            "especie": r.especie,
+            "raza": r.raza,
+            "proxima_cita": r.proxima_cita,
+            "ultima_atencion": r.ultima_atencion,
+        }
+        for r in rows
+    ]
+
+    return items, total
 
 
 def get_cliente_y_raza(db: Session, *, mascota_id: int, id_raza: int) -> dict:

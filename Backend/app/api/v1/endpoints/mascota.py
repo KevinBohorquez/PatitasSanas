@@ -101,6 +101,38 @@ async def get_mascotas(
     }
 
 
+@router.get("/enriquecidas")
+async def get_mascotas_enriquecidas(
+        db: Session = Depends(get_db),
+        page: int = Query(1, ge=1, description="Número de página"),
+        per_page: int = Query(20, ge=1, le=100, description="Elementos por página")
+):
+    """
+    Listado de mascotas ya enriquecido (especie, raza, próxima cita y última atención)
+    resuelto en UNA sola consulta con JOINs, paginado en el servidor.
+
+    Reemplaza el patrón N+1 del listado del veterinario (1 + N*3 peticiones HTTP por
+    fila: /info, /proxima-cita y /ultima-atencion) por una única respuesta.
+
+    IMPORTANTE: debe declararse ANTES de "/{mascota_id}" para que FastAPI no intente
+    parsear "enriquecidas" como un id (causaría un 422).
+    """
+    try:
+        mascotas, total = mascota_queries.listar_enriquecidas(db, page=page, per_page=per_page)
+        return {
+            "mascotas": mascotas,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener mascotas enriquecidas: {str(e)}"
+        )
+
+
 @router.get("/{mascota_id}", response_model=MascotaResponse)
 async def get_mascota(
         mascota_obj: Mascota = Depends(get_mascota_or_404)
