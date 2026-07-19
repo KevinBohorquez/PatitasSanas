@@ -14,6 +14,10 @@ class CRUDMovimientoFinanciero(CRUDBase[MovimientoFinanciero, MovimientoFinancie
     def get(self, db: Session, id: int) -> Optional[MovimientoFinanciero]:
         return db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_movimiento == id).first()
 
+    def get_by_cita(self, db: Session, *, cita_id: int) -> Optional[MovimientoFinanciero]:
+        """Obtener el movimiento financiero asociado a una cita"""
+        return db.query(MovimientoFinanciero).filter(MovimientoFinanciero.id_cita == cita_id).first()
+
     def get_by_tipo(self, db: Session, *, tipo: str) -> List[MovimientoFinanciero]:
         return db.query(MovimientoFinanciero).filter(MovimientoFinanciero.tipo == tipo)\
             .order_by(desc(MovimientoFinanciero.fecha_movimiento)).all()

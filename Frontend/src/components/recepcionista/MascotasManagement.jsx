@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './MascotasManagement.css';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const MascotasManagement = () => {
@@ -53,7 +54,7 @@ const MascotasManagement = () => {
     const fd = new FormData();
     fd.append('file', imagenFile);
     fd.append('nombre', nombre);
-    const res = await fetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
+    const res = await apiFetch(`${BASE_URL}/mascotas/imagen`, { method: 'POST', body: fd });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || 'Error al subir la imagen');
@@ -74,7 +75,7 @@ const MascotasManagement = () => {
     tipo_animal: '' 
   });
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Cargar datos 
   useEffect(() => {
@@ -127,7 +128,7 @@ const MascotasManagement = () => {
     try {
       // SC-019 / F25: pedir hasta el máximo del backend para no truncar el listado
       // a la primera página (se pagina en el cliente sobre los resultados filtrados).
-      const response = await fetch(`${BASE_URL}/mascotas/?per_page=100`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -162,7 +163,7 @@ const MascotasManagement = () => {
     try {
       // SC-059 / F43: pedir todos los clientes (el default del backend pagina a
       // 20, dejando fuera del dropdown de "dueño" a los clientes recién creados).
-      const response = await fetch(`${BASE_URL}/clientes/?per_page=100`, {
+      const response = await apiFetch(`${BASE_URL}/clientes/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -185,7 +186,7 @@ const MascotasManagement = () => {
   // Obtener todas las razas
   const fetchRazas = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/razas/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/razas/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -211,7 +212,7 @@ const MascotasManagement = () => {
   // Obtener todos los tipos de animal
   const fetchTiposAnimal = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/tipos-animal/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/tipos-animal/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -234,7 +235,7 @@ const MascotasManagement = () => {
   // Obtener detalles del cliente de una mascota
   const fetchClienteDetails = async (clienteId) => {
     try {
-      const response = await fetch(`${BASE_URL}/clientes/${clienteId}`, {
+      const response = await apiFetch(`${BASE_URL}/clientes/${clienteId}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -316,7 +317,7 @@ const MascotasManagement = () => {
     if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar a la mascota ${mascota.nombre}?` }))) {
       setLoading(true);
       try {
-        const response = await fetch(`${BASE_URL}/mascotas/${mascota.id_mascota}`, {
+        const response = await apiFetch(`${BASE_URL}/mascotas/${mascota.id_mascota}`, {
           method: 'DELETE',
           mode: 'cors',
           headers: {
@@ -464,7 +465,7 @@ const MascotasManagement = () => {
 
       // Petición sin imagen
 
-      let response = await fetch(url, {
+      let response = await apiFetch(url, {
         method: method,
         mode: 'cors',
         headers: {
@@ -496,7 +497,7 @@ const MascotasManagement = () => {
             const updateUrl = modalType === 'add'
               ? `${BASE_URL}/mascotas/${responseData.id_mascota}?cliente_id=${formData.id_cliente}`
               : url;
-            const imageResponse = await fetch(updateUrl, {
+            const imageResponse = await apiFetch(updateUrl, {
               method: 'PUT',
               mode: 'cors',
               headers: {

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../../api/client';
 import './BalanceFinanciero.css';
 
-const API_BASE_URL = '/api/v1/movimientos-financieros';
+const API_BASE_URL = '/movimientos-financieros';
 
 const BalanceFinanciero = () => {
   const [fechaDesde, setFechaDesde] = useState('');
@@ -25,7 +26,7 @@ const BalanceFinanciero = () => {
       setLoading(true);
       setError(null);
       const url = `${API_BASE_URL}/resumen?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       if (!response.ok) throw new Error('Error al obtener el balance');
       const data = await response.json();
       setResumen(data);

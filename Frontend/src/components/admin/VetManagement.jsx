@@ -1,10 +1,11 @@
 // src/components/admin/VetManagement.jsx - MEJORADO CON VISTA Y DISEÑO CONSISTENTE
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './VetManagement.css';
 import { toast } from '../../utils/toast';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const VetManagement = () => {
@@ -43,7 +44,7 @@ const VetManagement = () => {
   const [formErrors, setFormErrors] = useState({});
 
   // URL base de tu backend
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   // Función para determinar el tipo de veterinario según la especialidad
   const getTipoVeterinario = (idEspecialidad) => {
@@ -73,7 +74,7 @@ const VetManagement = () => {
   // Función para crear usuario base
   const createUser = async (userData) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +98,7 @@ const VetManagement = () => {
   // Función para crear veterinario (requiere id_usuario)
   const createVeterinario = async (vetData) => {
     try {
-      const response = await fetch(`${BASE_URL}/veterinarios/`, {
+      const response = await apiFetch(`${BASE_URL}/veterinarios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +188,7 @@ const VetManagement = () => {
   // Función para actualizar veterinario
   const updateVeterinario = async (vetId, vetData) => {
     try {
-      const response = await fetch(`${BASE_URL}/veterinarios/${vetId}`, {
+      const response = await apiFetch(`${BASE_URL}/veterinarios/${vetId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +212,7 @@ const VetManagement = () => {
   // Función para actualizar usuario (username)
   const updateUser = async (userId, userData) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +236,7 @@ const VetManagement = () => {
   // Función para cambiar contraseña (usando endpoint de usuarios)
   const changePassword = async (userId, newPassword) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}/reset-password`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}/reset-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +262,7 @@ const VetManagement = () => {
   // Función para desactivar usuario (soft delete)
   const deactivateUser = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}/deactivate`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}/deactivate`, {
         method: 'PATCH'
       });
 
@@ -280,7 +281,7 @@ const VetManagement = () => {
   // Función para activar usuario (revertir desactivación)
   const activateUser = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}/activate`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}/activate`, {
         method: 'PATCH'
       });
 
@@ -299,7 +300,7 @@ const VetManagement = () => {
   // Función para eliminar usuario (usada para revertir creación si falla el paso 2)
   const deleteUser = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'DELETE'
       });
 
@@ -318,7 +319,7 @@ const VetManagement = () => {
   // Función para obtener información de usuario
   const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -341,7 +342,7 @@ const VetManagement = () => {
   // Función para obtener especialidades
   const fetchEspecialidades = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/catalogos/especialidades/`, {
+      const response = await apiFetch(`${BASE_URL}/catalogos/especialidades/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -373,7 +374,7 @@ const VetManagement = () => {
         url += `&turno=${turno}`;
       }
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

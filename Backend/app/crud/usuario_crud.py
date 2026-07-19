@@ -17,6 +17,21 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
         """Obtener usuario por ID - override para especificar campo correcto"""
         return db.query(Usuario).filter(Usuario.id_usuario == id).first()
 
+    def get_paginated(self, db: Session, *, skip: int = 0, limit: int = 20,
+                      tipo_usuario: Optional[str] = None, estado: Optional[str] = None,
+                      activos_solo: bool = False) -> Tuple[List[Usuario], int]:
+        """Listar usuarios con filtros opcionales y paginación (orden por fecha_creacion desc)."""
+        query = db.query(Usuario)
+        if tipo_usuario:
+            query = query.filter(Usuario.tipo_usuario == tipo_usuario)
+        if estado:
+            query = query.filter(Usuario.estado == estado)
+        elif activos_solo:
+            query = query.filter(Usuario.estado == "Activo")
+        total = query.count()
+        items = query.order_by(Usuario.fecha_creacion.desc()).offset(skip).limit(limit).all()
+        return items, total
+
     def get_by_username(self, db: Session, *, username: str) -> Optional[Usuario]:
         """Obtener usuario por username"""
         return db.query(Usuario).filter(Usuario.username == username).first()

@@ -2,7 +2,7 @@
 // Monta el diálogo de confirmación y registra su handler en el singleton utils/confirm.js.
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import ConfirmDialog from '../components/common/ConfirmDialog/ConfirmDialog';
+import ConfirmDialog from '../components/ui/ConfirmDialog/ConfirmDialog';
 import { _bindConfirm } from '../utils/confirm';
 
 export function ConfirmProvider({ children }) {

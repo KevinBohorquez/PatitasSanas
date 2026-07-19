@@ -2,12 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
-from sqlalchemy import text
 from starlette import status
 
 from app.config.database import get_db
+from app.crud.consulta import servicio_solicitado as ss_crud, consulta as consulta_crud
+from app.crud.catalogo import servicio as servicio_crud
+from app.crud.veterinario_crud import veterinario as veterinario_crud
+from app.crud.usuario_crud import usuario as usuario_crud
+from app.queries import mascota_queries
 
-from app.models import Cita, ServicioSolicitado, Servicio, Consulta, Veterinario, ResultadoServicio, Usuario
+from app.models import Cita, ServicioSolicitado, ResultadoServicio
 
 from app.schemas.consulta_schema import (
     ServicioSolicitadoUpdate, ServicioSolicitadoResponse, ServicioCitaCreate
@@ -21,7 +25,7 @@ async def get_servicios_solicitados(db: Session = Depends(get_db)):
     Obtener todos los servicios solicitados
     """
     try:
-        servicios = db.query(ServicioSolicitado).all()
+        servicios = ss_crud.get_all(db)
         return servicios
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener servicios solicitados: {str(e)}")
@@ -35,9 +39,7 @@ async def get_servicios_solicitados_pendientes(db: Session = Depends(get_db)):
     Equivale a: SELECT * FROM Cita c INNER JOIN Servicio_Solicitado ON c.id_servicio_solicitado = Servicio_Solicitado.id_servicio_solicitado
     """
     try:
-        servicios_con_cita = db.query(ServicioSolicitado) \
-            .join(Cita, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
-            .all()
+        servicios_con_cita = ss_crud.get_con_cita(db)
 
         return servicios_con_cita
 
@@ -52,10 +54,7 @@ async def get_servicio_solicitado_pendiente_por_id(id_servicio_solicitado: int, 
     Obtener un servicio solicitado específico que tenga cita asociada
     """
     try:
-        servicio_con_cita = db.query(ServicioSolicitado) \
-            .join(Cita, Cita.id_servicio_solicitado == ServicioSolicitado.id_servicio_solicitado) \
-            .filter(ServicioSolicitado.id_servicio_solicitado == id_servicio_solicitado) \
-            .first()
+        servicio_con_cita = ss_crud.get_con_cita_by_id(db, id_servicio_solicitado=id_servicio_solicitado)
 
         if not servicio_con_cita:
             raise HTTPException(
@@ -76,7 +75,7 @@ async def update_servicio_solicitado(id_servicio_solicitado: int, servicio_solic
     Actualizar un servicio solicitado
     """
     try:
-        servicio = db.query(ServicioSolicitado).filter(ServicioSolicitado.id_servicio_solicitado == id_servicio_solicitado).first()
+        servicio = ss_crud.get(db, id_servicio_solicitado)
 
         if not servicio:
             raise HTTPException(status_code=404, detail="Servicio solicitado no encontrado")
@@ -106,7 +105,7 @@ async def create_servicio_cita(
     """
     try:
         # Verificar que la consulta existe
-        consulta_obj = db.query(Consulta).filter(Consulta.id_consulta == consulta_id).first()
+        consulta_obj = consulta_crud.get(db, consulta_id)
         if not consulta_obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -114,20 +113,15 @@ async def create_servicio_cita(
             )
 
         # Verificar que el servicio existe y está activo
-        servicio_obj = db.query(Servicio).filter(
-            Servicio.id_servicio == request_data.id_servicio,
-            Servicio.activo == True
-        ).first()
-        if not servicio_obj:
+        servicio_obj = servicio_crud.get(db, request_data.id_servicio)
+        if not servicio_obj or not servicio_obj.activo:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Servicio no encontrado o inactivo"
             )
 
         # Verificar que el veterinario existe
-        veterinario_obj = db.query(Veterinario).filter(
-            Veterinario.id_veterinario == request_data.id_veterinario
-        ).first()
+        veterinario_obj = veterinario_crud.get(db, request_data.id_veterinario)
         if not veterinario_obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -136,9 +130,7 @@ async def create_servicio_cita(
 
         # Verificar que el veterinario esté activo (RF-009 / CP-S1-13, CP-S1-14)
         # El estado Activo/Inactivo vive en Usuario, no en Veterinario
-        usuario_obj = db.query(Usuario).filter(
-            Usuario.id_usuario == veterinario_obj.id_usuario
-        ).first()
+        usuario_obj = usuario_crud.get(db, veterinario_obj.id_usuario)
         if not usuario_obj or usuario_obj.estado != "Activo":
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -146,24 +138,13 @@ async def create_servicio_cita(
             )
 
         # Obtener id_mascota a través de joins: Consulta -> Triaje -> Solicitud_atencion -> Mascota
-        result = db.execute(
-            text("""
-            SELECT sa.id_mascota 
-            FROM Consulta c
-            JOIN Triaje t ON c.id_triaje = t.id_triaje
-            JOIN Solicitud_atencion sa ON t.id_solicitud = sa.id_solicitud
-            WHERE c.id_consulta = :consulta_id
-            """),
-            {"consulta_id": consulta_id}
-        ).fetchone()
+        id_mascota = mascota_queries.get_id_mascota_de_consulta(db, consulta_id=consulta_id)
 
-        if not result:
+        if id_mascota is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No se pudo obtener la mascota asociada a la consulta"
             )
-
-        id_mascota = result[0]
 
         # Crear el diccionario para Servicio_Solicitado
         servicio_solicitado_dict = {

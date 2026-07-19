@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Cronograma.css';
 import { CONFIG_VET } from './cronogramaConfig';
+import { useFetch } from '../../hooks/useFetch';
 
 const TURNOS = ['Mañana', 'Tarde', 'Noche', 'Madrugada'];
 const hoyISO = () => new Date().toISOString().slice(0, 10);
@@ -12,20 +13,10 @@ const fmt = (iso) => {
 // Grilla semanal Lunes-Domingo: turnos en filas, días en columnas.
 const CronogramaSemana = ({ config = CONFIG_VET }) => {
   const [fecha, setFecha] = useState(hoyISO());
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true); setError(null);
-        const r = await fetch(`${config.base}/semana/${fecha}`);
-        if (!r.ok) throw new Error('No se pudo cargar la semana');
-        setData(await r.json());
-      } catch (e) { setError(e.message); } finally { setLoading(false); }
-    })();
-  }, [fecha, config.base]);
+  const { data, loading, error } = useFetch(`${config.base}/semana/${fecha}`, {
+    deps: [fecha, config.base],
+    errorMessage: 'No se pudo cargar la semana',
+  });
 
   const cambiarSemana = (dias) => {
     const d = new Date(fecha + 'T00:00:00');

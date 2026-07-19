@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import EmptyState from './EmptyState/EmptyState';
+import EmptyState from '../ui/EmptyState/EmptyState';
 import '../../styles/Dashboard.css';
 
 const Table = ({ columns, data, actions, emptyMessage = "No hay datos disponibles", mobileTitle }) => {

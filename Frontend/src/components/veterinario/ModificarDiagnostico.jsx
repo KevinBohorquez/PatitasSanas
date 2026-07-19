@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
   useEffect(() => {
     const fetchDiagnosticoInfo = async () => {
       try {
-        const response = await fetch(`/api/v1/consultas/diagnostico/${diagnosticoId}/info`);
+        const response = await apiFetch(`/consultas/diagnostico/${diagnosticoId}/info`);
         
         if (response.ok) {
           const data = await response.json();
@@ -101,8 +102,8 @@ const ModificarDiagnostico = ({ diagnosticoId, onSave, onCancel }) => {
       };
 
 
-      const response = await fetch(
-        `/api/v1/consultas/diagnostico/${diagnosticoId}/completo`,
+      const response = await apiFetch(
+        `/consultas/diagnostico/${diagnosticoId}/completo`,
         {
           method: 'PUT',
           headers: {

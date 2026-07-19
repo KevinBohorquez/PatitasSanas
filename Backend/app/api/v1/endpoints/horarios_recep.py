@@ -8,10 +8,11 @@ from datetime import date, timedelta
 import calendar as _calendar
 
 from app.config.database import get_db
+from app.crud.horario_crud import horario_recepcionista, horario_excepcion_recep
+from app.queries import horario_queries
 from app.models.horario_recepcionista import HorarioRecepcionista
 from app.models.horario_excepcion_recep import HorarioExcepcionRecep
 from app.models.recepcionista import Recepcionista
-from app.models.usuario import Usuario
 
 router = APIRouter()
 
@@ -32,21 +33,6 @@ class ExcepcionCreate(BaseModel):
     trabaja: bool = True
 
 
-def _info_receps(db: Session, ids):
-    if not ids:
-        return {}
-    rows = db.query(Recepcionista, Usuario.estado) \
-        .outerjoin(Usuario, Usuario.id_usuario == Recepcionista.id_usuario) \
-        .filter(Recepcionista.id_recepcionista.in_(ids)).all()
-    return {
-        r.id_recepcionista: {
-            "nombre": f"{r.nombre} {r.apellido_paterno}".strip(),
-            "estado": est,
-        }
-        for r, est in rows
-    }
-
-
 # ================= HORARIO RECURRENTE (gestiona el admin) =================
 @router.post("/recurrente")
 def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depends(get_db)):
@@ -56,8 +42,8 @@ def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depend
         raise HTTPException(status_code=400, detail=f"turno debe ser uno de: {', '.join(TURNOS)}")
     if not db.get(Recepcionista, data.id_recepcionista):
         raise HTTPException(status_code=404, detail="Recepcionista no encontrada")
-    existe = db.query(HorarioRecepcionista).filter_by(
-        id_recepcionista=data.id_recepcionista, dia_semana=data.dia_semana, turno=data.turno).first()
+    existe = horario_recepcionista.get_by_recep_dia_turno(
+        db, id_recepcionista=data.id_recepcionista, dia_semana=data.dia_semana, turno=data.turno)
     if existe:
         raise HTTPException(status_code=400, detail="Esa recepcionista ya tiene ese turno ese día")
     h = HorarioRecepcionista(id_recepcionista=data.id_recepcionista, dia_semana=data.dia_semana, turno=data.turno)
@@ -69,11 +55,8 @@ def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depend
 @router.get("/recurrente")
 def listar_horario_recurrente(db: Session = Depends(get_db),
                               id_recepcionista: Optional[int] = Query(None)):
-    q = db.query(HorarioRecepcionista)
-    if id_recepcionista:
-        q = q.filter_by(id_recepcionista=id_recepcionista)
-    horarios = q.all()
-    info = _info_receps(db, {h.id_recepcionista for h in horarios})
+    horarios = horario_recepcionista.list(db, id_recepcionista=id_recepcionista)
+    info = horario_queries.info_recepcionistas(db, {h.id_recepcionista for h in horarios})
     return [
         {"id_horario": h.id_horario, "id_recepcionista": h.id_recepcionista,
          "recepcionista": info.get(h.id_recepcionista, {}).get("nombre"),
@@ -98,8 +81,8 @@ def crear_excepcion(data: ExcepcionCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Si trabaja, el turno es obligatorio y válido")
     if not db.get(Recepcionista, data.id_recepcionista):
         raise HTTPException(status_code=404, detail="Recepcionista no encontrada")
-    existe = db.query(HorarioExcepcionRecep).filter_by(
-        id_recepcionista=data.id_recepcionista, fecha=data.fecha).first()
+    existe = horario_excepcion_recep.get_by_recep_fecha(
+        db, id_recepcionista=data.id_recepcionista, fecha=data.fecha)
     if existe:
         existe.turno = data.turno if data.trabaja else None
         existe.trabaja = data.trabaja
@@ -117,13 +100,8 @@ def crear_excepcion(data: ExcepcionCreate, db: Session = Depends(get_db)):
 def listar_excepciones(db: Session = Depends(get_db),
                        fecha: Optional[date] = Query(None),
                        id_recepcionista: Optional[int] = Query(None)):
-    q = db.query(HorarioExcepcionRecep)
-    if fecha:
-        q = q.filter_by(fecha=fecha)
-    if id_recepcionista:
-        q = q.filter_by(id_recepcionista=id_recepcionista)
-    exc = q.all()
-    info = _info_receps(db, {e.id_recepcionista for e in exc})
+    exc = horario_excepcion_recep.list(db, fecha=fecha, id_recepcionista=id_recepcionista)
+    info = horario_queries.info_recepcionistas(db, {e.id_recepcionista for e in exc})
     return [
         {"id_excepcion": e.id_excepcion, "id_recepcionista": e.id_recepcionista,
          "recepcionista": info.get(e.id_recepcionista, {}).get("nombre"),
@@ -144,8 +122,8 @@ def eliminar_excepcion(id_excepcion: int, db: Session = Depends(get_db)):
 # ================= ROSTER EFECTIVO =================
 def _roster_fecha(db: Session, fecha: date):
     dia = DIAS[fecha.weekday()]
-    base = db.query(HorarioRecepcionista).filter_by(dia_semana=dia).all()
-    excepciones = db.query(HorarioExcepcionRecep).filter_by(fecha=fecha).all()
+    base = horario_recepcionista.list_by_dia(db, dia_semana=dia)
+    excepciones = horario_excepcion_recep.list_by_fecha(db, fecha=fecha)
     exc_por_recep = {e.id_recepcionista: e for e in excepciones}
 
     roster = {}
@@ -157,7 +135,7 @@ def _roster_fecha(db: Session, fecha: date):
         if e.trabaja and e.turno:
             roster[(rid, e.turno)] = "excepcion"
 
-    info = _info_receps(db, {rid for rid, _ in roster.keys()})
+    info = horario_queries.info_recepcionistas(db, {rid for rid, _ in roster.keys()})
     return dia, [
         {"id_recepcionista": rid, "recepcionista": info.get(rid, {}).get("nombre"),
          "estado": info.get(rid, {}).get("estado"),

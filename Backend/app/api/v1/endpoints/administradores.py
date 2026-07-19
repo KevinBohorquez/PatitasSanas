@@ -5,7 +5,6 @@ from typing import Optional
 
 from app.config.database import get_db
 from app.crud.administrador_crud import administrador
-from app.models.administrador import Administrador
 from app.schemas.administrador_schema import (
     AdministradorCreate, AdministradorUpdate, AdministradorResponse,
     AdministradorWithUsuarioResponse, AdministradorListResponse,
@@ -80,14 +79,9 @@ async def get_administradores(
             # Aplicar paginación manual
             administradores = administradores[skip:skip + per_page]
         else:
-            query = db.query(Administrador)
-
-            if genero:
-                query = query.filter(Administrador.genero == genero)
-
-            total = query.count()
-            administradores = query.order_by(Administrador.fecha_ingreso.desc()) \
-                .offset(skip).limit(per_page).all()
+            administradores, total = administrador.get_paginated(
+                db, skip=skip, limit=per_page, genero=genero
+            )
 
         return {
             "administradores": administradores,
@@ -431,7 +425,7 @@ async def get_administradores_with_usuario_info(
         )
 
         # Contar total para paginación
-        total = db.query(Administrador).count()
+        total = administrador.count(db)
 
         return {
             "administradores": administradores_info,
@@ -563,7 +557,7 @@ async def debug_administrador_info(db: Session = Depends(get_db)):
         columns = [{"Field": row[0], "Type": row[1], "Null": row[2], "Key": row[3]} for row in result]
 
         # Contar registros
-        total_count = db.query(Administrador).count()
+        total_count = administrador.count(db)
 
         return {
             "table_info": {

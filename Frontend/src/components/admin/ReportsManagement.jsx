@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import './ReportsManagement.css';
 import { toast } from '../../utils/toast';
 
@@ -13,13 +14,13 @@ const ReportsManagement = () => {
   const [selectedMascotaId, setSelectedMascotaId] = useState('');
 
   // URL base de la API
-  const API_BASE_URL = '/api/v1';
+  const API_BASE_URL = '';
 
   // Obtener lista de mascotas
   useEffect(() => {
     const fetchMascotas = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/mascotas/?per_page=100`);
+        const response = await apiFetch(`${API_BASE_URL}/mascotas/?per_page=100`);
         if (response.ok) {
           const data = await response.json();
           setMascotas(data.mascotas || []);
@@ -49,7 +50,7 @@ const ReportsManagement = () => {
         queryUrl += `?${queryParams.join('&')}`;
       }
       
-      const response = await fetch(queryUrl);
+      const response = await apiFetch(queryUrl);
       
       if (!response.ok) {
         let errorMessage = 'Error al descargar el PDF';
@@ -91,7 +92,7 @@ const ReportsManagement = () => {
     
     try {
       setLoadingHistorial(true);
-      const response = await fetch(`${API_BASE_URL}/reportes/historial/${selectedMascotaId}/pdf`);
+      const response = await apiFetch(`${API_BASE_URL}/reportes/historial/${selectedMascotaId}/pdf`);
       
       if (!response.ok) throw new Error('Error al descargar el PDF');
       

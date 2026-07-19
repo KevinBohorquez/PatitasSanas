@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Bar } from 'react-chartjs-2';
+import { useFetch } from '../../hooks/useFetch';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,24 +13,13 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const ServicesBarChart = () => {
-  const [chartData, setChartData] = useState({ labels: [], data: [] });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/v1/dashboard/servicios-mas-solicitados?limit=5');
-        const data = await response.json();
-
-        const labels = data.map(item => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido');
-        const values = data.map(item => item.total_solicitudes || item.cantidad || item.total || item.conteo || 0);
-
-        setChartData({ labels, data: values });
-      } catch (error) {
-        console.error("Error al obtener los servicios más solicitados:", error);
-      }
-    };
-    fetchData();
-  }, []);
+  const { data: raw } = useFetch('/dashboard/servicios-mas-solicitados?limit=5', {
+    transform: (d) => ({
+      labels: d.map((item) => item.nombre_servicio || item.servicio || item.nombre || 'Desconocido'),
+      data: d.map((item) => item.total_solicitudes || item.cantidad || item.total || item.conteo || 0),
+    }),
+  });
+  const chartData = raw ?? { labels: [], data: [] };
 
   const data = {
     labels: chartData.labels,

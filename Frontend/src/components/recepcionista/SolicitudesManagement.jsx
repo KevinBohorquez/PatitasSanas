@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './SolicitudesManagement.css';
 import { toast } from '../../utils/toast';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const SolicitudesManagement = () => {
@@ -37,7 +38,7 @@ const SolicitudesManagement = () => {
       try {
         // console.log('Buscando recepcionista por id_usuario:', user.id);
         
-        const response = await fetch(`${BASE_URL}/recepcionistas/`, {
+        const response = await apiFetch(`${BASE_URL}/recepcionistas/`, {
           method: 'GET',
           mode: 'cors',
           headers: {
@@ -71,7 +72,7 @@ const SolicitudesManagement = () => {
         // console.log('Buscando recepcionista por username:', user.username);
         
         // Primero buscar el usuario por username para obtener su id_usuario
-        const userResponse = await fetch(`${BASE_URL}/usuarios/`, {
+        const userResponse = await apiFetch(`${BASE_URL}/usuarios/`, {
           method: 'GET',
           mode: 'cors',
           headers: {
@@ -90,7 +91,7 @@ const SolicitudesManagement = () => {
           if (usuarioEncontrado) {
             // console.log('Usuario encontrado:', usuarioEncontrado);
             
-            const recepResponse = await fetch(`${BASE_URL}/recepcionistas/`, {
+            const recepResponse = await apiFetch(`${BASE_URL}/recepcionistas/`, {
               method: 'GET',
               mode: 'cors',
               headers: {
@@ -135,7 +136,7 @@ const SolicitudesManagement = () => {
     dueño: ''
   });
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   const ITEMS_POR_PAGINA = 10;
 
@@ -182,7 +183,7 @@ const SolicitudesManagement = () => {
       if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
       if (statusFilter !== 'todos') params.set('estado', statusFilter);
 
-      const response = await fetch(`${BASE_URL}/solicitudes/enriquecidas?${params.toString()}`, {
+      const response = await apiFetch(`${BASE_URL}/solicitudes/enriquecidas?${params.toString()}`, {
         method: 'GET',
         mode: 'cors',
         headers: { 'Accept': 'application/json' },
@@ -213,7 +214,7 @@ const SolicitudesManagement = () => {
   // Función para obtener todas las mascotas
   const fetchMascotas = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/?per_page=100`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/?per_page=100`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -231,7 +232,7 @@ const SolicitudesManagement = () => {
             
             try {
               // Usar el endpoint correcto para obtener información del cliente
-              const clienteMascotaResponse = await fetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
+              const clienteMascotaResponse = await apiFetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
                 method: 'GET',
                 mode: 'cors',
                 headers: { 'Accept': 'application/json' },
@@ -283,7 +284,7 @@ const SolicitudesManagement = () => {
     if ((await confirm({ variant: 'danger', message: `¿Está seguro de eliminar la solicitud de ${solicitud.nombre_mascota}?` }))) {
       setLoading(true);
       try {
-        const response = await fetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}`, {
+        const response = await apiFetch(`${BASE_URL}/solicitudes/${solicitud.id_solicitud}`, {
           method: 'DELETE',
           mode: 'cors',
           headers: {
@@ -374,7 +375,7 @@ const SolicitudesManagement = () => {
     // console.log('Datos a enviar:', JSON.stringify(solicitudData, null, 2)); // Debug
 
     try {
-      const response = await fetch(`${BASE_URL}/solicitudes/`, {
+      const response = await apiFetch(`${BASE_URL}/solicitudes/`, {
         method: 'POST',
         mode: 'cors',
         headers: {

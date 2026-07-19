@@ -1,11 +1,12 @@
 // components/recepcionista/CitasManagement.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './CitasManagement.css';
 import { toast } from '../../utils/toast';
 import { formatApiError } from '../../utils/apiError';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const CitasManagement = () => {
@@ -39,7 +40,7 @@ const CitasManagement = () => {
     observaciones: ''
   });
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   const ITEMS_POR_PAGINA = 10;
 
@@ -78,7 +79,7 @@ const CitasManagement = () => {
       if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
       if (estadoFilter !== 'todos') params.set('estado', estadoFilter);
 
-      const response = await fetch(`${BASE_URL}/consultas/citas/enriquecidas?${params.toString()}`, {
+      const response = await apiFetch(`${BASE_URL}/consultas/citas/enriquecidas?${params.toString()}`, {
         method: 'GET',
         mode: 'cors',
         headers: { 'Accept': 'application/json' },
@@ -111,7 +112,7 @@ const CitasManagement = () => {
 
   const fetchMascotas = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -126,7 +127,7 @@ const CitasManagement = () => {
         const mascotasConDueño = await Promise.all(
           mascotasData.map(async (mascota) => {
             try {
-              const clienteResponse = await fetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
+              const clienteResponse = await apiFetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
                 method: 'GET',
                 mode: 'cors',
                 headers: { 'Accept': 'application/json' },
@@ -162,7 +163,7 @@ const CitasManagement = () => {
 
   const fetchServiciosSolicitados = async (mascotaId) => {
     try {
-      const response = await fetch(`${BASE_URL}/mascotas/mascota_cliente_servicio/${mascotaId}`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/mascota_cliente_servicio/${mascotaId}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -177,7 +178,7 @@ const CitasManagement = () => {
           const serviciosDisponibles = await Promise.all(
             data.map(async (servicio) => {
               try {
-                const citasResponse = await fetch(`${BASE_URL}/consultas/cita?mascota_id=${mascotaId}`, {
+                const citasResponse = await apiFetch(`${BASE_URL}/consultas/cita?mascota_id=${mascotaId}`, {
                   method: 'GET',
                   mode: 'cors',
                   headers: { 'Accept': 'application/json' },
@@ -223,7 +224,7 @@ const CitasManagement = () => {
   const fetchVeterinariosDisponibles = async () => {
     setLoadingVeterinarios(true);
     try {
-      const response = await fetch(`${BASE_URL}/veterinarios/disponibles`, {
+      const response = await apiFetch(`${BASE_URL}/veterinarios/disponibles`, {
         method: 'GET',
         mode: 'cors',
         headers: { 'Accept': 'application/json' },
@@ -319,7 +320,7 @@ const CitasManagement = () => {
 
   const checkConflictoCitas = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/consultas/cita`, {
+      const response = await apiFetch(`${BASE_URL}/consultas/cita`, {
         method: 'GET',
         mode: 'cors',
         headers: { 'Accept': 'application/json' },
@@ -379,7 +380,7 @@ const CitasManagement = () => {
         citaData.id_veterinario = parseInt(formData.id_veterinario);
       }
 
-      const response = await fetch(`${BASE_URL}/consultas/cita`, {
+      const response = await apiFetch(`${BASE_URL}/consultas/cita`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -419,7 +420,7 @@ const CitasManagement = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/consultas/cita/${cita.id_cita}`, {
+      const response = await apiFetch(`${BASE_URL}/consultas/cita/${cita.id_cita}`, {
         method: 'DELETE',
         mode: 'cors',
         headers: {

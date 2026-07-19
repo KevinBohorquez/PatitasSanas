@@ -7,7 +7,7 @@
 }
 
 /* Sección de Bienvenida */
-.welcome-section {
+.dashboard-recepcionista .welcome-section {
   background: linear-gradient(135deg, #c3f2ff 0%, #54b7d3 100%);
   border-radius: 20px;
   padding: 2rem;
@@ -18,7 +18,7 @@
   transition: all 0.4s ease-out;
 }
 
-.welcome-section::before {
+.dashboard-recepcionista .welcome-section::before {
   content: '';
   position: absolute;
   top: -50%;
@@ -29,7 +29,7 @@
   animation: float 6s ease-in-out infinite;
 }
 
-.welcome-section:hover {
+.dashboard-recepcionista .welcome-section:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
@@ -39,7 +39,7 @@
   50% { transform: translateY(-20px) rotate(180deg); }
 }
  /* Hasta aquí aprobao */
-.welcome-content {
+.dashboard-recepcionista .welcome-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -48,12 +48,12 @@
   background: #e7faff;
 }
 
-.welcome-text {
+.dashboard-recepcionista .welcome-text {
   color: white;
   flex: 1;
 }
 
-.welcome-title  {
+.dashboard-recepcionista .welcome-title {
   font-size: 2.5rem;
   font-weight: 800;
   font-family: "Lilita One", sans-serif;
@@ -67,7 +67,7 @@
   letter-spacing: 2px;
 }
 
-.user-name {
+.dashboard-recepcionista .user-name {
   font-family: "Lilita One", sans-serif;
   font-size: 2.2rem;
   margin: 0.5rem 0;
@@ -81,7 +81,7 @@
   /* text-transform: uppercase; */
 }
 
-.role-description {
+.dashboard-recepcionista .role-description {
   font-weight: bold;
   font-size: 1.3rem;
   margin: 0;
@@ -89,20 +89,20 @@
   color: #3b3b3b;
 }
 
-.welcome-image {
+.dashboard-recepcionista .welcome-image {
   display: flex;
   align-items: center;
   gap: 1rem;
   position: relative;
 }
 
-.pet-icon {
+.dashboard-recepcionista .pet-icon {
   width: 170px;
   height: 170px;
   animation: bounce 2s infinite;
 }
 
-.pet-icon {
+.dashboard-recepcionista .pet-icon {
   animation-delay: 0.5s;
 }
 
@@ -113,7 +113,7 @@
 }
 
 /* Grid de Estadísticas */
-.stats-grid {
+.dashboard-recepcionista .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
@@ -121,7 +121,7 @@
 }
 /* HASTA AQUÍ CERRAO */
 /* Tarjetas de Estadísticas */
-.stat-card {
+.dashboard-recepcionista .stat-card {
   background: #f2fcff;
   border-radius: 15px;
   padding: 1.5rem;
@@ -132,7 +132,7 @@
   cursor: pointer;
 }
 
-.stat-card::before {
+.dashboard-recepcionista .stat-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -142,33 +142,33 @@
   transition: height 0.3s ease;
 }
 
-.stat-card:hover {
+.dashboard-recepcionista .stat-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card:hover::before {
+.dashboard-recepcionista .stat-card:hover::before {
   height: 8px;
 }
 
 /* Colores específicos para cada tarjeta */
-.stat-blue::before {
+.dashboard-recepcionista .stat-blue::before {
   background: linear-gradient(90deg, #54b7d3, #7fd1e7);
 }
 
-.stat-green::before {
+.dashboard-recepcionista .stat-green::before {
   background: linear-gradient(90deg, #499ac0, #4ca6be);
 }
 
-.stat-purple::before {
+.dashboard-recepcionista .stat-purple::before {
   background: linear-gradient(90deg, #3b7ba0, #5293b9);
 }
 
-.stat-orange::before {
+.dashboard-recepcionista .stat-orange::before {
   background: linear-gradient(90deg, #5abbe2, #4ba8cc);
 }
 
-.stat-content {
+.dashboard-recepcionista .stat-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -177,34 +177,35 @@
   z-index: 1;
 }
 
-.two-columns {
+.dashboard-recepcionista .two-columns {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
 
-.left-column {
+.dashboard-recepcionista .left-column {
   display: flex;
   flex-direction: column;
   justify-content: center;
   flex: 1;
 }
 
-.right-column {
+.dashboard-recepcionista .right-column {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.stat-header {
+.dashboard-recepcionista .stat-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
 }
 
-.stat-title {
+.dashboard-recepcionista .stat-title {
   font-size: 1.5rem;
   font-weight: bold;
   color: #364f53;
@@ -213,7 +214,7 @@
   flex: 1;
 }
 
-.stat-icon-container {
+.dashboard-recepcionista .stat-icon-container {
   flex-shrink: 0;
   padding: 0.5rem;
   border-radius: 10px;
@@ -221,12 +222,12 @@
   transition: all 0.3s ease;
 }
 
-.stat-card:hover .stat-icon-container {
+.dashboard-recepcionista .stat-card:hover .stat-icon-container {
   background: #7ec7e9;
   transform: scale(1.1);
 }
 
-.stat-icon {
+.dashboard-recepcionista .stat-icon {
   width: 150px;
   height: 150px;
   object-fit: contain;
@@ -234,12 +235,12 @@
   transition: all 0.3s ease;
 }
 
-.stat-card:hover .stat-icon {
+.dashboard-recepcionista .stat-card:hover .stat-icon {
   opacity: 1;
   transform: rotate(5deg);
 }
 
-.stat-value {
+.dashboard-recepcionista .stat-value {
   font-family: "Lilita One", sans-serif;
   font-size: 6rem;
   margin: 0;
@@ -253,13 +254,13 @@
   transition: all 0.3s ease;
 }
 
-.stat-card:hover .stat-value {
+.dashboard-recepcionista .stat-card:hover .stat-value {
   transform: scale(1.05);
 }
 
 /* Hasta aqui, abajo todo cerrao */
 /* Indicador de carga */
-.loading-indicator {
+.dashboard-recepcionista .loading-indicator {
   font-size: 0.8rem;
   color: #666;
   text-align: center;
@@ -274,7 +275,7 @@
 }
 
 /* Mensaje de error */
-.error-message {
+.dashboard-recepcionista .error-message {
   background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   border: 1px solid #f44336;
   border-radius: 10px;
@@ -284,12 +285,12 @@
   color: #c62828;
 }
 
-.error-message p {
+.dashboard-recepcionista .error-message p {
   margin: 0 0 0.5rem 0;
   font-weight: 500;
 }
 
-.retry-button {
+.dashboard-recepcionista .retry-button {
   background: #f44336;
   color: white;
   border: none;
@@ -300,12 +301,12 @@
   transition: background 0.3s ease;
 }
 
-.retry-button:hover {
+.dashboard-recepcionista .retry-button:hover {
   background: #d32f2f;
 }
 
 /* Footer del Dashboard */
-.dashboard-footer {
+.dashboard-recepcionista .dashboard-footer {
   text-align: center;
   margin-top: 2rem;
   padding: 1rem;
@@ -316,7 +317,7 @@
   font-weight: bold;
 }
 
-.dashboard-footer p {
+.dashboard-recepcionista .dashboard-footer p {
   margin: 0;
 }
 
@@ -326,52 +327,52 @@
     padding: 1rem;
   }
   
-  .welcome-content {
+  .dashboard-recepcionista .welcome-content {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
   }
   
-  .welcome-title {
+  .dashboard-recepcionista .welcome-title {
     font-size: 2rem;
   }
   
-  .user-name {
+  .dashboard-recepcionista .user-name {
     font-size: 1.5rem;
   }
   
-  .stats-grid {
+  .dashboard-recepcionista .stats-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
   
-  .stat-value {
+  .dashboard-recepcionista .stat-value {
     font-size: 2.5rem;
   }
   
-  .welcome-image {
+  .dashboard-recepcionista .welcome-image {
     justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
-  .welcome-title {
+  .dashboard-recepcionista .welcome-title {
     font-size: 1.8rem;
   }
   
-  .user-name {
+  .dashboard-recepcionista .user-name {
     font-size: 1.3rem;
   }
   
-  .stat-card {
+  .dashboard-recepcionista .stat-card {
     padding: 1rem;
   }
   
-  .stat-value {
+  .dashboard-recepcionista .stat-value {
     font-size: 2rem;
   }
   
-  .vet-icon, .pet-icon {
+  .dashboard-recepcionista .vet-icon, .dashboard-recepcionista .pet-icon {
     width: 60px;
     height: 60px;
   }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import Table from '../common/Table';
-import Modal from '../common/Modal';
+import Modal from '../ui/Modal/Modal';
 import './UserManagement.css';
 import { toast } from '../../utils/toast';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 import { confirm } from '../../utils/confirm';
 
 const UserManagement = () => {
@@ -35,7 +36,7 @@ const UserManagement = () => {
 
   const [formErrors, setFormErrors] = useState({});
 
-  const BASE_URL = '/api/v1';
+  const BASE_URL = '';
 
   const generateUsername = (nombre) => {
     if (!nombre.trim()) return '';
@@ -45,7 +46,7 @@ const UserManagement = () => {
 
   const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +68,7 @@ const UserManagement = () => {
 
   const createAdministrador = async (adminData) => {
     try {
-      const response = await fetch(`${BASE_URL}/administradores/`, {
+      const response = await apiFetch(`${BASE_URL}/administradores/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ const UserManagement = () => {
 
   const updateAdministrador = async (adminId, adminData) => {
     try {
-      const response = await fetch(`${BASE_URL}/administradores/${adminId}`, {
+      const response = await apiFetch(`${BASE_URL}/administradores/${adminId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ const UserManagement = () => {
 
   const updateUser = async (userId, userData) => {
     try {
-      const response = await fetch(`${BASE_URL}/usuarios/${userId}`, {
+      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +137,7 @@ const UserManagement = () => {
 
   const changePassword = async (adminId, newPassword) => {
     try {
-      const response = await fetch(`${BASE_URL}/administradores/${adminId}/change-password`, {
+      const response = await apiFetch(`${BASE_URL}/administradores/${adminId}/change-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +163,7 @@ const UserManagement = () => {
 
   const deleteAdministrador = async (adminId) => {
     try {
-      const response = await fetch(`${BASE_URL}/administradores/${adminId}?permanent=false`, {
+      const response = await apiFetch(`${BASE_URL}/administradores/${adminId}?permanent=false`, {
         method: 'DELETE'
       });
 
@@ -189,7 +190,7 @@ const UserManagement = () => {
         url += `&genero=${genero}`;
       }
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

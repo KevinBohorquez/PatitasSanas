@@ -1,5 +1,6 @@
 // src/components/admin/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
 import ConsultasLineChart from './ConsultasLineChart';
@@ -18,7 +19,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   // URL base de la API
-  const API_BASE_URL = '/api/v1';
+  const API_BASE_URL = '';
 
   // Fetch de datos del dashboard
   const fetchDashboardData = async () => {
@@ -34,7 +35,7 @@ const Dashboard = () => {
         serviciosResponse
       ] = await Promise.all([
         // Administradores
-        fetch(`${API_BASE_URL}/usuarios/tipo/Administrador?activos_solo=false`, {
+        apiFetch(`${API_BASE_URL}/usuarios/tipo/Administrador?activos_solo=false`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -42,7 +43,7 @@ const Dashboard = () => {
           },
         }),
         // Veterinarios  
-        fetch(`${API_BASE_URL}/usuarios/tipo/Veterinario?activos_solo=false`, {
+        apiFetch(`${API_BASE_URL}/usuarios/tipo/Veterinario?activos_solo=false`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -50,7 +51,7 @@ const Dashboard = () => {
           },
         }),
         // Recepcionistas
-        fetch(`${API_BASE_URL}/usuarios/tipo/Recepcionista?activos_solo=false`, {
+        apiFetch(`${API_BASE_URL}/usuarios/tipo/Recepcionista?activos_solo=false`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ const Dashboard = () => {
           },
         }),
         // Servicios (obtener todos, no confiar en el filtrado del backend)
-        fetch(`${API_BASE_URL}/catalogos/servicios/?activos_solo=false`, {
+        apiFetch(`${API_BASE_URL}/catalogos/servicios/?activos_solo=false`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard-recepcionista">
+    <div className="dashboard-admin">
       <div className="welcome-section">
         <div className="welcome-content">
           <div className="welcome-text">

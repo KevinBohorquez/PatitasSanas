@@ -1,8 +1,8 @@
 // pages/RecepcionistaDashboard.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import AppBar from '../components/common/AppBar';
-import Sidebar from '../components/common/Sidebar';
+import DashboardLayout from '../layouts/DashboardLayout';
+import { getUserDisplayName } from '../utils/userDisplay';
 import Dashboard from '../components/recepcionista/Dashboard';
 import ClientesManagement from '../components/recepcionista/ClientesManagement';
 import MascotasManagement from '../components/recepcionista/MascotasManagement';
@@ -12,22 +12,10 @@ import VeterinariosView from '../components/recepcionista/VeterinariosView';
 import ServiciosView from '../components/recepcionista/ServiciosView';
 import Reportes from '../components/recepcionista/Reportes';
 import CronogramaView from '../components/recepcionista/CronogramaView';
-import '../styles/Dashboard.css';
 
 const RecepcionistaDashboard = () => {
   const { user } = useAuth();
   const [activeView, setActiveView] = useState('inicio');
-
-  // Función para obtener el nombre del usuario logueado
-  const getUserDisplayName = () => {
-    if (user?.name && user.name !== user?.username) {
-      return user.name;
-    }
-    if (user?.session_info?.nombre_completo) {
-      return user.session_info.nombre_completo;
-    }
-    return user?.username || 'RECEPCIONISTA';
-  };
 
   const sidebarItems = [
     { id: 'inicio', label: 'Inicio', icon: '🏠' },
@@ -65,24 +53,14 @@ const RecepcionistaDashboard = () => {
   };
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar 
-        items={sidebarItems} 
-        activeItem={activeView}
-        onItemClick={setActiveView}
-      />
-      
-      <div className="main-content">
-        <AppBar 
-          title="🟢 Cuenta de:"
-          subtitle={getUserDisplayName()}
-        />
-        
-        <div className="dashboard-content">
-          {renderContent()}
-        </div>
-      </div>
-    </div>
+    <DashboardLayout
+      sidebarItems={sidebarItems}
+      activeView={activeView}
+      onViewChange={setActiveView}
+      userName={getUserDisplayName(user, 'RECEPCIONISTA')}
+    >
+      {renderContent()}
+    </DashboardLayout>
   );
 };
 

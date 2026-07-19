@@ -4,10 +4,9 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.config.database import get_db
-from app.crud.consulta_crud import (
+from app.crud.consulta import (
     triaje, solicitud_atencion
 )
-from app.models import Triaje
 
 from app.schemas.consulta_schema import (
     TriajeResponse, TriajeCreate, TriajeUpdate
@@ -25,7 +24,7 @@ async def create_triaje(
     """
     try:
         # Verificar que la solicitud existe
-        from app.crud.consulta_crud import solicitud_atencion
+        from app.crud.consulta import solicitud_atencion
         solicitud_obj = solicitud_atencion.get(db, triaje_data.id_solicitud)
         if not solicitud_obj:
             raise HTTPException(
@@ -254,7 +253,7 @@ async def get_triaje_por_consulta_id(
     Obtener un triaje específico por ID de consulta
     """
     try:
-        consulta_obj = db.query(Triaje).filter(Triaje.id_solicitud == id_solicitud).first()
+        consulta_obj = triaje.get_by_solicitud(db, solicitud_id=id_solicitud)
         if not consulta_obj:
             raise HTTPException(
                 status_code=404,

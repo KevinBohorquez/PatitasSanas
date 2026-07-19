@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { apiFetch } from '../../api/client';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -7,12 +8,12 @@ import '../../styles/AnalyticsDashboard.css';
 import ServicesBarChart from './ServicesBarChart';
 import SpeciesPieChart from '../common/SpeciesPieChart';
 import KPICards from '../common/KPICards';
-import Loader from '../common/Loader/Loader';
+import Loader from '../ui/Loader/Loader';
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const API_BASE = '/api/v1';
+const API_BASE = '';
 
 const PIE_COLORS_GENERO = ['#4f86c6', '#e67e22'];
 const PIE_COLORS_SEXO = ['#27ae60', '#e74c3c'];
@@ -197,12 +198,12 @@ const AnalyticsDashboard = () => {
         tasaAsistenciaRes,
         statsGeneralesRes
       ] = await Promise.all([
-        fetch(`${API_BASE}/consultas/estadisticas/resumen`),
-        fetch(`${API_BASE}/clientes/stats/genero`),
-        fetch(`${API_BASE}/mascotas/stats/por-sexo`),
-        fetch(`${API_BASE}/catalogos/razas/estadisticas/mascotas`),
-        fetch(`${API_BASE}/dashboard/tasa-asistencia`),
-        fetch(`${API_BASE}/dashboard/stats-generales`)
+        apiFetch(`${API_BASE}/consultas/estadisticas/resumen`),
+        apiFetch(`${API_BASE}/clientes/stats/genero`),
+        apiFetch(`${API_BASE}/mascotas/stats/por-sexo`),
+        apiFetch(`${API_BASE}/catalogos/razas/estadisticas/mascotas`),
+        apiFetch(`${API_BASE}/dashboard/tasa-asistencia`),
+        apiFetch(`${API_BASE}/dashboard/stats-generales`)
       ]);
 
       setData({

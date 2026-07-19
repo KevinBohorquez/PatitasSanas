@@ -7,11 +7,11 @@ from datetime import date, timedelta
 import calendar as _calendar
 
 from app.config.database import get_db
+from app.crud.horario_crud import horario_veterinario, horario_excepcion
+from app.queries import horario_queries
 from app.models.horario_veterinario import HorarioVeterinario
 from app.models.horario_excepcion import HorarioExcepcion
 from app.models.veterinario import Veterinario
-from app.models.especialidad import Especialidad
-from app.models.usuario import Usuario
 
 router = APIRouter()
 
@@ -33,24 +33,6 @@ class ExcepcionCreate(BaseModel):
     trabaja: bool = True
 
 
-def _info_vets(db: Session, ids):
-    """Nombre, especialidad y estado (Activo/Inactivo) de un conjunto de veterinarios."""
-    if not ids:
-        return {}
-    rows = db.query(Veterinario, Especialidad.descripcion, Usuario.estado) \
-        .outerjoin(Especialidad, Especialidad.id_especialidad == Veterinario.id_especialidad) \
-        .outerjoin(Usuario, Usuario.id_usuario == Veterinario.id_usuario) \
-        .filter(Veterinario.id_veterinario.in_(ids)).all()
-    return {
-        v.id_veterinario: {
-            "nombre": f"{v.nombre} {v.apellido_paterno}".strip(),
-            "especialidad": esp,
-            "estado": est,
-        }
-        for v, esp, est in rows
-    }
-
-
 # ================= HORARIO RECURRENTE (gestiona el admin) =================
 @router.post("/recurrente")
 def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depends(get_db)):
@@ -60,8 +42,8 @@ def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depend
         raise HTTPException(status_code=400, detail=f"turno debe ser uno de: {', '.join(TURNOS)}")
     if not db.get(Veterinario, data.id_veterinario):
         raise HTTPException(status_code=404, detail="Veterinario no encontrado")
-    existe = db.query(HorarioVeterinario).filter_by(
-        id_veterinario=data.id_veterinario, dia_semana=data.dia_semana, turno=data.turno).first()
+    existe = horario_veterinario.get_by_vet_dia_turno(
+        db, id_veterinario=data.id_veterinario, dia_semana=data.dia_semana, turno=data.turno)
     if existe:
         raise HTTPException(status_code=400, detail="Ese veterinario ya tiene ese turno ese día")
     h = HorarioVeterinario(id_veterinario=data.id_veterinario, dia_semana=data.dia_semana, turno=data.turno)
@@ -73,11 +55,8 @@ def crear_horario_recurrente(data: HorarioRecurrenteCreate, db: Session = Depend
 @router.get("/recurrente")
 def listar_horario_recurrente(db: Session = Depends(get_db),
                               id_veterinario: Optional[int] = Query(None)):
-    q = db.query(HorarioVeterinario)
-    if id_veterinario:
-        q = q.filter_by(id_veterinario=id_veterinario)
-    horarios = q.all()
-    info = _info_vets(db, {h.id_veterinario for h in horarios})
+    horarios = horario_veterinario.list(db, id_veterinario=id_veterinario)
+    info = horario_queries.info_veterinarios(db, {h.id_veterinario for h in horarios})
     return [
         {"id_horario": h.id_horario, "id_veterinario": h.id_veterinario,
          "veterinario": info.get(h.id_veterinario, {}).get("nombre"),
@@ -102,8 +81,8 @@ def crear_excepcion(data: ExcepcionCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Si trabaja, el turno es obligatorio y válido")
     if not db.get(Veterinario, data.id_veterinario):
         raise HTTPException(status_code=404, detail="Veterinario no encontrado")
-    existe = db.query(HorarioExcepcion).filter_by(
-        id_veterinario=data.id_veterinario, fecha=data.fecha).first()
+    existe = horario_excepcion.get_by_vet_fecha(
+        db, id_veterinario=data.id_veterinario, fecha=data.fecha)
     if existe:
         # una excepción por vet y fecha: se actualiza
         existe.turno = data.turno if data.trabaja else None
@@ -122,13 +101,8 @@ def crear_excepcion(data: ExcepcionCreate, db: Session = Depends(get_db)):
 def listar_excepciones(db: Session = Depends(get_db),
                        fecha: Optional[date] = Query(None),
                        id_veterinario: Optional[int] = Query(None)):
-    q = db.query(HorarioExcepcion)
-    if fecha:
-        q = q.filter_by(fecha=fecha)
-    if id_veterinario:
-        q = q.filter_by(id_veterinario=id_veterinario)
-    exc = q.all()
-    info = _info_vets(db, {e.id_veterinario for e in exc})
+    exc = horario_excepcion.list(db, fecha=fecha, id_veterinario=id_veterinario)
+    info = horario_queries.info_veterinarios(db, {e.id_veterinario for e in exc})
     return [
         {"id_excepcion": e.id_excepcion, "id_veterinario": e.id_veterinario,
          "veterinario": info.get(e.id_veterinario, {}).get("nombre"),
@@ -151,8 +125,8 @@ def _roster_fecha(db: Session, fecha: date):
     """Combina el horario recurrente del día de la semana con las excepciones de esa
     fecha (que sustituyen al recurrente por veterinario). Devuelve (dia_semana, lista)."""
     dia = DIAS[fecha.weekday()]
-    base = db.query(HorarioVeterinario).filter_by(dia_semana=dia).all()
-    excepciones = db.query(HorarioExcepcion).filter_by(fecha=fecha).all()
+    base = horario_veterinario.list_by_dia(db, dia_semana=dia)
+    excepciones = horario_excepcion.list_by_fecha(db, fecha=fecha)
     exc_por_vet = {e.id_veterinario: e for e in excepciones}
 
     roster = {}
@@ -164,7 +138,7 @@ def _roster_fecha(db: Session, fecha: date):
         if e.trabaja and e.turno:
             roster[(vid, e.turno)] = "excepcion"
 
-    info = _info_vets(db, {vid for vid, _ in roster.keys()})
+    info = horario_queries.info_veterinarios(db, {vid for vid, _ in roster.keys()})
     return dia, [
         {"id_veterinario": vid, "veterinario": info.get(vid, {}).get("nombre"),
          "especialidad": info.get(vid, {}).get("especialidad"),
