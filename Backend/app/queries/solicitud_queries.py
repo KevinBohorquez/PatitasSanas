@@ -167,4 +167,10 @@ def listar_por_veterinario(
     if tipo_solicitud:
         query = query.filter(SolicitudAtencion.tipo_solicitud == tipo_solicitud)
 
-    return query.limit(limit).all()
+    # Las más recientes primero: con muchas solicitudes asignadas, el límite ya no
+    # oculta las recién creadas (antes, sin ORDER BY, el límite cortaba por id
+    # ascendente y el veterinario no veía sus solicitudes nuevas).
+    return query.order_by(
+        SolicitudAtencion.fecha_hora_solicitud.desc(),
+        SolicitudAtencion.id_solicitud.desc(),
+    ).limit(limit).all()
