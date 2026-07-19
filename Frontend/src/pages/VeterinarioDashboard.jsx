@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import AppBar from '../components/common/AppBar/AppBar';
-import Sidebar from '../components/common/Sidebar';
+import DashboardLayout from '../layouts/DashboardLayout';
+import { getUserDisplayName } from '../utils/userDisplay';
 import SolicitudesAtencion from '../components/veterinario/SolicitudesAtencion';
 import CitasProgramadas from '../components/veterinario/CitasProgramadas';
 import ListadoMascotas from '../components/veterinario/ListadoMascotas';
-import '../styles/Dashboard.css';
 
 const formatFechaHora = (valor) => (valor ? new Date(valor).toLocaleString() : '--');
 
@@ -130,16 +129,6 @@ const VeterinarioDashboard = () => {
   const { user } = useAuth();
   const [activeView, setActiveView] = useState('inicio');
 
-  const getUserDisplayName = () => {
-    if (user?.name && user.name !== user?.username) {
-      return user.name;
-    }
-    if (user?.session_info?.nombre_completo) {
-      return user.session_info.nombre_completo;
-    }
-    return user?.username || 'VETERINARIO';
-  };
-
   const sidebarItems = [
     { id: 'inicio', label: 'Inicio', icon: '🏠' },
     { id: 'solicitudes', label: 'Solicitudes de atención', icon: '📋' },
@@ -161,24 +150,14 @@ const VeterinarioDashboard = () => {
   };
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar
-        items={sidebarItems}
-        activeItem={activeView}
-        onItemClick={setActiveView}
-      />
-
-      <div className="main-content">
-        <AppBar
-          title="🟢 Cuenta de:"
-          subtitle={getUserDisplayName()}
-        />
-
-        <div className="dashboard-content">
-          {renderContent()}
-        </div>
-      </div>
-    </div>
+    <DashboardLayout
+      sidebarItems={sidebarItems}
+      activeView={activeView}
+      onViewChange={setActiveView}
+      userName={getUserDisplayName(user, 'VETERINARIO')}
+    >
+      {renderContent()}
+    </DashboardLayout>
   );
 };
 
