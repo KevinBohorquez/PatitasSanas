@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal, Raza,
+    Consulta, Triaje,
 )
 from app.models.mascota import Mascota
 from app.models.cliente_mascota import ClienteMascota
@@ -317,14 +318,39 @@ def get_id_mascota_de_consulta(db: Session, *, consulta_id: int) -> Optional[int
 
 
 def get_cliente_servicio(db: Session, *, id_mascota: int) -> List[dict]:
-    """Mascota con su cliente y servicios solicitados (4 tablas en JOIN)."""
+    """
+    Servicios que una mascota tiene solicitados y aún puede citar (estado 'Solicitado'),
+    junto con su cliente principal.
+
+    El vínculo servicio→mascota NO es directo: un Servicio_Solicitado nace en una Consulta,
+    que cuelga de un Triaje, que cuelga de la Solicitud_atencion (la que sí tiene la mascota).
+    Esa es la cadena que se recorre aquí:
+        Servicio_Solicitado → Consulta → Triaje → Solicitud_atencion → Mascota
+    """
+    # Cliente principal de la mascota = el de menor id_cliente asociado.
+    cliente = (
+        db.query(Cliente)
+        .join(ClienteMascota, ClienteMascota.id_cliente == Cliente.id_cliente)
+        .filter(ClienteMascota.id_mascota == id_mascota)
+        .order_by(Cliente.id_cliente)
+        .first()
+    )
+    nombre_cliente = (
+        f"{cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}"
+        if cliente else None
+    )
+
     result = (
-        db.query(Mascota, Cliente, Servicio, ServicioSolicitado)
-        .join(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota)
-        .join(Cliente, ClienteMascota.id_cliente == Cliente.id_cliente)
-        .join(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Mascota.id_mascota)
+        db.query(Mascota, Servicio, ServicioSolicitado)
+        .join(SolicitudAtencion, SolicitudAtencion.id_mascota == Mascota.id_mascota)
+        .join(Triaje, Triaje.id_solicitud == SolicitudAtencion.id_solicitud)
+        .join(Consulta, Consulta.id_triaje == Triaje.id_triaje)
+        .join(ServicioSolicitado, ServicioSolicitado.id_consulta == Consulta.id_consulta)
         .join(Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio)
-        .filter(Mascota.id_mascota == id_mascota)
+        .filter(
+            Mascota.id_mascota == id_mascota,
+            ServicioSolicitado.estado_examen == "Solicitado",
+        )
         .all()
     )
 
@@ -332,11 +358,11 @@ def get_cliente_servicio(db: Session, *, id_mascota: int) -> List[dict]:
         {
             "id_mascota": m.id_mascota,
             "nombre_mascota": m.nombre,
-            "id_cliente": c.id_cliente,
-            "nombre_cliente": f"{c.nombre} {c.apellido_paterno} {c.apellido_materno}",
-            "id_servicio_solicitado": ss.id_servicio_solicitado if ss else None,
-            "nombre_servicio": s.nombre_servicio if s else None,
-            "id_servicio": s.id_servicio if s else None,
+            "id_cliente": cliente.id_cliente if cliente else None,
+            "nombre_cliente": nombre_cliente,
+            "id_servicio_solicitado": ss.id_servicio_solicitado,
+            "nombre_servicio": s.nombre_servicio,
+            "id_servicio": s.id_servicio,
         }
-        for m, c, s, ss in result
+        for m, s, ss in result
     ]

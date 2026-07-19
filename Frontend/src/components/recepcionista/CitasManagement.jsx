@@ -143,45 +143,17 @@ const CitasManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          // Verificar si ya existe una cita para alguno de estos servicios
-          const serviciosDisponibles = await Promise.all(
-            data.map(async (servicio) => {
-              try {
-                const citasResponse = await apiFetch(`${BASE_URL}/consultas/cita?mascota_id=${mascotaId}`, {
-                  method: 'GET',
-                  mode: 'cors',
-                  headers: { 'Accept': 'application/json' },
-                });
+        // El backend ya devuelve únicamente los servicios en estado 'Solicitado' (los que
+        // aún se pueden citar), resueltos por la cadena Consulta→Triaje→Solicitud. No hace
+        // falta recomprobar citas por servicio (se eliminó ese fan-out).
+        const servicios = Array.isArray(data) ? data : [];
+        setServiciosSolicitados(servicios);
 
-                if (citasResponse.ok) {
-                  const citasData = await citasResponse.json();
-                  const tieneCita = citasData.some(cita => 
-                    cita.id_servicio_solicitado === servicio.id_servicio_solicitado
-                  );
-                  
-                  return tieneCita ? null : servicio;
-                }
-                return servicio;
-              } catch {
-                return servicio;
-              }
-            })
-          );
-
-          const serviciosFiltrados = serviciosDisponibles.filter(s => s !== null);
-          setServiciosSolicitados(serviciosFiltrados);
-          
-          if (serviciosFiltrados.length === 0) {
-            toast.info('Esta mascota no tiene servicios solicitados disponibles para agendar citas.');
-            return false;
-          }
-          return true;
-        } else {
-          setServiciosSolicitados([]);
-          toast.warning('Esta mascota no tiene servicios solicitados. Debe tener al menos un servicio solicitado para agendar una cita.');
+        if (servicios.length === 0) {
+          toast.warning('Esta mascota no tiene servicios solicitados disponibles para agendar una cita.');
           return false;
         }
+        return true;
       }
       return false;
     } catch (error) {

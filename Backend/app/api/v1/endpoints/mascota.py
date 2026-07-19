@@ -425,12 +425,8 @@ async def get_ultima_atencion_mascota(
 @router.get("/mascota_cliente_servicio/{id_mascota}", response_model=List[dict])
 async def get_mascota_cliente_servicio(id_mascota: int, db: Session = Depends(get_db)):
     try:
-        data = mascota_queries.get_cliente_servicio(db, id_mascota=id_mascota)
-
-        if not data:
-            raise HTTPException(status_code=404, detail="Mascota no encontrada o no tiene servicios asociados")
-
-        return data
-
+        # Lista vacía (200) si la mascota no tiene servicios en estado 'Solicitado': es un
+        # estado válido (no hay nada que citar), no un error.
+        return mascota_queries.get_cliente_servicio(db, id_mascota=id_mascota)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener datos: {str(e)}")
