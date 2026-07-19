@@ -44,9 +44,12 @@ describe('deployment configuration', () => {
     });
   });
 
-  it('uses the Railway backend for local Vite proxy requests', () => {
+  it('reads the local Vite proxy target from the VITE_API_PROXY_TARGET env variable', () => {
     const viteConfig = fs.readFileSync(path.join(frontendRoot, 'vite.config.js'), 'utf8');
 
-    expect(viteConfig).toContain("target: 'https://patitassanas-production.up.railway.app'");
+    // El proxy de dev es configurable por entorno (ver .env.example), no un valor
+    // fijo. En producción el ruteo lo maneja vercel.json (test de arriba), por lo
+    // que el proxy de Vite solo aplica en desarrollo local.
+    expect(viteConfig).toContain('VITE_API_PROXY_TARGET');
   });
 });
