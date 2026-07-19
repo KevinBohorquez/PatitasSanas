@@ -134,11 +134,12 @@ def listar_por_veterinario(
     estado: Optional[str] = None,
     tipo_solicitud: Optional[str] = None,
     limit: int = 50,
-) -> List[SolicitudAtencion]:
+) -> List[dict]:
     """
     Solicitudes visibles para un veterinario: las asignadas por triaje MÁS las
     pendientes sin triaje (que el trigger no pudo asignar y de otro modo serían
-    invisibles para todos).
+    invisibles para todos). Cada una ya enriquecida con nombre de mascota y del
+    cliente principal (elimina el N+1 del front: /mascotas/{id}/details + /clientes/{id}).
     """
     # Solicitudes asignadas a este veterinario vía triaje.
     triajes = db.query(Triaje).filter(Triaje.id_veterinario == id_veterinario).all()
@@ -160,7 +161,30 @@ def listar_por_veterinario(
     if not solicitud_ids:
         return []
 
-    query = db.query(SolicitudAtencion).filter(SolicitudAtencion.id_solicitud.in_(solicitud_ids))
+    # Cliente "principal" por mascota (menor id_cliente), igual criterio que /enriquecidas.
+    pc = (
+        db.query(
+            ClienteMascota.id_mascota.label("id_mascota"),
+            func.min(ClienteMascota.id_cliente).label("id_cliente"),
+        )
+        .group_by(ClienteMascota.id_mascota)
+        .subquery()
+    )
+    nombre_cliente = func.concat_ws(
+        " ", Cliente.nombre, Cliente.apellido_paterno, Cliente.apellido_materno
+    )
+
+    query = (
+        db.query(
+            SolicitudAtencion,
+            Mascota.nombre.label("nombre_mascota"),
+            nombre_cliente.label("nombre_cliente"),
+        )
+        .filter(SolicitudAtencion.id_solicitud.in_(solicitud_ids))
+        .outerjoin(Mascota, Mascota.id_mascota == SolicitudAtencion.id_mascota)
+        .outerjoin(pc, pc.c.id_mascota == SolicitudAtencion.id_mascota)
+        .outerjoin(Cliente, Cliente.id_cliente == pc.c.id_cliente)
+    )
 
     if estado:
         query = query.filter(SolicitudAtencion.estado == estado)
@@ -170,7 +194,21 @@ def listar_por_veterinario(
     # Las más recientes primero: con muchas solicitudes asignadas, el límite ya no
     # oculta las recién creadas (antes, sin ORDER BY, el límite cortaba por id
     # ascendente y el veterinario no veía sus solicitudes nuevas).
-    return query.order_by(
+    rows = query.order_by(
         SolicitudAtencion.fecha_hora_solicitud.desc(),
         SolicitudAtencion.id_solicitud.desc(),
     ).limit(limit).all()
+
+    return [
+        {
+            "id_solicitud": s.id_solicitud,
+            "id_mascota": s.id_mascota,
+            "id_recepcionista": s.id_recepcionista,
+            "fecha_hora_solicitud": s.fecha_hora_solicitud,
+            "tipo_solicitud": s.tipo_solicitud,
+            "estado": s.estado,
+            "nombre_mascota": nombre_mascota,
+            "nombre_cliente": nombre_cli,
+        }
+        for s, nombre_mascota, nombre_cli in rows
+    ]

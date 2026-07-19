@@ -218,7 +218,7 @@ async def delete_solicitud(
     return {"message": "Solicitud eliminada correctamente", "success": True}
 
 
-@router.get("/veterinario/{id_usuario}", response_model=List[SolicitudAtencionResponse])
+@router.get("/veterinario/{id_usuario}")
 async def get_solicitudes_by_veterinario(
         id_usuario: int,
         estado: Optional[str] = Query(None, description="Filtrar por estado de la solicitud"),
@@ -227,7 +227,9 @@ async def get_solicitudes_by_veterinario(
         db: Session = Depends(get_db)
 ):
     """
-    Obtener solicitudes de atención relacionadas con el veterinario por id_usuario.
+    Obtener solicitudes de atención relacionadas con el veterinario por id_usuario,
+    ya enriquecidas con nombre de mascota y del cliente principal (sin response_model
+    porque la respuesta incluye esos campos extra además de la solicitud).
     """
     try:
         veterinario = veterinario_crud.get_by_usuario(db, id_usuario=id_usuario)
