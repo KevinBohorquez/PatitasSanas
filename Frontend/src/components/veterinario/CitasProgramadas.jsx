@@ -31,42 +31,24 @@ const CitasProgramadas = () => {
       }
       const data = await response.json();
 
-      // ✅ Para cada resultado, pedir info adicional de la cita
-      const citasConDatos = await Promise.all(
-        data.map(async (item) => {
-          const cita = item.cita || {};
-          const fechaObj = new Date(cita.fecha_hora_programada);
+      // Los endpoints ya devuelven mascota, servicio y veterinario resueltos por
+      // JOIN, así que se elimina el N+1 (antes 3 fetch por cita:
+      // citaMascota/citaServicio/citaVeterinario).
+      const citasConDatos = data.map((item) => {
+        const cita = item.cita || {};
+        const fechaObj = new Date(cita.fecha_hora_programada);
 
-          // Fetch mascota
-          const mascotaRes = await apiFetch(
-            `/consultas/citaMascota/${cita.id_cita}`
-          );
-          const mascotaData = await mascotaRes.json();
-
-          // Fetch servicio
-          const servicioRes = await apiFetch(
-            `/consultas/citaServicio/${cita.id_cita}`
-          );
-          const servicioData = await servicioRes.json();
-
-          // Fetch veterinario
-          const veterinarioRes = await apiFetch(
-            `/consultas/citaVeterinario/${cita.id_cita}`
-          );
-          const veterinarioData = await veterinarioRes.json();
-
-          return {
-            id: cita.id_cita,
-            id_cita: cita.id_cita, // 👈 ESTE CAMPO
-            mascota: mascotaData.nombre_mascota || 'Mascota no encontrada',
-            servicio: servicioData.nombre_servicio || 'Servicio no encontrado',
-            veterinario: veterinarioData.veterinario || 'Veterinario no encontrado',
-            fecha: fechaObj.toLocaleDateString(),
-            hora: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            estado: cita.estado_cita
-          };
-        })
-      );
+        return {
+          id: cita.id_cita,
+          id_cita: cita.id_cita, // 👈 ESTE CAMPO
+          mascota: item.nombre_mascota || 'Mascota no encontrada',
+          servicio: item.nombre_servicio || 'Servicio no encontrado',
+          veterinario: item.nombre_veterinario || 'Veterinario no encontrado',
+          fecha: fechaObj.toLocaleDateString(),
+          hora: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          estado: cita.estado_cita
+        };
+      });
 
       setCitas(citasConDatos);
     } catch (err) {

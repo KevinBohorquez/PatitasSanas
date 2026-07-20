@@ -9,7 +9,7 @@ tablas y no son persistencia de una sola entidad, por eso viven fuera del CRUD.
 from typing import List, Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from app.models import ResultadoServicio, Cita, Mascota, ServicioSolicitado, Servicio
 from app.models.veterinario import Veterinario
@@ -18,13 +18,39 @@ from app.models.solicitud_atencion import SolicitudAtencion
 from app.models.triaje import Triaje
 
 
+# Nombre del veterinario asociado a una cita, resuelto por Resultado_servicio (igual
+# que el endpoint /consultas/citaVeterinario). concat_ws ignora los NULL.
+_nombre_vet = func.concat_ws(" ", Veterinario.nombre, Veterinario.apellido_paterno)
+
+
 def get_resultados_citas(db: Session, *, id_veterinario: int) -> List[dict]:
-    """Resultados de servicio (con su cita) realizados por un veterinario."""
-    resultados = (
-        db.query(ResultadoServicio)
+    """
+    Resultados de servicio (con su cita) realizados por un veterinario, YA
+    enriquecidos con nombre de mascota, servicio y veterinario en una sola consulta
+    (reemplaza el N+1 del front: citaMascota/citaServicio/citaVeterinario por fila).
+    """
+    rows = (
+        db.query(
+            ResultadoServicio.id_resultado,
+            ResultadoServicio.resultado,
+            ResultadoServicio.interpretacion,
+            ResultadoServicio.archivo_adjunto,
+            ResultadoServicio.fecha_realizacion,
+            Cita.id_cita,
+            Cita.fecha_hora_programada,
+            Cita.estado_cita,
+            Cita.requiere_ayuno,
+            Cita.observaciones,
+            Mascota.nombre.label("nombre_mascota"),
+            Servicio.nombre_servicio.label("nombre_servicio"),
+            _nombre_vet.label("nombre_veterinario"),
+        )
         .join(Cita, ResultadoServicio.id_cita == Cita.id_cita)
         .filter(ResultadoServicio.id_veterinario == id_veterinario)
-        .options(joinedload(ResultadoServicio.cita))
+        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
+        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
+        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+        .outerjoin(Veterinario, Veterinario.id_veterinario == ResultadoServicio.id_veterinario)
         .all()
     )
 
@@ -36,42 +62,66 @@ def get_resultados_citas(db: Session, *, id_veterinario: int) -> List[dict]:
             "archivo_adjunto": r.archivo_adjunto,
             "fecha_realizacion": r.fecha_realizacion,
             "cita": {
-                "id_cita": r.cita.id_cita,
-                "fecha_hora_programada": r.cita.fecha_hora_programada,
-                "estado_cita": r.cita.estado_cita,
-                "requiere_ayuno": r.cita.requiere_ayuno,
-                "observaciones": r.cita.observaciones,
+                "id_cita": r.id_cita,
+                "fecha_hora_programada": r.fecha_hora_programada,
+                "estado_cita": r.estado_cita,
+                "requiere_ayuno": r.requiere_ayuno,
+                "observaciones": r.observaciones,
             },
+            "nombre_mascota": r.nombre_mascota,
+            "nombre_servicio": r.nombre_servicio,
+            "nombre_veterinario": r.nombre_veterinario,
         }
-        for r in resultados
+        for r in rows
     ]
 
 
 def get_citas_programadas(db: Session, *, id_veterinario: int) -> List[dict]:
-    """Citas PROGRAMADAS asignadas al veterinario (por Cita.id_veterinario)."""
-    citas = (
-        db.query(Cita)
+    """
+    Citas PROGRAMADAS asignadas al veterinario (por Cita.id_veterinario), YA
+    enriquecidas con nombre de mascota, servicio y veterinario en una sola consulta
+    (reemplaza el N+1 del front: citaMascota/citaServicio/citaVeterinario por fila).
+    El veterinario se resuelve por Resultado_servicio, igual que /consultas/citaVeterinario.
+    """
+    rows = (
+        db.query(
+            Cita.id_cita,
+            Cita.fecha_hora_programada,
+            Cita.estado_cita,
+            Cita.requiere_ayuno,
+            Cita.observaciones,
+            Mascota.nombre.label("nombre_mascota"),
+            Servicio.nombre_servicio.label("nombre_servicio"),
+            _nombre_vet.label("nombre_veterinario"),
+        )
         .filter(
             Cita.id_veterinario == id_veterinario,
             Cita.estado_cita == "Programada",
         )
+        .outerjoin(Mascota, Mascota.id_mascota == Cita.id_mascota)
+        .outerjoin(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Cita.id_servicio_solicitado)
+        .outerjoin(Servicio, Servicio.id_servicio == ServicioSolicitado.id_servicio)
+        .outerjoin(ResultadoServicio, ResultadoServicio.id_cita == Cita.id_cita)
+        .outerjoin(Veterinario, Veterinario.id_veterinario == ResultadoServicio.id_veterinario)
         .order_by(Cita.fecha_hora_programada.asc())
         .all()
     )
 
-    # Mismo envoltorio { "cita": {...} } que /resultados-citas para reutilizar el
-    # render del frontend (que pide mascota/servicio/veterinario por id_cita).
+    # Mismo envoltorio { "cita": {...} } + nombres, para el render del frontend.
     return [
         {
             "cita": {
-                "id_cita": c.id_cita,
-                "fecha_hora_programada": c.fecha_hora_programada,
-                "estado_cita": c.estado_cita,
-                "requiere_ayuno": c.requiere_ayuno,
-                "observaciones": c.observaciones,
-            }
+                "id_cita": r.id_cita,
+                "fecha_hora_programada": r.fecha_hora_programada,
+                "estado_cita": r.estado_cita,
+                "requiere_ayuno": r.requiere_ayuno,
+                "observaciones": r.observaciones,
+            },
+            "nombre_mascota": r.nombre_mascota,
+            "nombre_servicio": r.nombre_servicio,
+            "nombre_veterinario": r.nombre_veterinario,
         }
-        for c in citas
+        for r in rows
     ]
 
 

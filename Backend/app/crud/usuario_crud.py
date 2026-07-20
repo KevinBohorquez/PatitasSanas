@@ -36,6 +36,31 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
         """Obtener usuario por username"""
         return db.query(Usuario).filter(Usuario.username == username).first()
 
+    def get_info_by_ids(self, db: Session, *, ids: List[int]) -> Dict[int, Dict[str, Any]]:
+        """Mapa {id_usuario: {'username', 'estado'}} para un conjunto de ids en UNA
+        sola consulta (bulk), para enriquecer listados sin N+1."""
+        ids = [i for i in ids if i]
+        if not ids:
+            return {}
+        rows = db.query(Usuario.id_usuario, Usuario.username, Usuario.estado).filter(
+            Usuario.id_usuario.in_(ids)
+        ).all()
+        return {r.id_usuario: {"username": r.username, "estado": r.estado} for r in rows}
+
+    def enriquecer_con_usuario(self, db: Session, *, entities: List[Any]) -> List[Dict[str, Any]]:
+        """Serializa una lista de entidades con `id_usuario` (veterinario/administrador/
+        recepcionista) a dicts, añadiendo `username` y `estado` del Usuario asociado en un
+        único bulk fetch. Reemplaza el N+1 del front (1 fetch a /usuarios/{id} por fila)."""
+        info = self.get_info_by_ids(db, ids=[getattr(e, "id_usuario", None) for e in entities])
+        out = []
+        for e in entities:
+            d = {c.name: getattr(e, c.name) for c in e.__table__.columns}
+            ui = info.get(getattr(e, "id_usuario", None))
+            d["username"] = ui["username"] if ui else None
+            d["estado"] = ui["estado"] if ui else None
+            out.append(d)
+        return out
+
     def authenticate(self, db: Session, *, username: str, password: str) -> Optional[Usuario]:
         """Autenticar usuario (sin hash por simplicidad)"""
         usuario = self.get_by_username(db, username=username)

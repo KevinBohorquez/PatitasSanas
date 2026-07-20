@@ -51,33 +51,6 @@ const SolicitudesAtencion = () => {
     }
   };
 
-  // Función para obtener datos de mascota por ID
-  const fetchMascota = async (mascotaId) => {
-    try {
-      // SC-060 / F43: se usa /details (no /{id}) porque el endpoint simple NO
-      // devuelve el cliente. Sin él, más abajo caíamos a un fallback erróneo que
-      // usaba el id de la mascota como si fuera id de cliente (dueño equivocado).
-      const response = await apiFetch(`/mascotas/${mascotaId}/details`);
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error(`Error al obtener mascota ${mascotaId}:`, error);
-      return null;
-    }
-  };
-
-  // Función para obtener datos de cliente por ID
-  const fetchCliente = async (clienteId) => {
-    try {
-      const response = await apiFetch(`/clientes/${clienteId}`);
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error(`Error al obtener cliente ${clienteId}:`, error);
-      return null;
-    }
-  };
-
   // Función para obtener datos de la API
   const fetchSolicitudes = async () => {
       try {
@@ -97,30 +70,19 @@ const SolicitudesAtencion = () => {
 
         const data = await response.json();
 
-        // Obtener datos de mascotas y clientes para cada solicitud
-        const solicitudesConDatos = await Promise.all(
-          data.map(async (solicitud) => {
-            const mascota = await fetchMascota(solicitud.id_mascota);
-            // SC-060 / F43: el id del dueño viene anidado en mascota.cliente.id_cliente.
-            // Ya NO se usa solicitud.id_mascota como fallback (era un id de mascota, no
-            // de cliente, y mostraba un dueño ajeno).
-            const idCliente = mascota?.cliente?.id_cliente;
-            const cliente = idCliente ? await fetchCliente(idCliente) : null;
-
-            return {
-              id: solicitud.id_solicitud,
-              mascota: mascota ? mascota.nombre : `Mascota ${solicitud.id_mascota}`,
-              cliente: cliente ? `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno}` : `Cliente ${solicitud.id_mascota}`,
-              fecha: formatearFecha(solicitud.fecha_hora_solicitud),
-              hora: formatearHora(solicitud.fecha_hora_solicitud),
-              estado: mapearEstado(solicitud.estado),
-              urgencia: mapearUrgencia(solicitud.tipo_solicitud),
-              _original: solicitud,
-              _mascota: mascota,
-              _cliente: cliente
-            };
-          })
-        );
+        // El endpoint ya devuelve nombre de mascota y del cliente principal resueltos
+        // por JOIN, así que se elimina el N+1 (antes, por cada solicitud:
+        // /mascotas/{id}/details + /clientes/{id}).
+        const solicitudesConDatos = data.map((solicitud) => ({
+          id: solicitud.id_solicitud,
+          mascota: solicitud.nombre_mascota || `Mascota ${solicitud.id_mascota}`,
+          cliente: solicitud.nombre_cliente || `Cliente ${solicitud.id_mascota}`,
+          fecha: formatearFecha(solicitud.fecha_hora_solicitud),
+          hora: formatearHora(solicitud.fecha_hora_solicitud),
+          estado: mapearEstado(solicitud.estado),
+          urgencia: mapearUrgencia(solicitud.tipo_solicitud),
+          _original: solicitud,
+        }));
 
         setSolicitudes(solicitudesConDatos);
       } catch (error) {

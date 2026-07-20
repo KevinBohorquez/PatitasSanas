@@ -10,6 +10,7 @@ from app.schemas.recepcionista_schema import (
     RecepcionistaResponse
 )
 from app.crud.recepcionista_crud import recepcionista
+from app.crud.usuario_crud import usuario
 
 router = APIRouter()
 
@@ -31,6 +32,10 @@ async def get_recepcionistas(
         recepcionistas, total = recepcionista.get_paginated(
             db, skip=skip, limit=per_page, turno=turno, genero=genero
         )
+
+        # Ya enriquecido con username + estado del usuario (bulk), elimina el N+1
+        # del front (1 fetch a /usuarios/{id} por fila).
+        recepcionistas = usuario.enriquecer_con_usuario(db, entities=recepcionistas)
 
         return {
             "recepcionistas": recepcionistas,

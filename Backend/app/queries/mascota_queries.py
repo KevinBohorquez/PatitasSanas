@@ -12,7 +12,8 @@ from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.models import (
-    SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal,
+    SolicitudAtencion, Recepcionista, Cita, Servicio, ServicioSolicitado, TipoAnimal, Raza,
+    Consulta, Triaje,
 )
 from app.models.mascota import Mascota
 from app.models.cliente_mascota import ClienteMascota
@@ -76,6 +77,122 @@ def listar_con_cliente_especie(
         })
 
     return result, total
+
+
+def listar_enriquecidas(
+    db: Session, *, page: int = 1, per_page: int = 20
+) -> Tuple[List[dict], int]:
+    """
+    Mascotas paginadas con especie, raza, próxima cita y última atención resueltas en
+    UNA sola consulta con JOINs/subconsultas. Reemplaza el patrón N+1 del frontend
+    (1 + N*3 peticiones: /info, /proxima-cita y /ultima-atencion por mascota) en el
+    listado del veterinario. Devuelve (items, total).
+    """
+    now = datetime.now()
+
+    # Próxima cita por mascota: la fecha programada futura más cercana.
+    pc = (
+        db.query(
+            Cita.id_mascota.label("id_mascota"),
+            func.min(Cita.fecha_hora_programada).label("proxima_cita"),
+        )
+        .filter(Cita.estado_cita == "Programada", Cita.fecha_hora_programada > now)
+        .group_by(Cita.id_mascota)
+        .subquery()
+    )
+
+    # Última atención por mascota: la solicitud real (completada/en atención) más reciente.
+    ua = (
+        db.query(
+            SolicitudAtencion.id_mascota.label("id_mascota"),
+            func.max(SolicitudAtencion.fecha_hora_solicitud).label("ultima_atencion"),
+        )
+        .filter(SolicitudAtencion.estado.in_(["Completada", "En atencion"]))
+        .group_by(SolicitudAtencion.id_mascota)
+        .subquery()
+    )
+
+    query = (
+        db.query(
+            Mascota.id_mascota,
+            Mascota.nombre,
+            Mascota.sexo,
+            Mascota.color,
+            TipoAnimal.descripcion.label("especie"),
+            Raza.nombre_raza.label("raza"),
+            pc.c.proxima_cita,
+            ua.c.ultima_atencion,
+        )
+        .outerjoin(Raza, Raza.id_raza == Mascota.id_raza)
+        .outerjoin(TipoAnimal, TipoAnimal.id_raza == Mascota.id_raza)
+        .outerjoin(pc, pc.c.id_mascota == Mascota.id_mascota)
+        .outerjoin(ua, ua.c.id_mascota == Mascota.id_mascota)
+        .order_by(Mascota.id_mascota)
+    )
+
+    total = db.query(func.count(Mascota.id_mascota)).scalar()
+
+    rows = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    items = [
+        {
+            "id_mascota": r.id_mascota,
+            "nombre": r.nombre,
+            "sexo": r.sexo,
+            "color": r.color,
+            "especie": r.especie,
+            "raza": r.raza,
+            "proxima_cita": r.proxima_cita,
+            "ultima_atencion": r.ultima_atencion,
+        }
+        for r in rows
+    ]
+
+    return items, total
+
+
+def listar_para_selector(db: Session) -> List[dict]:
+    """
+    Todas las mascotas con su especie y su dueño principal (cliente de menor id_cliente),
+    resueltas en UNA sola consulta con JOINs. Alimenta los selectores "Mascota (Dueño)" de
+    los formularios de Nueva Solicitud / Nueva Cita, reemplazando el patrón N+1 del front
+    (1 fetch a /catalogos/cliente-mascota/mascota/{id} por mascota).
+    """
+    # Cliente principal por mascota = el de menor id_cliente asociado.
+    cp = (
+        db.query(
+            ClienteMascota.id_mascota.label("id_mascota"),
+            func.min(ClienteMascota.id_cliente).label("id_cliente"),
+        )
+        .group_by(ClienteMascota.id_mascota)
+        .subquery()
+    )
+
+    rows = (
+        db.query(
+            Mascota.id_mascota,
+            Mascota.nombre,
+            TipoAnimal.descripcion.label("especie"),
+            func.concat_ws(
+                " ", Cliente.nombre, Cliente.apellido_paterno, Cliente.apellido_materno
+            ).label("nombre_dueno"),
+        )
+        .outerjoin(TipoAnimal, TipoAnimal.id_raza == Mascota.id_raza)
+        .outerjoin(cp, cp.c.id_mascota == Mascota.id_mascota)
+        .outerjoin(Cliente, Cliente.id_cliente == cp.c.id_cliente)
+        .order_by(Mascota.nombre)
+        .all()
+    )
+
+    return [
+        {
+            "id_mascota": r.id_mascota,
+            "nombre": r.nombre,
+            "especie": r.especie,
+            "nombre_dueño": r.nombre_dueno or "Sin dueño asignado",
+        }
+        for r in rows
+    ]
 
 
 def get_cliente_y_raza(db: Session, *, mascota_id: int, id_raza: int) -> dict:
@@ -201,14 +318,39 @@ def get_id_mascota_de_consulta(db: Session, *, consulta_id: int) -> Optional[int
 
 
 def get_cliente_servicio(db: Session, *, id_mascota: int) -> List[dict]:
-    """Mascota con su cliente y servicios solicitados (4 tablas en JOIN)."""
+    """
+    Servicios que una mascota tiene solicitados y aún puede citar (estado 'Solicitado'),
+    junto con su cliente principal.
+
+    El vínculo servicio→mascota NO es directo: un Servicio_Solicitado nace en una Consulta,
+    que cuelga de un Triaje, que cuelga de la Solicitud_atencion (la que sí tiene la mascota).
+    Esa es la cadena que se recorre aquí:
+        Servicio_Solicitado → Consulta → Triaje → Solicitud_atencion → Mascota
+    """
+    # Cliente principal de la mascota = el de menor id_cliente asociado.
+    cliente = (
+        db.query(Cliente)
+        .join(ClienteMascota, ClienteMascota.id_cliente == Cliente.id_cliente)
+        .filter(ClienteMascota.id_mascota == id_mascota)
+        .order_by(Cliente.id_cliente)
+        .first()
+    )
+    nombre_cliente = (
+        f"{cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}"
+        if cliente else None
+    )
+
     result = (
-        db.query(Mascota, Cliente, Servicio, ServicioSolicitado)
-        .join(ClienteMascota, Mascota.id_mascota == ClienteMascota.id_mascota)
-        .join(Cliente, ClienteMascota.id_cliente == Cliente.id_cliente)
-        .join(ServicioSolicitado, ServicioSolicitado.id_servicio_solicitado == Mascota.id_mascota)
+        db.query(Mascota, Servicio, ServicioSolicitado)
+        .join(SolicitudAtencion, SolicitudAtencion.id_mascota == Mascota.id_mascota)
+        .join(Triaje, Triaje.id_solicitud == SolicitudAtencion.id_solicitud)
+        .join(Consulta, Consulta.id_triaje == Triaje.id_triaje)
+        .join(ServicioSolicitado, ServicioSolicitado.id_consulta == Consulta.id_consulta)
         .join(Servicio, ServicioSolicitado.id_servicio == Servicio.id_servicio)
-        .filter(Mascota.id_mascota == id_mascota)
+        .filter(
+            Mascota.id_mascota == id_mascota,
+            ServicioSolicitado.estado_examen == "Solicitado",
+        )
         .all()
     )
 
@@ -216,11 +358,11 @@ def get_cliente_servicio(db: Session, *, id_mascota: int) -> List[dict]:
         {
             "id_mascota": m.id_mascota,
             "nombre_mascota": m.nombre,
-            "id_cliente": c.id_cliente,
-            "nombre_cliente": f"{c.nombre} {c.apellido_paterno} {c.apellido_materno}",
-            "id_servicio_solicitado": ss.id_servicio_solicitado if ss else None,
-            "nombre_servicio": s.nombre_servicio if s else None,
-            "id_servicio": s.id_servicio if s else None,
+            "id_cliente": cliente.id_cliente if cliente else None,
+            "nombre_cliente": nombre_cliente,
+            "id_servicio_solicitado": ss.id_servicio_solicitado,
+            "nombre_servicio": s.nombre_servicio,
+            "id_servicio": s.id_servicio,
         }
-        for m, c, s, ss in result
+        for m, s, ss in result
     ]

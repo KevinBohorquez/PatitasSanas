@@ -211,10 +211,11 @@ const SolicitudesManagement = () => {
     }
   };
 
-  // Función para obtener todas las mascotas
+  // Función para obtener todas las mascotas con su dueño (ya enriquecidas por el backend,
+  // 1 sola petición en vez de 1 + N a /catalogos/cliente-mascota/mascota/{id}).
   const fetchMascotas = async () => {
     try {
-      const response = await apiFetch(`${BASE_URL}/mascotas/?per_page=100`, {
+      const response = await apiFetch(`${BASE_URL}/mascotas/selector`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -223,49 +224,7 @@ const SolicitudesManagement = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        const mascotasData = data.mascotas || data;
-        // console.log('Datos de mascotas recibidos:', mascotasData); // Debug
-        
-        const mascotasConDueño = await Promise.all(
-          mascotasData.map(async (mascota) => {
-            // console.log(`Procesando mascota ID: ${mascota.id_mascota}`); // Debug
-            
-            try {
-              // Usar el endpoint correcto para obtener información del cliente
-              const clienteMascotaResponse = await apiFetch(`${BASE_URL}/catalogos/cliente-mascota/mascota/${mascota.id_mascota}`, {
-                method: 'GET',
-                mode: 'cors',
-                headers: { 'Accept': 'application/json' },
-              });
-              
-              if (clienteMascotaResponse.ok) {
-                const clienteMascotaData = await clienteMascotaResponse.json();
-                // console.log(`Datos cliente-mascota para ${mascota.id_mascota}:`, JSON.stringify(clienteMascotaData, null, 2)); // Debug expandido
-                
-                let nombreDueño = 'Sin dueño asignado';
-                
-                // La estructura correcta es: clienteMascotaData.clientes[0].nombre_completo
-                if (clienteMascotaData.clientes && clienteMascotaData.clientes.length > 0) {
-                  nombreDueño = clienteMascotaData.clientes[0].nombre_completo;
-                }
-                
-                return {
-                  ...mascota,
-                  nombre_dueño: nombreDueño
-                };
-              } else {
-                // console.log(`Error al obtener cliente para mascota ${mascota.id_mascota}, status:`, clienteMascotaResponse.status);
-                return { ...mascota, nombre_dueño: 'Sin dueño asignado' };
-              }
-            } catch (error) {
-              console.error(`Error al obtener cliente para mascota ${mascota.id_mascota}:`, error);
-              return { ...mascota, nombre_dueño: 'Error al cargar' };
-            }
-          })
-        );
-        
-        // console.log('Mascotas procesadas:', mascotasConDueño); // Debug
-        setMascotas(mascotasConDueño);
+        setMascotas(data.mascotas || []);
       } else {
         console.error('Error al cargar mascotas:', response.statusText);
       }

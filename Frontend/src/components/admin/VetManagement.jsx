@@ -316,29 +316,6 @@ const VetManagement = () => {
     }
   };
 
-  // Función para obtener información de usuario
-  const fetchUserInfo = async (userId) => {
-    try {
-      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const userData = await response.json();
-      return userData;
-    } catch (error) {
-      console.error('Error obteniendo información de usuario:', error);
-      return null;
-    }
-  };
-
   // Función para obtener especialidades
   const fetchEspecialidades = async () => {
     try {
@@ -401,33 +378,13 @@ const VetManagement = () => {
         );
       }
 
-      // Enriquecer con información de usuario
-      const veterinariosCompletos = await Promise.all(
-        filteredData.map(async (vet) => {
-          try {
-            if (vet.id_usuario) {
-              const userInfo = await fetchUserInfo(vet.id_usuario);
-              return {
-                ...vet,
-                username: userInfo?.username || 'N/A',
-                estado_usuario: userInfo?.estado || 'N/A'
-              };
-            }
-            return {
-              ...vet,
-              username: 'N/A',
-              estado_usuario: 'N/A'
-            };
-          } catch (error) {
-            console.warn(`Error obteniendo info de usuario para veterinario ${vet.id_veterinario}:`, error);
-            return {
-              ...vet,
-              username: 'N/A',
-              estado_usuario: 'N/A'
-            };
-          }
-        })
-      );
+      // El endpoint ya devuelve username y estado del usuario por veterinario, así
+      // que se elimina el N+1 (antes 1 fetch a /usuarios/{id} por fila).
+      const veterinariosCompletos = filteredData.map((vet) => ({
+        ...vet,
+        username: vet.username || 'N/A',
+        estado_usuario: vet.estado || 'N/A'
+      }));
 
       // Nota: ya NO se filtran los veterinarios inactivos aquí. Antes se
       // ocultaban por completo de la lista, lo que hacía imposible

@@ -101,6 +101,59 @@ async def get_mascotas(
     }
 
 
+@router.get("/enriquecidas")
+async def get_mascotas_enriquecidas(
+        db: Session = Depends(get_db),
+        page: int = Query(1, ge=1, description="Número de página"),
+        per_page: int = Query(20, ge=1, le=100, description="Elementos por página")
+):
+    """
+    Listado de mascotas ya enriquecido (especie, raza, próxima cita y última atención)
+    resuelto en UNA sola consulta con JOINs, paginado en el servidor.
+
+    Reemplaza el patrón N+1 del listado del veterinario (1 + N*3 peticiones HTTP por
+    fila: /info, /proxima-cita y /ultima-atencion) por una única respuesta.
+
+    IMPORTANTE: debe declararse ANTES de "/{mascota_id}" para que FastAPI no intente
+    parsear "enriquecidas" como un id (causaría un 422).
+    """
+    try:
+        mascotas, total = mascota_queries.listar_enriquecidas(db, page=page, per_page=per_page)
+        return {
+            "mascotas": mascotas,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener mascotas enriquecidas: {str(e)}"
+        )
+
+
+@router.get("/selector")
+async def get_mascotas_selector(db: Session = Depends(get_db)):
+    """
+    Todas las mascotas con su especie y dueño principal, en UNA sola consulta, para los
+    selectores "Mascota (Dueño)" de los formularios de Nueva Solicitud / Nueva Cita.
+
+    Reemplaza el patrón N+1 del front (1 fetch a /catalogos/cliente-mascota/mascota/{id}
+    por mascota → ~N peticiones por apertura del formulario).
+
+    IMPORTANTE: debe declararse ANTES de "/{mascota_id}" para que FastAPI no intente
+    parsear "selector" como un id (causaría un 422).
+    """
+    try:
+        return {"mascotas": mascota_queries.listar_para_selector(db)}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener mascotas para selector: {str(e)}"
+        )
+
+
 @router.get("/{mascota_id}", response_model=MascotaResponse)
 async def get_mascota(
         mascota_obj: Mascota = Depends(get_mascota_or_404)
@@ -372,12 +425,8 @@ async def get_ultima_atencion_mascota(
 @router.get("/mascota_cliente_servicio/{id_mascota}", response_model=List[dict])
 async def get_mascota_cliente_servicio(id_mascota: int, db: Session = Depends(get_db)):
     try:
-        data = mascota_queries.get_cliente_servicio(db, id_mascota=id_mascota)
-
-        if not data:
-            raise HTTPException(status_code=404, detail="Mascota no encontrada o no tiene servicios asociados")
-
-        return data
-
+        # Lista vacía (200) si la mascota no tiene servicios en estado 'Solicitado': es un
+        # estado válido (no hay nada que citar), no un error.
+        return mascota_queries.get_cliente_servicio(db, id_mascota=id_mascota)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener datos: {str(e)}")

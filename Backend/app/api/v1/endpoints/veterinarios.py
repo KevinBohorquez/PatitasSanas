@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.config.database import get_db
 from app.crud import veterinario
+from app.crud.usuario_crud import usuario
 from app.crud.catalogo import especialidad as especialidad_crud
 from app.queries import veterinario_queries
 from app.schemas import VeterinarioResponse, VeterinarioCreate, VeterinarioUpdate
@@ -34,6 +35,10 @@ async def get_veterinarios(
             especialidad=especialidad, tipo_veterinario=tipo_veterinario,
             disposicion=disposicion, turno=turno, solo_activos=solo_activos
         )
+
+        # Ya enriquecido con username + estado del usuario (bulk), elimina el N+1
+        # del front (1 fetch a /usuarios/{id} por fila).
+        veterinarios = usuario.enriquecer_con_usuario(db, entities=veterinarios)
 
         return {
             "veterinarios": veterinarios,
