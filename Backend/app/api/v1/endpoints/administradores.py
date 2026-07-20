@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.config.database import get_db
 from app.crud.administrador_crud import administrador
+from app.crud.usuario_crud import usuario
 from app.schemas.administrador_schema import (
     AdministradorCreate, AdministradorUpdate, AdministradorResponse,
     AdministradorWithUsuarioResponse, AdministradorListResponse,
@@ -59,7 +60,7 @@ async def create_administrador(
         )
 
 
-@router.get("/", response_model=AdministradorListResponse)
+@router.get("/")
 async def get_administradores(
         db: Session = Depends(get_db),
         page: int = Query(1, ge=1, description="Número de página"),
@@ -82,6 +83,11 @@ async def get_administradores(
             administradores, total = administrador.get_paginated(
                 db, skip=skip, limit=per_page, genero=genero
             )
+
+        # Ya enriquecido con username + estado del usuario (bulk), elimina el N+1
+        # del front (1 fetch a /usuarios/{id} por fila). Sin response_model porque la
+        # respuesta incluye esos campos extra.
+        administradores = usuario.enriquecer_con_usuario(db, entities=administradores)
 
         return {
             "administradores": administradores,

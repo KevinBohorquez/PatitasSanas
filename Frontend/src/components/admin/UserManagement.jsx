@@ -44,27 +44,6 @@ const UserManagement = () => {
     return `admin_${primerNombre}`;
   };
 
-  const fetchUserInfo = async (userId) => {
-    try {
-      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const userData = await response.json();
-      return userData;
-    } catch (error) {
-      console.error('Error obteniendo información de usuario:', error);
-      return null;
-    }
-  };
 
   const createAdministrador = async (adminData) => {
     try {
@@ -215,33 +194,12 @@ const UserManagement = () => {
         );
       }
 
-      // ✅ CORREGIDO: Enriquecer con información de usuario (como en VetManagement)
-      const administradoresCompletos = await Promise.all(
-        filteredData.map(async (admin) => {
-          try {
-            if (admin.id_usuario) {
-              const userInfo = await fetchUserInfo(admin.id_usuario);
-              return {
-                ...admin,
-                username: userInfo?.username || 'N/A',
-                id_usuario: admin.id_usuario
-              };
-            }
-            return {
-              ...admin,
-              username: 'N/A',
-              id_usuario: null
-            };
-          } catch (error) {
-            console.warn(`Error obteniendo info de usuario para admin ${admin.id_administrador}:`, error);
-            return {
-              ...admin,
-              username: 'N/A',
-              id_usuario: null
-            };
-          }
-        })
-      );
+      // El endpoint ya devuelve username por administrador, así que se elimina el
+      // N+1 (antes 1 fetch a /usuarios/{id} por fila).
+      const administradoresCompletos = filteredData.map((admin) => ({
+        ...admin,
+        username: admin.username || 'N/A',
+      }));
 
       const mappedUsers = administradoresCompletos.map(admin => ({
         id: admin.id_administrador,

@@ -237,28 +237,6 @@ const ReceptionistManagement = () => {
     }
   };
 
-  // Función para obtener información de usuario
-  const fetchUserInfo = async (userId) => {
-    try {
-      const response = await apiFetch(`${BASE_URL}/usuarios/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const userData = await response.json();
-      return userData;
-    } catch (error) {
-      console.error('Error obteniendo información de usuario:', error);
-      return null;
-    }
-  };
 
   // Función para obtener recepcionistas (SIGUIENDO PATRÓN USERMANAGEMENT)
   const fetchRecepcionistas = async (page = 1, turno = '', search = '') => {
@@ -298,33 +276,13 @@ const ReceptionistManagement = () => {
         );
       }
 
-      // Enriquecer con información de usuario
-      const recepcionistasCompletos = await Promise.all(
-        filteredData.map(async (recep) => {
-          try {
-            if (recep.id_usuario) {
-              const userInfo = await fetchUserInfo(recep.id_usuario);
-              return {
-                ...recep,
-                username: userInfo?.username || 'N/A',
-                estado_usuario: userInfo?.estado || 'N/A'
-              };
-            }
-            return {
-              ...recep,
-              username: 'N/A',
-              estado_usuario: 'N/A'
-            };
-          } catch (error) {
-            console.warn(`Error obteniendo info de usuario para recepcionista ${recep.id_recepcionista}:`, error);
-            return {
-              ...recep,
-              username: 'N/A',
-              estado_usuario: 'N/A'
-            };
-          }
-        })
-      );
+      // El endpoint ya devuelve username y estado del usuario por recepcionista, así
+      // que se elimina el N+1 (antes 1 fetch a /usuarios/{id} por fila).
+      const recepcionistasCompletos = filteredData.map((recep) => ({
+        ...recep,
+        username: recep.username || 'N/A',
+        estado_usuario: recep.estado || 'N/A'
+      }));
 
       // Mostrar todos los recepcionistas (activos e inactivos) para que el conteo
       // "N registros" coincida con las filas visibles. El estado se refleja por fila.
